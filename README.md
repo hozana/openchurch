@@ -4,7 +4,7 @@ A few commands:
 
 - To generate our schema:
 ```
-vendor/bin/schema generate-types src/Entity/ config/schema.yaml
+vendor/bin/schema generate-types config/schema.yaml
 ```
 (`bin/console doctrine:schema:update` don't seems to be needed)
 

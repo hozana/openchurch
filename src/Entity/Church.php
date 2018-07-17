@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Entity;
+namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
@@ -57,7 +57,7 @@ class Church
     /**
      * @var PostalAddress|null physical address of the item
      *
-     * @ORM\ManyToOne(targetEntity="AppBundle\Entity\PostalAddress")
+     * @ORM\ManyToOne(targetEntity="App\Entity\PostalAddress")
      * @ApiProperty(iri="http://schema.org/address")
      */
     private $address;
@@ -88,9 +88,9 @@ class Church
     private $faxNumber;
 
     /**
-     * @var text|null URL of the item
+     * @var string|null URL of the item
      *
-     * @ORM\ManyToOne(targetEntity="AppBundle\Entity\")
+     * @ORM\ManyToOne(targetEntity="App\Entity\")
      * @ApiProperty(iri="http://schema.org/url")
      */
     private $url;
@@ -98,23 +98,23 @@ class Church
     /**
      * @var GeoCoordinates|null the geo coordinates of the place
      *
-     * @ORM\OneToOne(targetEntity="AppBundle\Entity\GeoCoordinates")
+     * @ORM\OneToOne(targetEntity="App\Entity\GeoCoordinates")
      * @ApiProperty(iri="http://schema.org/geo")
      */
     private $geo;
 
     /**
-     * @var text|null a photograph of this place
+     * @var string|null a photograph of this place
      *
-     * @ORM\ManyToOne(targetEntity="AppBundle\Entity\")
+     * @ORM\ManyToOne(targetEntity="App\Entity\")
      * @ApiProperty(iri="http://schema.org/photo")
      */
     private $photo;
 
     /**
-     * @var text|null an associated logo
+     * @var string|null an associated logo
      *
-     * @ORM\ManyToOne(targetEntity="AppBundle\Entity\")
+     * @ORM\ManyToOne(targetEntity="App\Entity\")
      * @ApiProperty(iri="http://schema.org/logo")
      */
     private $logo;
@@ -155,7 +155,7 @@ class Church
     /**
      * @var Event|null upcoming or past event associated with this place, organization, or action
      *
-     * @ORM\ManyToOne(targetEntity="AppBundle\Entity\Event")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Event")
      * @ApiProperty(iri="http://schema.org/event")
      */
     private $event;
@@ -163,7 +163,7 @@ class Church
     /**
      * @var Review|null a review of the item
      *
-     * @ORM\ManyToOne(targetEntity="AppBundle\Entity\Review")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Review")
      * @ApiProperty(iri="http://schema.org/review")
      */
     private $review;
@@ -179,7 +179,7 @@ class Church
     /**
      * @var Collection<OpeningHoursSpecification>|null the opening hours of a certain place
      *
-     * @ORM\ManyToMany(targetEntity="AppBundle\Entity\OpeningHoursSpecification")
+     * @ORM\ManyToMany(targetEntity="App\Entity\OpeningHoursSpecification")
      * @ORM\JoinTable(inverseJoinColumns={@ORM\JoinColumn(unique=true)})
      * @ApiProperty(iri="http://schema.org/openingHoursSpecification")
      */
@@ -188,7 +188,7 @@ class Church
     /**
      * @var OpeningHoursSpecification|null The special opening hours of a certain place.\\n\\nUse this to explicitly override general opening hours brought in scope by \[\[openingHoursSpecification\]\] or \[\[openingHours\]\].
      *
-     * @ORM\OneToOne(targetEntity="AppBundle\Entity\OpeningHoursSpecification")
+     * @ORM\OneToOne(targetEntity="App\Entity\OpeningHoursSpecification")
      * @ApiProperty(iri="http://schema.org/specialOpeningHoursSpecification")
      */
     private $specialOpeningHoursSpecification;
@@ -274,7 +274,7 @@ class Church
     }
 
     /**
-     * @param text|null $url
+     * @param string|null $url
      */
     public function setUrl($url): void
     {
@@ -282,7 +282,7 @@ class Church
     }
 
     /**
-     * @return text|null
+     * @return string|null
      */
     public function getUrl()
     {
@@ -300,7 +300,7 @@ class Church
     }
 
     /**
-     * @param text|null $photo
+     * @param string|null $photo
      */
     public function setPhoto($photo): void
     {
@@ -308,7 +308,7 @@ class Church
     }
 
     /**
-     * @return text|null
+     * @return string|null
      */
     public function getPhoto()
     {
@@ -316,7 +316,7 @@ class Church
     }
 
     /**
-     * @param text|null $logo
+     * @param string|null $logo
      */
     public function setLogo($logo): void
     {
@@ -324,7 +324,7 @@ class Church
     }
 
     /**
-     * @return text|null
+     * @return string|null
      */
     public function getLogo()
     {

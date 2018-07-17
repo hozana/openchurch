@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Entity;
+namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
@@ -47,7 +47,7 @@ class Event
     /**
      * @var Event|null An Event that is part of this event. For example, a conference event includes many presentations, each of which is a subEvent of the conference.
      *
-     * @ORM\ManyToOne(targetEntity="AppBundle\Entity\Event")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Event")
      * @ApiProperty(iri="http://schema.org/subEvent")
      */
     private $subEvent;
@@ -55,7 +55,7 @@ class Event
     /**
      * @var Event|null An event that this event is a part of. For example, a collection of individual music performances might each have a music festival as their superEvent.
      *
-     * @ORM\ManyToOne(targetEntity="AppBundle\Entity\Event")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Event")
      * @ApiProperty(iri="http://schema.org/superEvent")
      */
     private $superEvent;
@@ -63,7 +63,7 @@ class Event
     /**
      * @var Church|null the location of for example where the event is happening, an organization is located, or where an action takes place
      *
-     * @ORM\OneToOne(targetEntity="AppBundle\Entity\Church")
+     * @ORM\OneToOne(targetEntity="App\Entity\Church")
      * @ApiProperty(iri="http://schema.org/location")
      */
     private $location;
@@ -77,9 +77,9 @@ class Event
     private $isAccessibleForFree;
 
     /**
-     * @var text|null The language of the content or performance or used in an action. Please use one of the language codes from the \[IETF BCP 47 standard\](http://tools.ietf.org/html/bcp47). See also \[\[availableLanguage\]\].
+     * @var string|null The language of the content or performance or used in an action. Please use one of the language codes from the \[IETF BCP 47 standard\](http://tools.ietf.org/html/bcp47). See also \[\[availableLanguage\]\].
      *
-     * @ORM\OneToOne(targetEntity="AppBundle\Entity\")
+     * @ORM\OneToOne(targetEntity="App\Entity\")
      * @ApiProperty(iri="http://schema.org/inLanguage")
      */
     private $inLanguage;
@@ -114,7 +114,7 @@ class Event
     /**
      * @var number|null The duration of the item (movie, audio recording, event, etc.) in \[ISO 8601 date format\](http://en.wikipedia.org/wiki/ISO\_8601).
      *
-     * @ORM\OneToOne(targetEntity="AppBundle\Entity\")
+     * @ORM\OneToOne(targetEntity="App\Entity\")
      * @ApiProperty(iri="http://schema.org/duration")
      */
     private $duration;
@@ -185,7 +185,7 @@ class Event
     }
 
     /**
-     * @param text|null $inLanguage
+     * @param string|null $inLanguage
      */
     public function setInLanguage($inLanguage): void
     {
@@ -193,7 +193,7 @@ class Event
     }
 
     /**
-     * @return text|null
+     * @return string|null
      */
     public function getInLanguage()
     {

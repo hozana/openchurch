@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Entity;
+namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
@@ -31,15 +31,15 @@ class Review
     /**
      * @var Church|null the item that is being reviewed/rated
      *
-     * @ORM\OneToOne(targetEntity="AppBundle\Entity\Church")
+     * @ORM\OneToOne(targetEntity="App\Entity\Church")
      * @ApiProperty(iri="http://schema.org/itemReviewed")
      */
     private $itemReviewed;
 
     /**
-     * @var text
+     * @var string
      *
-     * @ORM\OneToOne(targetEntity="AppBundle\Entity\")
+     * @ORM\OneToOne(targetEntity="App\Entity\")
      * @ORM\JoinColumn(nullable=false)
      * @Assert\NotNull
      */
@@ -56,7 +56,7 @@ class Review
     /**
      * @var number|null The rating given in this review. Note that reviews can themselves be rated. The ```reviewRating``` applies to rating given by the review. The \[\[aggregateRating\]\] property applies to the review itself, as a creative work.
      *
-     * @ORM\OneToOne(targetEntity="AppBundle\Entity\")
+     * @ORM\OneToOne(targetEntity="App\Entity\")
      * @ApiProperty(iri="http://schema.org/reviewRating")
      */
     private $reviewRating;
@@ -77,7 +77,7 @@ class Review
     }
 
     /**
-     * @param text $reviewAspect
+     * @param string $reviewAspect
      */
     public function setReviewAspect($reviewAspect): void
     {
@@ -85,7 +85,7 @@ class Review
     }
 
     /**
-     * @return text
+     * @return string
      */
     public function getReviewAspect()
     {

@@ -8,10 +8,10 @@ types:
             hasMap: ~
             telephone: ~
             faxNumber: ~
-            url: { range: text }
+            url: { range: string }
             geo: { range: GeoCoordinates }
-            photo: { range: text }
-            logo: { range: text }
+            photo: { range: string }
+            logo: { range: string }
             isAccessibleForFree: ~
             publicAccess: ~
             maximumAttendeeCapacity: ~
@@ -40,7 +40,7 @@ types:
             superEvent: ~
             location: { range: Church }
             isAccessibleForFree: ~
-            inLanguage: { range: text }
+            inLanguage: { range: string }
             startDate: { range: DateTime }
             endDate: { range: DateTime }
             doorTime: ~
@@ -58,6 +58,6 @@ types:
     Review:
         properties:
             itemReviewed: { range: Church }
-            reviewAspect: { range: text }
+            reviewAspect: { range: string }
             reviewBody: ~
             reviewRating: { range: number }
