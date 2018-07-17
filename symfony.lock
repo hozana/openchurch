@@ -11,6 +11,15 @@
             "ref": "18727d8f229306860b46955f438e1897421da689"
         }
     },
+    "api-platform/schema-generator": {
+        "version": "v2.1.0"
+    },
+    "composer/semver": {
+        "version": "1.4.2"
+    },
+    "composer/xdebug-handler": {
+        "version": "1.1.0"
+    },
     "doctrine/annotations": {
         "version": "1.0",
         "recipe": {
@@ -65,8 +74,26 @@
     "doctrine/reflection": {
         "version": "v1.0.0"
     },
+    "easyrdf/easyrdf": {
+        "version": "0.9.1"
+    },
+    "friendsofphp/php-cs-fixer": {
+        "version": "2.2",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "master",
+            "version": "2.2",
+            "ref": "81dee417d2cc60cd1c9d6208dff2ec22a1103e93"
+        }
+    },
     "jdorn/sql-formatter": {
         "version": "v1.2.17"
+    },
+    "league/html-to-markdown": {
+        "version": "4.7.0"
+    },
+    "myclabs/php-enum": {
+        "version": "1.6.1"
     },
     "nelmio/cors-bundle": {
         "version": "1.5",
@@ -76,6 +103,9 @@
             "version": "1.5",
             "ref": "1fee84e00c71edee81aa54b470260779a890c9c6"
         }
+    },
+    "php-cs-fixer/diff": {
+        "version": "v1.3.0"
     },
     "phpdocumentor/reflection-common": {
         "version": "1.0.1"
@@ -170,8 +200,17 @@
     "symfony/lts": {
         "version": "4-dev"
     },
+    "symfony/options-resolver": {
+        "version": "v4.1.1"
+    },
     "symfony/polyfill-mbstring": {
         "version": "v1.8.0"
+    },
+    "symfony/polyfill-php72": {
+        "version": "v1.8.0"
+    },
+    "symfony/process": {
+        "version": "v4.1.1"
     },
     "symfony/property-access": {
         "version": "v4.1.1"
@@ -201,6 +240,9 @@
         }
     },
     "symfony/serializer": {
+        "version": "v4.1.1"
+    },
+    "symfony/stopwatch": {
         "version": "v4.1.1"
     },
     "symfony/translation": {

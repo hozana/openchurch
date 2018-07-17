@@ -1,0 +1,63 @@
+types:
+    Church:
+        properties:
+            name: ~
+            alternateName: ~
+            description: ~
+            address: { range: PostalAddress }
+            hasMap: ~
+            telephone: ~
+            faxNumber: ~
+            url: { range: text }
+            geo: { range: GeoCoordinates }
+            photo: { range: text }
+            logo: { range: text }
+            isAccessibleForFree: ~
+            publicAccess: ~
+            maximumAttendeeCapacity: ~
+            additionalType: ~
+            event: { range: Event }
+            review: { range: Review }
+            openingHours: ~
+            openingHoursSpecification: { range: OpeningHoursSpecification }
+            specialOpeningHoursSpecification: { range: OpeningHoursSpecification }
+    GeoCoordinates:
+        properties:
+            latitude: { range: Number }
+            longitude: { range: Number }
+    PostalAddress:
+        properties:
+            addressCountry: ~
+            addressLocality: ~
+            addressRegion: ~
+            postalCode: ~
+            streetAddress: ~
+    Event:
+        properties:
+            name: ~
+            description: ~
+            subEvent: ~
+            superEvent: ~
+            location: { range: Church }
+            isAccessibleForFree: ~
+            inLanguage: { range: text }
+            startDate: { range: DateTime }
+            endDate: { range: DateTime }
+            doorTime: ~
+            duration: { range: number }
+    OpeningHoursSpecification:
+        properties:
+            opens: ~
+            closes: ~
+            dayOfWeek: { range: DayOfWeek }
+            validFrom: ~
+            validThrough: ~
+    DayOfWeek:
+        properties:
+            name: ~
+    Review:
+        properties:
+            itemReviewed: { range: Church }
+            reviewAspect: { range: text }
+            reviewBody: ~
+            reviewRating: { range: number }
