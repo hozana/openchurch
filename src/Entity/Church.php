@@ -97,8 +97,7 @@ class Church
     /**
      * @var string
      *
-     * @ORM\OneToOne(targetEntity="App\Entity\")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\Column(type="text")
      * @Assert\NotNull
      */
     private $wikidataId;
@@ -106,8 +105,7 @@ class Church
     /**
      * @var string
      *
-     * @ORM\OneToOne(targetEntity="App\Entity\")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\Column(type="text")
      * @Assert\NotNull
      */
     private $merimeeId;
@@ -115,8 +113,7 @@ class Church
     /**
      * @var string
      *
-     * @ORM\OneToOne(targetEntity="App\Entity\")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\Column(type="text")
      * @Assert\NotNull
      */
     private $egliseInfoId;
@@ -124,8 +121,7 @@ class Church
     /**
      * @var string
      *
-     * @ORM\OneToOne(targetEntity="App\Entity\")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\Column(type="text")
      * @Assert\NotNull
      */
     private $wikipediaId;
@@ -133,8 +129,7 @@ class Church
     /**
      * @var string
      *
-     * @ORM\OneToOne(targetEntity="App\Entity\")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\Column(type="text")
      * @Assert\NotNull
      */
     private $commonsId;
@@ -142,8 +137,7 @@ class Church
     /**
      * @var string
      *
-     * @ORM\OneToOne(targetEntity="App\Entity\")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\Column(type="text")
      * @Assert\NotNull
      */
     private $clochersId;
@@ -151,8 +145,7 @@ class Church
     /**
      * @var string
      *
-     * @ORM\OneToOne(targetEntity="App\Entity\")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\Column(type="text")
      * @Assert\NotNull
      */
     private $patrimoineReligieuxId;
@@ -160,7 +153,7 @@ class Church
     /**
      * @var string|null URL of the item
      *
-     * @ORM\ManyToOne(targetEntity="App\Entity\")
+     * @ORM\Column(type="text", nullable=true)
      * @ApiProperty(iri="http://schema.org/url")
      */
     private $url;
@@ -176,7 +169,7 @@ class Church
     /**
      * @var string|null a photograph of this place
      *
-     * @ORM\ManyToOne(targetEntity="App\Entity\")
+     * @ORM\Column(type="text", nullable=true)
      * @ApiProperty(iri="http://schema.org/photo")
      */
     private $photo;
@@ -184,7 +177,7 @@ class Church
     /**
      * @var string|null an associated logo
      *
-     * @ORM\ManyToOne(targetEntity="App\Entity\")
+     * @ORM\Column(type="text", nullable=true)
      * @ApiProperty(iri="http://schema.org/logo")
      */
     private $logo;
@@ -353,130 +346,82 @@ class Church
         return $this->faxNumber;
     }
 
-    /**
-     * @param string $wikidataId
-     */
-    public function setWikidataId($wikidataId): void
+    public function setWikidataId(string $wikidataId): void
     {
         $this->wikidataId = $wikidataId;
     }
 
-    /**
-     * @return string
-     */
-    public function getWikidataId()
+    public function getWikidataId(): string
     {
         return $this->wikidataId;
     }
 
-    /**
-     * @param string $merimeeId
-     */
-    public function setMerimeeId($merimeeId): void
+    public function setMerimeeId(string $merimeeId): void
     {
         $this->merimeeId = $merimeeId;
     }
 
-    /**
-     * @return string
-     */
-    public function getMerimeeId()
+    public function getMerimeeId(): string
     {
         return $this->merimeeId;
     }
 
-    /**
-     * @param string $egliseInfoId
-     */
-    public function setEgliseInfoId($egliseInfoId): void
+    public function setEgliseInfoId(string $egliseInfoId): void
     {
         $this->egliseInfoId = $egliseInfoId;
     }
 
-    /**
-     * @return string
-     */
-    public function getEgliseInfoId()
+    public function getEgliseInfoId(): string
     {
         return $this->egliseInfoId;
     }
 
-    /**
-     * @param string $wikipediaId
-     */
-    public function setWikipediaId($wikipediaId): void
+    public function setWikipediaId(string $wikipediaId): void
     {
         $this->wikipediaId = $wikipediaId;
     }
 
-    /**
-     * @return string
-     */
-    public function getWikipediaId()
+    public function getWikipediaId(): string
     {
         return $this->wikipediaId;
     }
 
-    /**
-     * @param string $commonsId
-     */
-    public function setCommonsId($commonsId): void
+    public function setCommonsId(string $commonsId): void
     {
         $this->commonsId = $commonsId;
     }
 
-    /**
-     * @return string
-     */
-    public function getCommonsId()
+    public function getCommonsId(): string
     {
         return $this->commonsId;
     }
 
-    /**
-     * @param string $clochersId
-     */
-    public function setClochersId($clochersId): void
+    public function setClochersId(string $clochersId): void
     {
         $this->clochersId = $clochersId;
     }
 
-    /**
-     * @return string
-     */
-    public function getClochersId()
+    public function getClochersId(): string
     {
         return $this->clochersId;
     }
 
-    /**
-     * @param string $patrimoineReligieuxId
-     */
-    public function setPatrimoineReligieuxId($patrimoineReligieuxId): void
+    public function setPatrimoineReligieuxId(string $patrimoineReligieuxId): void
     {
         $this->patrimoineReligieuxId = $patrimoineReligieuxId;
     }
 
-    /**
-     * @return string
-     */
-    public function getPatrimoineReligieuxId()
+    public function getPatrimoineReligieuxId(): string
     {
         return $this->patrimoineReligieuxId;
     }
 
-    /**
-     * @param string|null $url
-     */
-    public function setUrl($url): void
+    public function setUrl(?string $url): void
     {
         $this->url = $url;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getUrl()
+    public function getUrl(): ?string
     {
         return $this->url;
     }
@@ -491,34 +436,22 @@ class Church
         return $this->geo;
     }
 
-    /**
-     * @param string|null $photo
-     */
-    public function setPhoto($photo): void
+    public function setPhoto(?string $photo): void
     {
         $this->photo = $photo;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getPhoto()
+    public function getPhoto(): ?string
     {
         return $this->photo;
     }
 
-    /**
-     * @param string|null $logo
-     */
-    public function setLogo($logo): void
+    public function setLogo(?string $logo): void
     {
         $this->logo = $logo;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getLogo()
+    public function getLogo(): ?string
     {
         return $this->logo;
     }

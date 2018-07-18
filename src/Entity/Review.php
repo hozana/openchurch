@@ -39,8 +39,7 @@ class Review
     /**
      * @var string
      *
-     * @ORM\OneToOne(targetEntity="App\Entity\")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\Column(type="text")
      * @Assert\NotNull
      */
     private $reviewAspect;
@@ -54,9 +53,9 @@ class Review
     private $reviewBody;
 
     /**
-     * @var number|null The rating given in this review. Note that reviews can themselves be rated. The ```reviewRating``` applies to rating given by the review. The \[\[aggregateRating\]\] property applies to the review itself, as a creative work.
+     * @var float|null The rating given in this review. Note that reviews can themselves be rated. The ```reviewRating``` applies to rating given by the review. The \[\[aggregateRating\]\] property applies to the review itself, as a creative work.
      *
-     * @ORM\OneToOne(targetEntity="App\Entity\")
+     * @ORM\Column(type="float", nullable=true)
      * @ApiProperty(iri="http://schema.org/reviewRating")
      */
     private $reviewRating;
@@ -76,18 +75,12 @@ class Review
         return $this->itemReviewed;
     }
 
-    /**
-     * @param string $reviewAspect
-     */
-    public function setReviewAspect($reviewAspect): void
+    public function setReviewAspect(string $reviewAspect): void
     {
         $this->reviewAspect = $reviewAspect;
     }
 
-    /**
-     * @return string
-     */
-    public function getReviewAspect()
+    public function getReviewAspect(): string
     {
         return $this->reviewAspect;
     }
@@ -103,7 +96,7 @@ class Review
     }
 
     /**
-     * @param number|null $reviewRating
+     * @param float|null $reviewRating
      */
     public function setReviewRating($reviewRating): void
     {
@@ -111,7 +104,7 @@ class Review
     }
 
     /**
-     * @return number|null
+     * @return float|null
      */
     public function getReviewRating()
     {

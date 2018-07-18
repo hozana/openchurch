@@ -31,16 +31,15 @@ class Commune
     /**
      * @var string
      *
-     * @ORM\OneToOne(targetEntity="App\Entity\")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\Column(type="text")
      * @Assert\NotNull
      */
-    private $code_insee;
+    private $codeInsee;
 
     /**
      * @var string|null the name of the item
      *
-     * @ORM\OneToOne(targetEntity="App\Entity\")
+     * @ORM\Column(type="text", nullable=true)
      * @ApiProperty(iri="http://schema.org/name")
      */
     private $name;
@@ -48,8 +47,7 @@ class Commune
     /**
      * @var string
      *
-     * @ORM\OneToOne(targetEntity="App\Entity\")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\Column(type="text")
      * @Assert\NotNull
      */
     private $searchable;
@@ -64,8 +62,7 @@ class Commune
     /**
      * @var string
      *
-     * @ORM\OneToOne(targetEntity="App\Entity\")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\Column(type="text")
      * @Assert\NotNull
      */
     private $commonsCategory;
@@ -73,8 +70,7 @@ class Commune
     /**
      * @var float
      *
-     * @ORM\OneToOne(targetEntity="App\Entity\")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\Column(type="float")
      * @Assert\NotNull
      */
     private $latitude;
@@ -82,8 +78,7 @@ class Commune
     /**
      * @var float
      *
-     * @ORM\OneToOne(targetEntity="App\Entity\")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\Column(type="float")
      * @Assert\NotNull
      */
     private $longitude;
@@ -93,50 +88,32 @@ class Commune
         return $this->id;
     }
 
-    /**
-     * @param string $code_insee
-     */
-    public function setCode_insee($code_insee): void
+    public function setCodeInsee(string $codeInsee): void
     {
-        $this->code_insee = $code_insee;
+        $this->codeInsee = $codeInsee;
     }
 
-    /**
-     * @return string
-     */
-    public function getCode_insee()
+    public function getCodeInsee(): string
     {
-        return $this->code_insee;
+        return $this->codeInsee;
     }
 
-    /**
-     * @param string|null $name
-     */
-    public function setName($name): void
+    public function setName(?string $name): void
     {
         $this->name = $name;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getName()
+    public function getName(): ?string
     {
         return $this->name;
     }
 
-    /**
-     * @param string $searchable
-     */
-    public function setSearchable($searchable): void
+    public function setSearchable(string $searchable): void
     {
         $this->searchable = $searchable;
     }
 
-    /**
-     * @return string
-     */
-    public function getSearchable()
+    public function getSearchable(): string
     {
         return $this->searchable;
     }
@@ -151,18 +128,12 @@ class Commune
         return $this->departement;
     }
 
-    /**
-     * @param string $commonsCategory
-     */
-    public function setCommonsCategory($commonsCategory): void
+    public function setCommonsCategory(string $commonsCategory): void
     {
         $this->commonsCategory = $commonsCategory;
     }
 
-    /**
-     * @return string
-     */
-    public function getCommonsCategory()
+    public function getCommonsCategory(): string
     {
         return $this->commonsCategory;
     }

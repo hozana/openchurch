@@ -31,8 +31,7 @@ class Departement
     /**
      * @var string
      *
-     * @ORM\OneToOne(targetEntity="App\Entity\")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\Column(type="text")
      * @Assert\NotNull
      */
     private $code;
@@ -40,7 +39,7 @@ class Departement
     /**
      * @var string|null the name of the item
      *
-     * @ORM\OneToOne(targetEntity="App\Entity\")
+     * @ORM\Column(type="text", nullable=true)
      * @ApiProperty(iri="http://schema.org/name")
      */
     private $name;
@@ -48,8 +47,7 @@ class Departement
     /**
      * @var string
      *
-     * @ORM\OneToOne(targetEntity="App\Entity\")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\Column(type="text")
      * @Assert\NotNull
      */
     private $de;
@@ -59,50 +57,32 @@ class Departement
         return $this->id;
     }
 
-    /**
-     * @param string $code
-     */
-    public function setCode($code): void
+    public function setCode(string $code): void
     {
         $this->code = $code;
     }
 
-    /**
-     * @return string
-     */
-    public function getCode()
+    public function getCode(): string
     {
         return $this->code;
     }
 
-    /**
-     * @param string|null $name
-     */
-    public function setName($name): void
+    public function setName(?string $name): void
     {
         $this->name = $name;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getName()
+    public function getName(): ?string
     {
         return $this->name;
     }
 
-    /**
-     * @param string $de
-     */
-    public function setDe($de): void
+    public function setDe(string $de): void
     {
         $this->de = $de;
     }
 
-    /**
-     * @return string
-     */
-    public function getDe()
+    public function getDe(): string
     {
         return $this->de;
     }

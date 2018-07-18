@@ -79,7 +79,7 @@ class Event
     /**
      * @var string|null The language of the content or performance or used in an action. Please use one of the language codes from the \[IETF BCP 47 standard\](http://tools.ietf.org/html/bcp47). See also \[\[availableLanguage\]\].
      *
-     * @ORM\OneToOne(targetEntity="App\Entity\")
+     * @ORM\Column(type="text", nullable=true)
      * @ApiProperty(iri="http://schema.org/inLanguage")
      */
     private $inLanguage;
@@ -112,9 +112,9 @@ class Event
     private $doorTime;
 
     /**
-     * @var number|null The duration of the item (movie, audio recording, event, etc.) in \[ISO 8601 date format\](http://en.wikipedia.org/wiki/ISO\_8601).
+     * @var float|null The duration of the item (movie, audio recording, event, etc.) in \[ISO 8601 date format\](http://en.wikipedia.org/wiki/ISO\_8601).
      *
-     * @ORM\OneToOne(targetEntity="App\Entity\")
+     * @ORM\Column(type="float", nullable=true)
      * @ApiProperty(iri="http://schema.org/duration")
      */
     private $duration;
@@ -184,18 +184,12 @@ class Event
         return $this->isAccessibleForFree;
     }
 
-    /**
-     * @param string|null $inLanguage
-     */
-    public function setInLanguage($inLanguage): void
+    public function setInLanguage(?string $inLanguage): void
     {
         $this->inLanguage = $inLanguage;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getInLanguage()
+    public function getInLanguage(): ?string
     {
         return $this->inLanguage;
     }
@@ -231,7 +225,7 @@ class Event
     }
 
     /**
-     * @param number|null $duration
+     * @param float|null $duration
      */
     public function setDuration($duration): void
     {
@@ -239,7 +233,7 @@ class Event
     }
 
     /**
-     * @return number|null
+     * @return float|null
      */
     public function getDuration()
     {

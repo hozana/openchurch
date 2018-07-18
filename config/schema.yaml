@@ -1,18 +1,18 @@
 types:
     Departement:
         properties:
-            code: { range: string }
-            name: { range: string }
-            de: { range: string }
+            code: { range: Text }
+            name: { range: Text }
+            de: { range: Text }
     Commune:
         properties:
-            code_insee: { range: string }
-            name: { range: string }
-            searchable: { range: string }
+            codeInsee: { range: Text }
+            name: { range: Text }
+            searchable: { range: Text }
             departement: { range: Departement, cardinality: (*..0) }
-            commonsCategory: { range: string }
-            latitude: { range: float }
-            longitude: { range: float }
+            commonsCategory: { range: Text }
+            latitude: { range: Number }
+            longitude: { range: Number }
     Church:
         properties:
             name: ~
@@ -23,17 +23,17 @@ types:
             hasMap: ~
             telephone: ~
             faxNumber: ~
-            wikidataId: { range: string }
-            merimeeId: { range: string }
-            egliseInfoId: { range: string }
-            wikipediaId: { range: string }
-            commonsId: { range: string }
-            clochersId: { range: string }
-            patrimoineReligieuxId: { range: string }
-            url: { range: string }
+            wikidataId: { range: Text }
+            merimeeId: { range: Text }
+            egliseInfoId: { range: Text }
+            wikipediaId: { range: Text }
+            commonsId: { range: Text }
+            clochersId: { range: Text }
+            patrimoineReligieuxId: { range: Text }
+            url: { range: Text }
             geo: { range: GeoCoordinates }
-            photo: { range: string }
-            logo: { range: string }
+            photo: { range: Text }
+            logo: { range: Text }
             isAccessibleForFree: ~
             publicAccess: ~
             maximumAttendeeCapacity: ~
@@ -62,11 +62,11 @@ types:
             superEvent: ~
             location: { range: Church }
             isAccessibleForFree: ~
-            inLanguage: { range: string }
+            inLanguage: { range: Text }
             startDate: { range: DateTime }
             endDate: { range: DateTime }
             doorTime: ~
-            duration: { range: number }
+            duration: { range: Number }
     OpeningHoursSpecification:
         properties:
             opens: ~
@@ -80,6 +80,6 @@ types:
     Review:
         properties:
             itemReviewed: { range: Church }
-            reviewAspect: { range: string }
+            reviewAspect: { range: Text }
             reviewBody: ~
-            reviewRating: { range: number }
+            reviewRating: { range: Number }
