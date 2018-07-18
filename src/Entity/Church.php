@@ -63,6 +63,13 @@ class Church
     private $address;
 
     /**
+     * @var Commune|null
+     *
+     * @ORM\ManyToOne(targetEntity="App\Entity\Commune")
+     */
+    private $commune;
+
+    /**
      * @var string|null a URL to a map of the place
      *
      * @ORM\Column(type="text", nullable=true)
@@ -86,6 +93,69 @@ class Church
      * @ApiProperty(iri="http://schema.org/faxNumber")
      */
     private $faxNumber;
+
+    /**
+     * @var string
+     *
+     * @ORM\OneToOne(targetEntity="App\Entity\")
+     * @ORM\JoinColumn(nullable=false)
+     * @Assert\NotNull
+     */
+    private $wikidataId;
+
+    /**
+     * @var string
+     *
+     * @ORM\OneToOne(targetEntity="App\Entity\")
+     * @ORM\JoinColumn(nullable=false)
+     * @Assert\NotNull
+     */
+    private $merimeeId;
+
+    /**
+     * @var string
+     *
+     * @ORM\OneToOne(targetEntity="App\Entity\")
+     * @ORM\JoinColumn(nullable=false)
+     * @Assert\NotNull
+     */
+    private $egliseInfoId;
+
+    /**
+     * @var string
+     *
+     * @ORM\OneToOne(targetEntity="App\Entity\")
+     * @ORM\JoinColumn(nullable=false)
+     * @Assert\NotNull
+     */
+    private $wikipediaId;
+
+    /**
+     * @var string
+     *
+     * @ORM\OneToOne(targetEntity="App\Entity\")
+     * @ORM\JoinColumn(nullable=false)
+     * @Assert\NotNull
+     */
+    private $commonsId;
+
+    /**
+     * @var string
+     *
+     * @ORM\OneToOne(targetEntity="App\Entity\")
+     * @ORM\JoinColumn(nullable=false)
+     * @Assert\NotNull
+     */
+    private $clochersId;
+
+    /**
+     * @var string
+     *
+     * @ORM\OneToOne(targetEntity="App\Entity\")
+     * @ORM\JoinColumn(nullable=false)
+     * @Assert\NotNull
+     */
+    private $patrimoineReligieuxId;
 
     /**
      * @var string|null URL of the item
@@ -243,6 +313,16 @@ class Church
         return $this->address;
     }
 
+    public function setCommune(?Commune $commune): void
+    {
+        $this->commune = $commune;
+    }
+
+    public function getCommune(): ?Commune
+    {
+        return $this->commune;
+    }
+
     public function setHasMap(?string $hasMap): void
     {
         $this->hasMap = $hasMap;
@@ -271,6 +351,118 @@ class Church
     public function getFaxNumber(): ?string
     {
         return $this->faxNumber;
+    }
+
+    /**
+     * @param string $wikidataId
+     */
+    public function setWikidataId($wikidataId): void
+    {
+        $this->wikidataId = $wikidataId;
+    }
+
+    /**
+     * @return string
+     */
+    public function getWikidataId()
+    {
+        return $this->wikidataId;
+    }
+
+    /**
+     * @param string $merimeeId
+     */
+    public function setMerimeeId($merimeeId): void
+    {
+        $this->merimeeId = $merimeeId;
+    }
+
+    /**
+     * @return string
+     */
+    public function getMerimeeId()
+    {
+        return $this->merimeeId;
+    }
+
+    /**
+     * @param string $egliseInfoId
+     */
+    public function setEgliseInfoId($egliseInfoId): void
+    {
+        $this->egliseInfoId = $egliseInfoId;
+    }
+
+    /**
+     * @return string
+     */
+    public function getEgliseInfoId()
+    {
+        return $this->egliseInfoId;
+    }
+
+    /**
+     * @param string $wikipediaId
+     */
+    public function setWikipediaId($wikipediaId): void
+    {
+        $this->wikipediaId = $wikipediaId;
+    }
+
+    /**
+     * @return string
+     */
+    public function getWikipediaId()
+    {
+        return $this->wikipediaId;
+    }
+
+    /**
+     * @param string $commonsId
+     */
+    public function setCommonsId($commonsId): void
+    {
+        $this->commonsId = $commonsId;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCommonsId()
+    {
+        return $this->commonsId;
+    }
+
+    /**
+     * @param string $clochersId
+     */
+    public function setClochersId($clochersId): void
+    {
+        $this->clochersId = $clochersId;
+    }
+
+    /**
+     * @return string
+     */
+    public function getClochersId()
+    {
+        return $this->clochersId;
+    }
+
+    /**
+     * @param string $patrimoineReligieuxId
+     */
+    public function setPatrimoineReligieuxId($patrimoineReligieuxId): void
+    {
+        $this->patrimoineReligieuxId = $patrimoineReligieuxId;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPatrimoineReligieuxId()
+    {
+        return $this->patrimoineReligieuxId;
     }
 
     /**

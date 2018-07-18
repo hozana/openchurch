@@ -1,13 +1,35 @@
 types:
+    Departement:
+        properties:
+            code: { range: string }
+            name: { range: string }
+            de: { range: string }
+    Commune:
+        properties:
+            code_insee: { range: string }
+            name: { range: string }
+            searchable: { range: string }
+            departement: { range: Departement, cardinality: (*..0) }
+            commonsCategory: { range: string }
+            latitude: { range: float }
+            longitude: { range: float }
     Church:
         properties:
             name: ~
             alternateName: ~
             description: ~
             address: { range: PostalAddress }
+            commune: { range: Commune, cardinality: (*..0) }
             hasMap: ~
             telephone: ~
             faxNumber: ~
+            wikidataId: { range: string }
+            merimeeId: { range: string }
+            egliseInfoId: { range: string }
+            wikipediaId: { range: string }
+            commonsId: { range: string }
+            clochersId: { range: string }
+            patrimoineReligieuxId: { range: string }
             url: { range: string }
             geo: { range: GeoCoordinates }
             photo: { range: string }
