@@ -20,10 +20,12 @@ types:
             description: ~
             address: { range: PostalAddress }
             commune: { range: Commune, cardinality: (*..0) }
+            departement: { range: Departement, cardinality: (*..0) }
             hasMap: ~
             telephone: ~
             faxNumber: ~
             wikidataId: { range: Text }
+            wikidataDioceseId: { range: Text }
             merimeeId: { range: Text }
             egliseInfoId: { range: Text }
             wikipediaId: { range: Text }
@@ -33,6 +35,7 @@ types:
             url: { range: Text }
             geo: { range: GeoCoordinates }
             photo: { range: Text }
+            thumbnail: { range: Text, nullable: true }
             logo: { range: Text }
             isAccessibleForFree: ~
             publicAccess: ~
@@ -43,6 +46,8 @@ types:
             openingHours: ~
             openingHoursSpecification: { range: OpeningHoursSpecification }
             specialOpeningHoursSpecification: { range: OpeningHoursSpecification }
+            dateCreated: { range: DateTime, nullable: true }
+            dateModified: { range: DateTime, nullable: true }
     GeoCoordinates:
         properties:
             latitude: { range: Number }

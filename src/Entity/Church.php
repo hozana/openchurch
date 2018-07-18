@@ -70,6 +70,13 @@ class Church
     private $commune;
 
     /**
+     * @var Departement|null
+     *
+     * @ORM\ManyToOne(targetEntity="App\Entity\Departement")
+     */
+    private $departement;
+
+    /**
      * @var string|null a URL to a map of the place
      *
      * @ORM\Column(type="text", nullable=true)
@@ -101,6 +108,14 @@ class Church
      * @Assert\NotNull
      */
     private $wikidataId;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(type="text")
+     * @Assert\NotNull
+     */
+    private $wikidataDioceseId;
 
     /**
      * @var string
@@ -173,6 +188,14 @@ class Church
      * @ApiProperty(iri="http://schema.org/photo")
      */
     private $photo;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(type="text")
+     * @Assert\NotNull
+     */
+    private $thumbnail;
 
     /**
      * @var string|null an associated logo
@@ -256,6 +279,24 @@ class Church
      */
     private $specialOpeningHoursSpecification;
 
+    /**
+     * @var \DateTimeInterface
+     *
+     * @ORM\Column(type="datetime")
+     * @Assert\DateTime
+     * @Assert\NotNull
+     */
+    private $dateCreated;
+
+    /**
+     * @var \DateTimeInterface
+     *
+     * @ORM\Column(type="datetime")
+     * @Assert\DateTime
+     * @Assert\NotNull
+     */
+    private $dateModified;
+
     public function __construct()
     {
         $this->openingHoursSpecifications = new ArrayCollection();
@@ -316,6 +357,16 @@ class Church
         return $this->commune;
     }
 
+    public function setDepartement(?Departement $departement): void
+    {
+        $this->departement = $departement;
+    }
+
+    public function getDepartement(): ?Departement
+    {
+        return $this->departement;
+    }
+
     public function setHasMap(?string $hasMap): void
     {
         $this->hasMap = $hasMap;
@@ -354,6 +405,16 @@ class Church
     public function getWikidataId(): string
     {
         return $this->wikidataId;
+    }
+
+    public function setWikidataDioceseId(string $wikidataDioceseId): void
+    {
+        $this->wikidataDioceseId = $wikidataDioceseId;
+    }
+
+    public function getWikidataDioceseId(): string
+    {
+        return $this->wikidataDioceseId;
     }
 
     public function setMerimeeId(string $merimeeId): void
@@ -444,6 +505,16 @@ class Church
     public function getPhoto(): ?string
     {
         return $this->photo;
+    }
+
+    public function setThumbnail(string $thumbnail): void
+    {
+        $this->thumbnail = $thumbnail;
+    }
+
+    public function getThumbnail(): string
+    {
+        return $this->thumbnail;
     }
 
     public function setLogo(?string $logo): void
@@ -549,5 +620,25 @@ class Church
     public function getSpecialOpeningHoursSpecification(): ?OpeningHoursSpecification
     {
         return $this->specialOpeningHoursSpecification;
+    }
+
+    public function setDateCreated(\DateTimeInterface $dateCreated): void
+    {
+        $this->dateCreated = $dateCreated;
+    }
+
+    public function getDateCreated(): \DateTimeInterface
+    {
+        return $this->dateCreated;
+    }
+
+    public function setDateModified(\DateTimeInterface $dateModified): void
+    {
+        $this->dateModified = $dateModified;
+    }
+
+    public function getDateModified(): \DateTimeInterface
+    {
+        return $this->dateModified;
     }
 }
