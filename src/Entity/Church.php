@@ -192,7 +192,7 @@ class Church
     /**
      * @var string
      *
-     * @ORM\Column(type="text")
+     * @ORM\Column(type="text", nullable=true)
      * @Assert\NotNull
      */
     private $thumbnail;
@@ -282,7 +282,7 @@ class Church
     /**
      * @var \DateTimeInterface
      *
-     * @ORM\Column(type="datetime")
+     * @ORM\Column(type="datetime", nullable=true)
      * @Assert\DateTime
      * @Assert\NotNull
      */
@@ -291,7 +291,7 @@ class Church
     /**
      * @var \DateTimeInterface
      *
-     * @ORM\Column(type="datetime")
+     * @ORM\Column(type="datetime", nullable=true)
      * @Assert\DateTime
      * @Assert\NotNull
      */
