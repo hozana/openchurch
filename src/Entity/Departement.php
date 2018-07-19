@@ -7,7 +7,6 @@ namespace App\Entity;
 use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * The most generic type of item.
@@ -29,10 +28,9 @@ class Departement
     private $id;
 
     /**
-     * @var string
+     * @var string|null
      *
-     * @ORM\Column(type="text")
-     * @Assert\NotNull
+     * @ORM\Column(type="text", nullable=true)
      */
     private $code;
 
@@ -45,10 +43,9 @@ class Departement
     private $name;
 
     /**
-     * @var string
+     * @var string|null
      *
-     * @ORM\Column(type="text")
-     * @Assert\NotNull
+     * @ORM\Column(type="text", nullable=true)
      */
     private $de;
 
@@ -57,12 +54,12 @@ class Departement
         return $this->id;
     }
 
-    public function setCode(string $code): void
+    public function setCode(?string $code): void
     {
         $this->code = $code;
     }
 
-    public function getCode(): string
+    public function getCode(): ?string
     {
         return $this->code;
     }
@@ -77,12 +74,12 @@ class Departement
         return $this->name;
     }
 
-    public function setDe(string $de): void
+    public function setDe(?string $de): void
     {
         $this->de = $de;
     }
 
-    public function getDe(): string
+    public function getDe(): ?string
     {
         return $this->de;
     }

@@ -102,66 +102,58 @@ class Church
     private $faxNumber;
 
     /**
-     * @var string
+     * @var string|null
      *
-     * @ORM\Column(type="text")
-     * @Assert\NotNull
+     * @ORM\Column(type="text", nullable=true)
      */
     private $wikidataId;
 
     /**
-     * @var string
+     * @var string|null
      *
-     * @ORM\Column(type="text")
-     * @Assert\NotNull
+     * @ORM\Column(type="text", nullable=true)
      */
     private $wikidataDioceseId;
 
     /**
-     * @var string
+     * @var string|null
      *
-     * @ORM\Column(type="text")
-     * @Assert\NotNull
+     * @ORM\Column(type="text", nullable=true)
      */
     private $merimeeId;
 
     /**
-     * @var string
+     * @var string|null
      *
-     * @ORM\Column(type="text")
-     * @Assert\NotNull
+     * @ORM\Column(type="text", nullable=true)
      */
     private $egliseInfoId;
 
     /**
-     * @var string
+     * @var string|null
      *
-     * @ORM\Column(type="text")
-     * @Assert\NotNull
+     * @ORM\Column(type="text", nullable=true)
      */
     private $wikipediaId;
 
     /**
-     * @var string
+     * @var string|null
      *
-     * @ORM\Column(type="text")
-     * @Assert\NotNull
+     * @ORM\Column(type="text", nullable=true)
      */
     private $commonsId;
 
     /**
-     * @var string
+     * @var string|null
      *
-     * @ORM\Column(type="text")
-     * @Assert\NotNull
+     * @ORM\Column(type="text", nullable=true)
      */
     private $clochersId;
 
     /**
-     * @var string
+     * @var string|null
      *
-     * @ORM\Column(type="text")
-     * @Assert\NotNull
+     * @ORM\Column(type="text", nullable=true)
      */
     private $patrimoineReligieuxId;
 
@@ -190,10 +182,9 @@ class Church
     private $photo;
 
     /**
-     * @var string
+     * @var string|null
      *
      * @ORM\Column(type="text", nullable=true)
-     * @Assert\NotNull
      */
     private $thumbnail;
 
@@ -280,20 +271,18 @@ class Church
     private $specialOpeningHoursSpecification;
 
     /**
-     * @var \DateTimeInterface
+     * @var \DateTimeInterface|null
      *
      * @ORM\Column(type="datetime", nullable=true)
      * @Assert\DateTime
-     * @Assert\NotNull
      */
     private $dateCreated;
 
     /**
-     * @var \DateTimeInterface
+     * @var \DateTimeInterface|null
      *
      * @ORM\Column(type="datetime", nullable=true)
      * @Assert\DateTime
-     * @Assert\NotNull
      */
     private $dateModified;
 
@@ -397,82 +386,82 @@ class Church
         return $this->faxNumber;
     }
 
-    public function setWikidataId(string $wikidataId): void
+    public function setWikidataId(?string $wikidataId): void
     {
         $this->wikidataId = $wikidataId;
     }
 
-    public function getWikidataId(): string
+    public function getWikidataId(): ?string
     {
         return $this->wikidataId;
     }
 
-    public function setWikidataDioceseId(string $wikidataDioceseId): void
+    public function setWikidataDioceseId(?string $wikidataDioceseId): void
     {
         $this->wikidataDioceseId = $wikidataDioceseId;
     }
 
-    public function getWikidataDioceseId(): string
+    public function getWikidataDioceseId(): ?string
     {
         return $this->wikidataDioceseId;
     }
 
-    public function setMerimeeId(string $merimeeId): void
+    public function setMerimeeId(?string $merimeeId): void
     {
         $this->merimeeId = $merimeeId;
     }
 
-    public function getMerimeeId(): string
+    public function getMerimeeId(): ?string
     {
         return $this->merimeeId;
     }
 
-    public function setEgliseInfoId(string $egliseInfoId): void
+    public function setEgliseInfoId(?string $egliseInfoId): void
     {
         $this->egliseInfoId = $egliseInfoId;
     }
 
-    public function getEgliseInfoId(): string
+    public function getEgliseInfoId(): ?string
     {
         return $this->egliseInfoId;
     }
 
-    public function setWikipediaId(string $wikipediaId): void
+    public function setWikipediaId(?string $wikipediaId): void
     {
         $this->wikipediaId = $wikipediaId;
     }
 
-    public function getWikipediaId(): string
+    public function getWikipediaId(): ?string
     {
         return $this->wikipediaId;
     }
 
-    public function setCommonsId(string $commonsId): void
+    public function setCommonsId(?string $commonsId): void
     {
         $this->commonsId = $commonsId;
     }
 
-    public function getCommonsId(): string
+    public function getCommonsId(): ?string
     {
         return $this->commonsId;
     }
 
-    public function setClochersId(string $clochersId): void
+    public function setClochersId(?string $clochersId): void
     {
         $this->clochersId = $clochersId;
     }
 
-    public function getClochersId(): string
+    public function getClochersId(): ?string
     {
         return $this->clochersId;
     }
 
-    public function setPatrimoineReligieuxId(string $patrimoineReligieuxId): void
+    public function setPatrimoineReligieuxId(?string $patrimoineReligieuxId): void
     {
         $this->patrimoineReligieuxId = $patrimoineReligieuxId;
     }
 
-    public function getPatrimoineReligieuxId(): string
+    public function getPatrimoineReligieuxId(): ?string
     {
         return $this->patrimoineReligieuxId;
     }
@@ -507,12 +496,12 @@ class Church
         return $this->photo;
     }
 
-    public function setThumbnail(string $thumbnail): void
+    public function setThumbnail(?string $thumbnail): void
     {
         $this->thumbnail = $thumbnail;
     }
 
-    public function getThumbnail(): string
+    public function getThumbnail(): ?string
     {
         return $this->thumbnail;
     }
@@ -622,22 +611,22 @@ class Church
         return $this->specialOpeningHoursSpecification;
     }
 
-    public function setDateCreated(\DateTimeInterface $dateCreated): void
+    public function setDateCreated(?\DateTimeInterface $dateCreated): void
     {
         $this->dateCreated = $dateCreated;
     }
 
-    public function getDateCreated(): \DateTimeInterface
+    public function getDateCreated(): ?\DateTimeInterface
     {
         return $this->dateCreated;
     }
 
-    public function setDateModified(\DateTimeInterface $dateModified): void
+    public function setDateModified(?\DateTimeInterface $dateModified): void
     {
         $this->dateModified = $dateModified;
     }
 
-    public function getDateModified(): \DateTimeInterface
+    public function getDateModified(): ?\DateTimeInterface
     {
         return $this->dateModified;
     }

@@ -7,7 +7,6 @@ namespace App\Entity;
 use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * The most generic type of item.
@@ -29,10 +28,9 @@ class Commune
     private $id;
 
     /**
-     * @var string
+     * @var string|null
      *
-     * @ORM\Column(type="text")
-     * @Assert\NotNull
+     * @ORM\Column(type="text", nullable=true)
      */
     private $codeInsee;
 
@@ -45,10 +43,9 @@ class Commune
     private $name;
 
     /**
-     * @var string
+     * @var string|null
      *
-     * @ORM\Column(type="text")
-     * @Assert\NotNull
+     * @ORM\Column(type="text", nullable=true)
      */
     private $searchable;
 
@@ -60,26 +57,23 @@ class Commune
     private $departement;
 
     /**
-     * @var string
+     * @var string|null
      *
-     * @ORM\Column(type="text")
-     * @Assert\NotNull
+     * @ORM\Column(type="text", nullable=true)
      */
     private $commonsCategory;
 
     /**
-     * @var float
+     * @var float|null
      *
-     * @ORM\Column(type="float")
-     * @Assert\NotNull
+     * @ORM\Column(type="float", nullable=true)
      */
     private $latitude;
 
     /**
-     * @var float
+     * @var float|null
      *
-     * @ORM\Column(type="float")
-     * @Assert\NotNull
+     * @ORM\Column(type="float", nullable=true)
      */
     private $longitude;
 
@@ -88,12 +82,12 @@ class Commune
         return $this->id;
     }
 
-    public function setCodeInsee(string $codeInsee): void
+    public function setCodeInsee(?string $codeInsee): void
     {
         $this->codeInsee = $codeInsee;
     }
 
-    public function getCodeInsee(): string
+    public function getCodeInsee(): ?string
     {
         return $this->codeInsee;
     }
@@ -108,12 +102,12 @@ class Commune
         return $this->name;
     }
 
-    public function setSearchable(string $searchable): void
+    public function setSearchable(?string $searchable): void
     {
         $this->searchable = $searchable;
     }
 
-    public function getSearchable(): string
+    public function getSearchable(): ?string
     {
         return $this->searchable;
     }
@@ -128,18 +122,18 @@ class Commune
         return $this->departement;
     }
 
-    public function setCommonsCategory(string $commonsCategory): void
+    public function setCommonsCategory(?string $commonsCategory): void
     {
         $this->commonsCategory = $commonsCategory;
     }
 
-    public function getCommonsCategory(): string
+    public function getCommonsCategory(): ?string
     {
         return $this->commonsCategory;
     }
 
     /**
-     * @param float $latitude
+     * @param float|null $latitude
      */
     public function setLatitude($latitude): void
     {
@@ -147,7 +141,7 @@ class Commune
     }
 
     /**
-     * @return float
+     * @return float|null
      */
     public function getLatitude()
     {
@@ -155,7 +149,7 @@ class Commune
     }
 
     /**
-     * @param float $longitude
+     * @param float|null $longitude
      */
     public function setLongitude($longitude): void
     {
@@ -163,7 +157,7 @@ class Commune
     }
 
     /**
-     * @return float
+     * @return float|null
      */
     public function getLongitude()
     {

@@ -31,31 +31,28 @@ class OpeningHoursSpecification
     private $id;
 
     /**
-     * @var \DateTimeInterface the opening hour of the place or service on the given day(s) of the week
+     * @var \DateTimeInterface|null the opening hour of the place or service on the given day(s) of the week
      *
-     * @ORM\Column(type="time")
+     * @ORM\Column(type="time", nullable=true)
      * @ApiProperty(iri="http://schema.org/opens")
      * @Assert\Time
-     * @Assert\NotNull
      */
     private $open;
 
     /**
-     * @var \DateTimeInterface the closing hour of the place or service on the given day(s) of the week
+     * @var \DateTimeInterface|null the closing hour of the place or service on the given day(s) of the week
      *
-     * @ORM\Column(type="time")
+     * @ORM\Column(type="time", nullable=true)
      * @ApiProperty(iri="http://schema.org/closes")
      * @Assert\Time
-     * @Assert\NotNull
      */
     private $close;
 
     /**
-     * @var string[] the day of the week for which these opening hours are valid
+     * @var string[]|null the day of the week for which these opening hours are valid
      *
-     * @ORM\Column(type="simple_array")
+     * @ORM\Column(type="simple_array", nullable=true)
      * @ApiProperty(iri="http://schema.org/dayOfWeek")
-     * @Assert\NotNull
      * @Assert\Choice(callback={"DayOfWeek", "toArray"}, multiple=true)
      */
     private $dayOfWeeks = [];
@@ -87,22 +84,22 @@ class OpeningHoursSpecification
         return $this->id;
     }
 
-    public function setOpen(\DateTimeInterface $open): void
+    public function setOpen(?\DateTimeInterface $open): void
     {
         $this->open = $open;
     }
 
-    public function getOpen(): \DateTimeInterface
+    public function getOpen(): ?\DateTimeInterface
     {
         return $this->open;
     }
 
-    public function setClose(\DateTimeInterface $close): void
+    public function setClose(?\DateTimeInterface $close): void
     {
         $this->close = $close;
     }
 
-    public function getClose(): \DateTimeInterface
+    public function getClose(): ?\DateTimeInterface
     {
         return $this->close;
     }

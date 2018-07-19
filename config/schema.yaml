@@ -24,14 +24,14 @@ types:
             hasMap: ~
             telephone: ~
             faxNumber: ~
-            wikidataId: { range: Text }
-            wikidataDioceseId: { range: Text }
-            merimeeId: { range: Text }
-            egliseInfoId: { range: Text }
-            wikipediaId: { range: Text }
-            commonsId: { range: Text }
-            clochersId: { range: Text }
-            patrimoineReligieuxId: { range: Text }
+            wikidataId: { range: Text, nullable: true }
+            wikidataDioceseId: { range: Text, nullable: true }
+            merimeeId: { range: Text, nullable: true }
+            egliseInfoId: { range: Text, nullable: true }
+            wikipediaId: { range: Text, nullable: true }
+            commonsId: { range: Text, nullable: true }
+            clochersId: { range: Text, nullable: true }
+            patrimoineReligieuxId: { range: Text, nullable: true }
             url: { range: Text }
             geo: { range: GeoCoordinates }
             photo: { range: Text }

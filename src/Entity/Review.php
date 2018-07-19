@@ -7,7 +7,6 @@ namespace App\Entity;
 use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * A review of an item - for example, of a restaurant, movie, or store.
@@ -37,10 +36,9 @@ class Review
     private $itemReviewed;
 
     /**
-     * @var string
+     * @var string|null
      *
-     * @ORM\Column(type="text")
-     * @Assert\NotNull
+     * @ORM\Column(type="text", nullable=true)
      */
     private $reviewAspect;
 
@@ -75,12 +73,12 @@ class Review
         return $this->itemReviewed;
     }
 
-    public function setReviewAspect(string $reviewAspect): void
+    public function setReviewAspect(?string $reviewAspect): void
     {
         $this->reviewAspect = $reviewAspect;
     }
 
-    public function getReviewAspect(): string
+    public function getReviewAspect(): ?string
     {
         return $this->reviewAspect;
     }
