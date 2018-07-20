@@ -171,6 +171,27 @@ class Church
     private $url;
 
     /**
+     * @var string|null
+     *
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $confessionUrl;
+
+    /**
+     * @var string|null
+     *
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $adorationUrl;
+
+    /**
+     * @var string|null
+     *
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $massUrl;
+
+    /**
      * @var GeoCoordinates|null the geo coordinates of the place
      *
      * @ORM\OneToOne(targetEntity="App\Entity\GeoCoordinates")
@@ -479,6 +500,36 @@ class Church
     public function getUrl(): ?string
     {
         return $this->url;
+    }
+
+    public function setConfessionUrl(?string $confessionUrl): void
+    {
+        $this->confessionUrl = $confessionUrl;
+    }
+
+    public function getConfessionUrl(): ?string
+    {
+        return $this->confessionUrl;
+    }
+
+    public function setAdorationUrl(?string $adorationUrl): void
+    {
+        $this->adorationUrl = $adorationUrl;
+    }
+
+    public function getAdorationUrl(): ?string
+    {
+        return $this->adorationUrl;
+    }
+
+    public function setMassUrl(?string $massUrl): void
+    {
+        $this->massUrl = $massUrl;
+    }
+
+    public function getMassUrl(): ?string
+    {
+        return $this->massUrl;
     }
 
     public function setGeo(?GeoCoordinates $geo): void

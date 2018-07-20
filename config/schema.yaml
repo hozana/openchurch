@@ -33,6 +33,9 @@ types:
             clochersId: { range: Text, nullable: true }
             patrimoineReligieuxId: { range: Text, nullable: true }
             url: { range: Text }
+            confessionUrl: { range: Text, nullable: true }
+            adorationUrl: { range: Text, nullable: true }
+            massUrl: { range: Text, nullable: true }
             geo: { range: GeoCoordinates }
             photo: { range: Text }
             thumbnail: { range: Text, nullable: true }
