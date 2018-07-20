@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -15,6 +18,8 @@ use Doctrine\ORM\Mapping as ORM;
  *
  * @ORM\Entity
  * @ApiResource(iri="http://schema.org/Thing")
+ * @ApiFilter(SearchFilter::class, properties={"id": "exact", "codeInsee": "exact", "name": "ipartial"})
+ * @ApiFilter(OrderFilter::class, properties={"codeInsee", "name"}, arguments={"orderParameterName"="order"})
  */
 class Commune
 {
