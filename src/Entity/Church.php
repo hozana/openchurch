@@ -82,6 +82,22 @@ class Church
     private $departement;
 
     /**
+     * @var float|null The latitude of a location. For example ```37.42242``` (\[WGS 84\](https://en.wikipedia.org/wiki/World\_Geodetic\_System)).
+     *
+     * @ORM\Column(type="float", nullable=true)
+     * @ApiProperty(iri="http://schema.org/latitude")
+     */
+    private $latitude;
+
+    /**
+     * @var float|null The longitude of a location. For example ```-122.08585``` (\[WGS 84\](https://en.wikipedia.org/wiki/World\_Geodetic\_System)).
+     *
+     * @ORM\Column(type="float", nullable=true)
+     * @ApiProperty(iri="http://schema.org/longitude")
+     */
+    private $longitude;
+
+    /**
      * @var string|null a URL to a map of the place
      *
      * @ORM\Column(type="text", nullable=true)
@@ -109,7 +125,7 @@ class Church
     /**
      * @var string|null
      *
-     * @ORM\Column(type="text", nullable=true)
+     * @ORM\Column(type="string", length=10, nullable=true)
      */
     private $wikidataId;
 
@@ -190,14 +206,6 @@ class Church
      * @ORM\Column(type="text", nullable=true)
      */
     private $massUrl;
-
-    /**
-     * @var GeoCoordinates|null the geo coordinates of the place
-     *
-     * @ORM\OneToOne(targetEntity="App\Entity\GeoCoordinates")
-     * @ApiProperty(iri="http://schema.org/geo")
-     */
-    private $geo;
 
     /**
      * @var string|null a photograph of this place
@@ -372,6 +380,26 @@ class Church
         return $this->commune;
     }
 
+    public function setLatitude(float $latitude): void
+    {
+        $this->latitude = $latitude;
+    }
+
+    public function getLatitude(): ?float
+    {
+        return $this->latitude;
+    }
+
+    public function setLongitude(float $longitude): void
+    {
+        $this->longitude = $longitude;
+    }
+
+    public function getLongitude(): ?float
+    {
+        return $this->longitude;
+    }
+
     public function setDepartement(?Departement $departement): void
     {
         $this->departement = $departement;
@@ -530,16 +558,6 @@ class Church
     public function getMassUrl(): ?string
     {
         return $this->massUrl;
-    }
-
-    public function setGeo(?GeoCoordinates $geo): void
-    {
-        $this->geo = $geo;
-    }
-
-    public function getGeo(): ?GeoCoordinates
-    {
-        return $this->geo;
     }
 
     public function setPhoto(?string $photo): void
