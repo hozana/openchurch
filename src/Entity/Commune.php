@@ -7,9 +7,11 @@ namespace App\Entity;
 use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Annotation\ApiSubresource;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\PersistentCollection;
 
 /**
  * The most generic type of item.
@@ -57,9 +59,17 @@ class Commune
     /**
      * @var Departement|null
      *
-     * @ORM\ManyToOne(targetEntity="App\Entity\Departement")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Departement", inversedBy="communes")
      */
     private $departement;
+
+    /**
+     * @var PersistentCollection
+     *
+     * @ORM\OneToMany(targetEntity="App\Entity\Church", mappedBy="commune")
+     * @ApiSubresource()
+     */
+    private $churches;
 
     /**
      * @var string|null
@@ -127,6 +137,18 @@ class Commune
         return $this->departement;
     }
 
+    public function addChurch(Church $church)
+    {
+        $this->churches[] = $church;
+
+        return $this;
+    }
+
+    public function getChurches(): PersistentCollection
+    {
+        return $this->churches;
+    }
+
     public function setCommonsCategory(?string $commonsCategory): void
     {
         $this->commonsCategory = $commonsCategory;
@@ -137,33 +159,21 @@ class Commune
         return $this->commonsCategory;
     }
 
-    /**
-     * @param float|null $latitude
-     */
     public function setLatitude($latitude): void
     {
         $this->latitude = $latitude;
     }
 
-    /**
-     * @return float|null
-     */
     public function getLatitude()
     {
         return $this->latitude;
     }
 
-    /**
-     * @param float|null $longitude
-     */
     public function setLongitude($longitude): void
     {
         $this->longitude = $longitude;
     }
 
-    /**
-     * @return float|null
-     */
     public function getLongitude()
     {
         return $this->longitude;

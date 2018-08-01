@@ -7,9 +7,11 @@ namespace App\Entity;
 use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Annotation\ApiSubresource;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\PersistentCollection;
 
 /**
  * The most generic type of item.
@@ -48,6 +50,14 @@ class Departement
     private $name;
 
     /**
+     * @var PersistentCollection
+     *
+     * @ORM\OneToMany(targetEntity="App\Entity\Commune", mappedBy="departement")
+     * @ApiSubresource()
+     */
+    private $communes;
+
+    /**
      * @var string|null
      *
      * @ORM\Column(type="text", nullable=true)
@@ -77,6 +87,18 @@ class Departement
     public function getName(): ?string
     {
         return $this->name;
+    }
+
+    public function addCommune(Commune $commune)
+    {
+        $this->communes[] = $commune;
+
+        return $this;
+    }
+
+    public function getCommunes(): PersistentCollection
+    {
+        return $this->communes;
     }
 
     public function setDe(?string $de): void

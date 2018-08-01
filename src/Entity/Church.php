@@ -73,7 +73,7 @@ class Church
     /**
      * @var Commune|null
      *
-     * @ORM\ManyToOne(targetEntity="App\Entity\Commune")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Commune", inversedBy="churches")
      */
     private $commune;
 
