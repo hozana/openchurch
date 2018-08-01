@@ -1,0 +1,16 @@
+# Read the documentation: https://github.com/FriendsOfSymfony/FOSElasticaBundle/blob/master/Resources/doc/setup.md
+fos_elastica:
+    clients:
+        default: { host: '%env(resolve:ES_HOST)%', port: 9200 }
+    indexes:
+        app:
+            index_name: openchurch_%kernel.environment%
+            types:
+                church:
+                    properties:
+                        name: ~
+                    persistence:
+                        driver: orm
+                        model: App\Entity\Church
+                        provider: ~
+                        finder: ~
