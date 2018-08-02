@@ -24,7 +24,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *     @ORM\Index(name="wikidata_id_index", columns={"wikidata_id"}, options={"length": 10})
  * })
  * @ApiResource(iri="http://schema.org/Church")
- * @ApiFilter(SearchFilter::class, properties={"id": "exact", "wikidataId": "exact", "commune": "exact", "name": "ipartial"})
+ * @ApiFilter(SearchFilter::class, properties={"id": "exact", "wikidataId": "exact", "commune": "exact", "commune.name": "ipartial", "name": "ipartial"})
  * @ApiFilter(OrderFilter::class, properties={"id", "name"}, arguments={"orderParameterName"="order"})
  */
 class Church
