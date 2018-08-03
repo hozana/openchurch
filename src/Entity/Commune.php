@@ -11,6 +11,8 @@ use ApiPlatform\Core\Annotation\ApiSubresource;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use Doctrine\ORM\Mapping as ORM;
+use Gedmo\Mapping\Annotation as Gedmo;
+use Gedmo\SoftDeleteable\Traits\SoftDeleteableEntity;
 use Doctrine\ORM\PersistentCollection;
 
 /**
@@ -19,12 +21,16 @@ use Doctrine\ORM\PersistentCollection;
  * @see http://schema.org/Thing Documentation on Schema.org
  *
  * @ORM\Entity
+ * @Gedmo\SoftDeleteable(fieldName="deletedAt", timeAware=false, hardDelete=true)
+ * @Gedmo\Loggable
  * @ApiResource(iri="http://schema.org/Thing")
  * @ApiFilter(SearchFilter::class, properties={"id": "exact", "codeInsee": "exact", "name": "ipartial"})
  * @ApiFilter(OrderFilter::class, properties={"codeInsee", "name"}, arguments={"orderParameterName"="order"})
  */
 class Commune
 {
+    use SoftDeleteableEntity;
+
     /**
      * @var int|null
      *
@@ -37,6 +43,7 @@ class Commune
     /**
      * @var string|null
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="text", nullable=true)
      */
     private $codeInsee;
@@ -44,6 +51,7 @@ class Commune
     /**
      * @var string|null the name of the item
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="text", nullable=true)
      * @ApiProperty(iri="http://schema.org/name")
      */
@@ -52,6 +60,7 @@ class Commune
     /**
      * @var string|null
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="text", nullable=true)
      */
     private $searchable;
@@ -74,6 +83,7 @@ class Commune
     /**
      * @var string|null
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="text", nullable=true)
      */
     private $commonsCategory;
@@ -81,6 +91,7 @@ class Commune
     /**
      * @var float|null
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="float", nullable=true)
      */
     private $latitude;
@@ -88,6 +99,7 @@ class Commune
     /**
      * @var float|null
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="float", nullable=true)
      */
     private $longitude;

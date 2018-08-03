@@ -12,6 +12,8 @@ use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Gedmo\Mapping\Annotation as Gedmo;
+use Gedmo\SoftDeleteable\Traits\SoftDeleteableEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -20,6 +22,8 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @see http://schema.org/Church Documentation on Schema.org
  *
  * @ORM\Entity
+ * @Gedmo\SoftDeleteable(fieldName="deletedAt", timeAware=false, hardDelete=true)
+ * @Gedmo\Loggable
  * @ORM\Table(indexes={
  *     @ORM\Index(name="wikidata_id_index", columns={"wikidata_id"}, options={"length": 10})
  * })
@@ -29,6 +33,8 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 class Church
 {
+    use SoftDeleteableEntity;
+
     /**
      * @var int|null
      *
@@ -41,6 +47,7 @@ class Church
     /**
      * @var string|null the name of the item
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="text", nullable=true)
      * @ApiProperty(iri="http://schema.org/name")
      */
@@ -49,6 +56,7 @@ class Church
     /**
      * @var string|null an alias for the item
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="text", nullable=true)
      * @ApiProperty(iri="http://schema.org/alternateName")
      */
@@ -57,6 +65,7 @@ class Church
     /**
      * @var string|null a description of the item
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="text", nullable=true)
      * @ApiProperty(iri="http://schema.org/description")
      */
@@ -65,6 +74,7 @@ class Church
     /**
      * @var PostalAddress|null physical address of the item
      *
+     * @Gedmo\Versioned
      * @ORM\ManyToOne(targetEntity="App\Entity\PostalAddress")
      * @ApiProperty(iri="http://schema.org/address")
      */
@@ -73,6 +83,7 @@ class Church
     /**
      * @var Commune|null
      *
+     * @Gedmo\Versioned
      * @ORM\ManyToOne(targetEntity="App\Entity\Commune", inversedBy="churches")
      */
     private $commune;
@@ -80,6 +91,7 @@ class Church
     /**
      * @var Departement|null
      *
+     * @Gedmo\Versioned
      * @ORM\ManyToOne(targetEntity="App\Entity\Departement")
      */
     private $departement;
@@ -87,6 +99,7 @@ class Church
     /**
      * @var float|null The latitude of a location. For example ```37.42242``` (\[WGS 84\](https://en.wikipedia.org/wiki/World\_Geodetic\_System)).
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="float", nullable=true)
      * @ApiProperty(iri="http://schema.org/latitude")
      */
@@ -95,6 +108,7 @@ class Church
     /**
      * @var float|null The longitude of a location. For example ```-122.08585``` (\[WGS 84\](https://en.wikipedia.org/wiki/World\_Geodetic\_System)).
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="float", nullable=true)
      * @ApiProperty(iri="http://schema.org/longitude")
      */
@@ -103,6 +117,7 @@ class Church
     /**
      * @var string|null a URL to a map of the place
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="text", nullable=true)
      * @ApiProperty(iri="http://schema.org/hasMap")
      * @Assert\Url
@@ -112,6 +127,7 @@ class Church
     /**
      * @var string|null the telephone number
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="text", nullable=true)
      * @ApiProperty(iri="http://schema.org/telephone")
      */
@@ -120,6 +136,7 @@ class Church
     /**
      * @var string|null the fax number
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="text", nullable=true)
      * @ApiProperty(iri="http://schema.org/faxNumber")
      */
@@ -128,6 +145,7 @@ class Church
     /**
      * @var string|null
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="string", length=10, nullable=true)
      */
     private $wikidataId;
@@ -135,6 +153,7 @@ class Church
     /**
      * @var string|null
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="text", nullable=true)
      */
     private $wikidataDioceseId;
@@ -142,6 +161,7 @@ class Church
     /**
      * @var string|null
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="text", nullable=true)
      */
     private $merimeeId;
@@ -149,6 +169,7 @@ class Church
     /**
      * @var string|null
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="text", nullable=true)
      */
     private $egliseInfoId;
@@ -156,6 +177,7 @@ class Church
     /**
      * @var string|null
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="text", nullable=true)
      */
     private $wikipediaId;
@@ -163,6 +185,7 @@ class Church
     /**
      * @var string|null
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="text", nullable=true)
      */
     private $commonsId;
@@ -170,6 +193,7 @@ class Church
     /**
      * @var string|null
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="text", nullable=true)
      */
     private $clochersId;
@@ -177,6 +201,7 @@ class Church
     /**
      * @var string|null
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="text", nullable=true)
      */
     private $patrimoineReligieuxId;
@@ -184,6 +209,7 @@ class Church
     /**
      * @var string|null URL of the item
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="text", nullable=true)
      * @ApiProperty(iri="http://schema.org/url")
      */
@@ -192,6 +218,7 @@ class Church
     /**
      * @var string|null
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="text", nullable=true)
      */
     private $confessionUrl;
@@ -199,6 +226,7 @@ class Church
     /**
      * @var string|null
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="text", nullable=true)
      */
     private $adorationUrl;
@@ -206,6 +234,7 @@ class Church
     /**
      * @var string|null
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="text", nullable=true)
      */
     private $massUrl;
@@ -213,6 +242,7 @@ class Church
     /**
      * @var string|null a photograph of this place
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="text", nullable=true)
      * @ApiProperty(iri="http://schema.org/photo")
      */
@@ -221,6 +251,7 @@ class Church
     /**
      * @var string|null
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="text", nullable=true)
      */
     private $thumbnail;
@@ -228,6 +259,7 @@ class Church
     /**
      * @var string|null an associated logo
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="text", nullable=true)
      * @ApiProperty(iri="http://schema.org/logo")
      */
@@ -236,6 +268,7 @@ class Church
     /**
      * @var bool|null a flag to signal that the item, event, or place is accessible for free
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="boolean", nullable=true)
      * @ApiProperty(iri="http://schema.org/isAccessibleForFree")
      */
@@ -244,6 +277,7 @@ class Church
     /**
      * @var bool|null A flag to signal that the \[\[Place\]\] is open to public visitors. If this property is omitted there is no assumed default boolean value
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="boolean", nullable=true)
      * @ApiProperty(iri="http://schema.org/publicAccess")
      */
@@ -252,6 +286,7 @@ class Church
     /**
      * @var int|null the total number of individuals that may attend an event or venue
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="integer", nullable=true)
      * @ApiProperty(iri="http://schema.org/maximumAttendeeCapacity")
      */
@@ -260,6 +295,7 @@ class Church
     /**
      * @var string|null An additional type for the item, typically used for adding more specific types from external vocabularies in microdata syntax. This is a relationship between something and a class that the thing is in. In RDFa syntax, it is better to use the native RDFa syntax - the 'typeof' attribute - for multiple types. Schema.org tools may have only weaker understanding of extra types, in particular those defined externally.
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="text", nullable=true)
      * @ApiProperty(iri="http://schema.org/additionalType")
      * @Assert\Url
@@ -269,6 +305,7 @@ class Church
     /**
      * @var Event|null upcoming or past event associated with this place, organization, or action
      *
+     * @Gedmo\Versioned
      * @ORM\ManyToOne(targetEntity="App\Entity\Event")
      * @ApiProperty(iri="http://schema.org/event")
      */
@@ -277,6 +314,7 @@ class Church
     /**
      * @var Review|null a review of the item
      *
+     * @Gedmo\Versioned
      * @ORM\ManyToOne(targetEntity="App\Entity\Review")
      * @ApiProperty(iri="http://schema.org/review")
      */
@@ -285,6 +323,7 @@ class Church
     /**
      * @var string|null The general opening hours for a business. Opening hours can be specified as a weekly time range, starting with days, then times per day. Multiple days can be listed with commas ',' separating each day. Day or time ranges are specified using a hyphen '-'.\\n\\n\* Days are specified using the following two-letter combinations: ```Mo```, ```Tu```, ```We```, ```Th```, ```Fr```, ```Sa```, ```Su```.\\n\* Times are specified using 24:00 time. For example, 3pm is specified as ```15:00```. \\n\* Here is an example: `<time itemprop="openingHours" datetime="Tu,Th 16:00-20:00">Tuesdays and Thursdays 4-8pm</time>`.\\n\* If a business is open 7 days a week, then it can be specified as `<time itemprop="openingHours" datetime="Mo-Su">Monday through Sunday, all day</time>`.
      *
+     * @Gedmo\Versioned
      * @ORM\Column(type="text", nullable=true)
      * @ApiProperty(iri="http://schema.org/openingHours")
      */
@@ -302,6 +341,7 @@ class Church
     /**
      * @var OpeningHoursSpecification|null The special opening hours of a certain place.\\n\\nUse this to explicitly override general opening hours brought in scope by \[\[openingHoursSpecification\]\] or \[\[openingHours\]\].
      *
+     * @Gedmo\Versioned
      * @ORM\OneToOne(targetEntity="App\Entity\OpeningHoursSpecification")
      * @ApiProperty(iri="http://schema.org/specialOpeningHoursSpecification")
      */
