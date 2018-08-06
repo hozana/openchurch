@@ -8,3 +8,7 @@ api_platform:
         enabled: true
         graphiql:
             enabled: true
+    oauth:
+         enabled: true
+         clientId: '1_5dq7vt20314wswgks084wkokgogc0g8s0o0s408sogg40cwsgo'
+         clientSecret: '3b8fjoxdah8go4gkcks0ogc44o0cg0okk0wg8gk8sc4cw8ckkk'

@@ -1,24 +1,30 @@
 security:
+    encoders:
+        FOS\UserBundle\Model\UserInterface: bcrypt
+
     # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
     providers:
-        in_memory: { memory: ~ }
+        fos_user_bundle:
+            id: fos_user.user_provider.username
+
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
-        main:
-            anonymous: true
 
-            # activate different ways to authenticate
+        oauth_token:
+            pattern:    ^/oauth/v2/token
+            security:   false
 
-            # http_basic: true
-            # https://symfony.com/doc/current/security.html#a-configuring-how-your-users-will-authenticate
-
-            # form_login: true
-            # https://symfony.com/doc/current/security/form_login_setup.html
+        api:
+            pattern:   ^/.+
+            fos_oauth: true
+            stateless: true
+            anonymous: false
 
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
+        - { path: ^/.+, roles: [ IS_AUTHENTICATED_FULLY ] }
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
