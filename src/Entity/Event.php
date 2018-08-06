@@ -144,22 +144,22 @@ class Event
         return $this->description;
     }
 
-    public function setSubEvent(?Event $subEvent): void
+    public function setSubEvent(?self $subEvent): void
     {
         $this->subEvent = $subEvent;
     }
 
-    public function getSubEvent(): ?Event
+    public function getSubEvent(): ?self
     {
         return $this->subEvent;
     }
 
-    public function setSuperEvent(?Event $superEvent): void
+    public function setSuperEvent(?self $superEvent): void
     {
         $this->superEvent = $superEvent;
     }
 
-    public function getSuperEvent(): ?Event
+    public function getSuperEvent(): ?self
     {
         return $this->superEvent;
     }

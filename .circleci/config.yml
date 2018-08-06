@@ -1,0 +1,69 @@
+# PHP CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-php/ for more details
+#
+version: 2
+jobs:
+  build:
+    shell: /bin/bash --login
+
+    environment:
+      CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
+      CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
+
+    docker:
+    # specify the version you desire here
+    - image: circleci/php:7.1-browsers
+
+    # Specify service dependencies here if necessary
+    # CircleCI maintains a library of pre-built images
+    # documented at https://circleci.com/docs/2.0/circleci-images/
+    - image: circleci/mysql:5.7
+      environment:
+        MYSQL_ROOT_PASSWORD: 'secured_password'
+        MYSQL_DATABASE: openchurch
+
+    working_directory: ~/repo
+
+    steps:
+    - checkout
+    - run: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORT
+    - run: cp .env.dist .env
+
+    # Download and cache dependencies
+    - restore_cache:
+        keys:
+        - v1-dependencies-{{ checksum "composer.json" }}
+        # fallback to using the latest cache if no exact match is found
+        - v1-dependencies-
+
+    - run: composer install -n --prefer-dist
+    - run: sudo apt-get update && sudo apt-get install -y mysql-client wget
+    - run: wget -O php-cs-fixer.phar https://github.com/FriendsOfPHP/PHP-CS-Fixer/releases/download/v2.12.2/php-cs-fixer.phar
+    - run: chmod +x php-cs-fixer.phar
+
+    - save_cache:
+        paths:
+        - ./vendor
+        key: v1-dependencies-{{ checksum "composer.json" }}
+
+    - run: mysql -h 127.0.0.1 -u root -psecured_password openchurch < data/20180806openchurch.sql
+
+    # run tests!
+    - run: ./vendor/bin/phpunit -d memory_limit=512M
+    # Linter
+    - run: ./php-cs-fixer.phar -vvv --no-ansi fix --dry-run --diff
+
+    # Save test results
+    - store_test_results:
+        path: /tmp/circleci-test-results
+
+    # Save artifacts
+    - store_artifacts:
+        path: /tmp/circleci-artifacts
+    - store_artifacts:
+        path: var/logs/test.log
+    - store_artifacts:
+        path: coverage
+    - store_artifacts:
+        path: /tmp/circleci-test-results

@@ -1,5 +1,7 @@
 # openchurch
 
+[![CircleCI](https://circleci.com/gh/hozana/openchurch.svg?style=svg)](https://circleci.com/gh/hozana/openchurch)
+
 ## A few commands
 
 - To generate our schema: `vendor/bin/schema generate-types config/schema.yaml` to have the PHP entities, then `bin/console doctrine:schema:update --force` to update database.

@@ -48,7 +48,6 @@
 /.web-server-pid
 
 ###> friendsofphp/php-cs-fixer ###
-/.php_cs
 /.php_cs.cache
 ###< friendsofphp/php-cs-fixer ###
 
@@ -57,3 +56,7 @@
 ###> symfony/web-server-bundle ###
 /.web-server-pid
 ###< symfony/web-server-bundle ###
+
+###> phpunit/phpunit ###
+/phpunit.xml
+###< phpunit/phpunit ###
