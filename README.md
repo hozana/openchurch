@@ -7,6 +7,7 @@
 - To generate our schema: `vendor/bin/schema generate-types config/schema.yaml` to have the PHP entities, then `bin/console doctrine:schema:update --force` to update database.
 - To test the app: `bin/console server:run` in project root folder
 - To test the react client: `npm start` in `openchurch-admin` folder
+- To create a oAuth2 client to test the API : `bin/console oauth:client:create client_credentials`
 
 ## API usage example
 

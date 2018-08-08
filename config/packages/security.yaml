@@ -16,8 +16,16 @@ security:
             pattern:    ^/oauth/v2/token
             security:   false
 
-        api:
+        api_read:
             pattern:   ^/.+
+            methods: [GET]
+            fos_oauth: false
+            stateless: true
+            anonymous: true
+
+        api_write:
+            pattern:   ^/.+
+            methods: [POST, PUT, PATCH, DELETE]
             fos_oauth: true
             stateless: true
             anonymous: false
@@ -25,6 +33,6 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-        - { path: ^/.+, roles: [ IS_AUTHENTICATED_FULLY ] }
+        - { path: ^/.+, methods: [POST, PUT], roles: [ IS_AUTHENTICATED_FULLY ] }
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
