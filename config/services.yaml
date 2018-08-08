@@ -5,6 +5,7 @@
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
     locale: 'en'
+    event_listener.api.logger.class: App\Listener\ApiLoggerListener
 
 services:
     # default configuration for services in *this* file
@@ -33,3 +34,10 @@ services:
     App\DataProvider\ChurchCollectionDataProvider:
         arguments:
             $finder: '@fos_elastica.finder.app.church'
+
+    event_listener.api.logger:
+        autowire: false
+        class: '%event_listener.api.logger.class%'
+        tags:
+        - { name: kernel.event_subscriber }
+        arguments: ['@stof_doctrine_extensions.listener.loggable', '@?security.token_storage', '@?security.authorization_checker', '@?stof_doctrine_extensions.listener.loggable']
