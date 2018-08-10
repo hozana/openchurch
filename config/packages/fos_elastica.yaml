@@ -8,6 +8,12 @@ fos_elastica:
             types:
                 church:
                     properties:
+                        wikidataId: ~
+                        commune:
+                            type: "nested"
+                            properties:
+                                id: ~
+                                name: ~
                         name: ~
                     persistence:
                         driver: orm
