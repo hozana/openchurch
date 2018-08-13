@@ -5,8 +5,8 @@ namespace App\Listener;
 use FOS\OAuthServerBundle\Storage\OAuthStorage;
 use Gedmo\Loggable\LoggableListener;
 use Stof\DoctrineExtensionsBundle\EventListener\LoggerListener;
-use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
