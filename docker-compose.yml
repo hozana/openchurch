@@ -7,3 +7,28 @@ services:
     - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ports:
     - 9200:9200
+  openchurch:
+    image: hozana/openchurch
+    volumes:
+    # Apache development - change Apache config without rebuilding docker image
+    # (still need to reload apache: call `./tools/apache.reload`)
+    # and ensure your editor saves file in place (most don't!):
+    # https://github.com/moby/moby/issues/15793#issuecomment-135411504
+    - ./tools/docker/web/hozana-dev.conf:/etc/apache2/sites-available/hozana.conf
+    - ./tools/docker/web/entrypoint.sh:/usr/local/bin/entrypoint.sh
+    env_file: ./.env
+    ports:
+    - 1819:80
+    links:
+    - db
+  db:
+    image: mysql:latest
+    ports:
+    - 13306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: openchurch
+      MYSQL_USER: test
+      MYSQL_PASSWORD: test
+    volumes_from:
+    - test_data
