@@ -17,7 +17,10 @@ class ApiLoggerListener extends LoggerListener
     private $loggableListener;
     private $OAuthStorage;
 
-    public function __construct(LoggableListener $loggableListener, TokenStorageInterface $tokenStorage = null, AuthorizationCheckerInterface $authorizationChecker = null, OAuthStorage $OAuthStorage = null)
+    public function __construct(LoggableListener $loggableListener,
+                                TokenStorageInterface $tokenStorage = null,
+                                AuthorizationCheckerInterface $authorizationChecker = null,
+                                OAuthStorage $OAuthStorage = null)
     {
         $this->OAuthStorage = $OAuthStorage;
         parent::__construct($loggableListener, $tokenStorage, $authorizationChecker);
