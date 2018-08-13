@@ -39,5 +39,9 @@ services:
         public: true
         tags:
         - { name: kernel.event_subscriber }
-
+    # override default Logger class
     stof_doctrine_extensions.event_listener.logger: '@App\Listener\ApiLoggerListener'
+
+    App\DataProvider\ChurchCollectionDataProvider:
+        arguments:
+            $finder: '@fos_elastica.finder.app.church'

@@ -8,9 +8,21 @@ fos_elastica:
             types:
                 church:
                     properties:
+                        wikidataId: ~
+                        commune:
+                            type: "nested"
+                            properties:
+                                id: ~
+                                name: ~
                         name: ~
+                        pin:
+                            type: geo_point
                     persistence:
                         driver: orm
                         model: App\Entity\Church
                         provider: ~
                         finder: ~
+                        listener:
+                            insert: '%env(resolve:ES_ENABLED)%'
+                            update: '%env(resolve:ES_ENABLED)%'
+                            delete: '%env(resolve:ES_ENABLED)%'
