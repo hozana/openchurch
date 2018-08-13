@@ -8,7 +8,15 @@ fos_elastica:
             types:
                 church:
                     properties:
+                        wikidataId: ~
+                        commune:
+                            type: "nested"
+                            properties:
+                                id: ~
+                                name: ~
                         name: ~
+                        pin:
+                            type: geo_point
                     persistence:
                         driver: orm
                         model: App\Entity\Church

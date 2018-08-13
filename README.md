@@ -7,7 +7,17 @@
 - To generate our schema: `vendor/bin/schema generate-types config/schema.yaml` to have the PHP entities, then `bin/console doctrine:schema:update --force` to update database.
 - To test the app: `bin/console server:run` in project root folder
 - To test the react client: `npm start` in `openchurch-admin` folder
-- To create a oAuth2 client to test the API : `bin/console oauth:client:create client_credentials`
+- To create a oAuth2 client to test the API: `bin/console oauth:client:create client_credentials`
+- To fill ES: `bin/console fos:elastica:populate`
+
+## For ElasticSearch
+
+On a VM:
+
+```
+docker pull docker.elastic.co/elasticsearch/elasticsearch:6.3.2
+docker run -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:6.3.2
+```
 
 ## API usage example
 
