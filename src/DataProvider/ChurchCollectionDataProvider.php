@@ -32,39 +32,46 @@ final class ChurchCollectionDataProvider implements CollectionDataProviderInterf
     public function getCollection(string $resourceClass, string $operationName = null)
     {
         $qb = new QueryBuilder();
-        $query = new Query\BoolQuery();
+        $boolQuery = new Query\BoolQuery();
+        $query = new Query();
 
         if ($name = $this->requestStack->getCurrentRequest()->get('name')) {
-            $nameQuery = new Query\QueryString();
-            $nameQuery->setQuery($name)->setDefaultField('name');
-            $query->addMust($nameQuery);
+            $nameQuery = new Query\Match();
+            $nameQuery->setFieldQuery('name', $name);
+            $nameQuery->setFieldFuzziness('name', 2);
+            $boolQuery->addMust($nameQuery);
         }
         if ($communeId = $this->requestStack->getCurrentRequest()->get('communeId')) {
             $nestedQuery = new Query\BoolQuery();
-            $idQuery = new Query\QueryString();
-            $idQuery->setQuery($communeId)->setDefaultField('id');
-
             $communeIdQuery = new Query\Nested();
-            $communeIdQuery->setPath('commune')->setQuery($nestedQuery->addMust($idQuery));
-            $query->addMust($communeIdQuery);
+            $communeIdQuery->setPath('commune')->setQuery(
+                $nestedQuery->addMust(
+                    new Query\Match('commune.id', $communeId)
+                )
+            );
+            $boolQuery->addMust($communeIdQuery);
         }
         if ($communeName = $this->requestStack->getCurrentRequest()->get('communeName')) {
-            $communeNameQuery = $qb->query()->nested()
-                ->setPath('commune')
-                ->setQuery(
-                    $qb->query()->bool()
-                        ->addMust($qb->query()->match(
-                            'commune.name',
-                            $communeName
-                        ))
-                );
-            $query->addMust($communeNameQuery);
+            $nestedQuery = new Query\BoolQuery();
+            $communeNameQuery = new Query\Nested();
+            $communeNameQuery->setPath('commune')->setQuery(
+                $nestedQuery->addMust(
+                    new Query\Match('commune.name', $communeName)
+                )
+            );
+            $boolQuery->addMust($communeNameQuery);
         }
         if ($wikidataId = $this->requestStack->getCurrentRequest()->get('wikidataId')) {
-            $wikidataIdQuery = new Query\QueryString();
-            $wikidataIdQuery->setQuery($wikidataId)->setDefaultField('wikidataId');
-            $query->addMust($wikidataIdQuery);
+            $boolQuery->addMust(new Query\Match('wikidataId', $wikidataId));
         }
+        if (($longitude = $this->requestStack->getCurrentRequest()->get('longitude')) && ($latitude = $this->requestStack->getCurrentRequest()->get('latitude'))) {
+            $geoPoint = array('lat' => $latitude, 'lon' => $longitude);
+            $boolQuery->addFilter(new Query\GeoDistance('pin', $geoPoint, '3km'));
+            $query->addSort(['_geo_distance' => ['pin' => $geoPoint, 'order' => 'asc']]);
+        }
+
+        $query->setQuery($boolQuery);
+        //die(var_dump(json_encode($query->toArray())));
 
         $paginator = $this->finder->findPaginated($query);
 

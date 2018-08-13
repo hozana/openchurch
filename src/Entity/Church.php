@@ -363,6 +363,16 @@ class Church
      */
     private $dateModified;
 
+    public function getPin() {
+        if ($this->latitude && $this->longitude) {
+            return $this->latitude . ',' . $this->longitude;
+        } else if ($this->commune && $this->commune->getLatitude() && $this->commune->getLongitude()) {
+            return $this->commune->getLatitude() . ',' . $this->commune->getLongitude();
+        }
+
+        return null;
+    }
+
     public function __construct()
     {
         $this->openingHoursSpecifications = new ArrayCollection();
