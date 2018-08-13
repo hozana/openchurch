@@ -363,11 +363,12 @@ class Church
      */
     private $dateModified;
 
-    public function getPin() {
+    public function getPin()
+    {
         if ($this->latitude && $this->longitude) {
-            return $this->latitude . ',' . $this->longitude;
-        } else if ($this->commune && $this->commune->getLatitude() && $this->commune->getLongitude()) {
-            return $this->commune->getLatitude() . ',' . $this->commune->getLongitude();
+            return $this->latitude.','.$this->longitude;
+        } elseif ($this->commune && $this->commune->getLatitude() && $this->commune->getLongitude()) {
+            return $this->commune->getLatitude().','.$this->commune->getLongitude();
         }
 
         return null;

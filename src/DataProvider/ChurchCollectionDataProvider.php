@@ -65,7 +65,7 @@ final class ChurchCollectionDataProvider implements CollectionDataProviderInterf
             $boolQuery->addMust(new Query\Match('wikidataId', $wikidataId));
         }
         if (($longitude = $this->requestStack->getCurrentRequest()->get('longitude')) && ($latitude = $this->requestStack->getCurrentRequest()->get('latitude'))) {
-            $geoPoint = array('lat' => $latitude, 'lon' => $longitude);
+            $geoPoint = ['lat' => $latitude, 'lon' => $longitude];
             $boolQuery->addFilter(new Query\GeoDistance('pin', $geoPoint, '3km'));
             $query->addSort(['_geo_distance' => ['pin' => $geoPoint, 'order' => 'asc']]);
         }
