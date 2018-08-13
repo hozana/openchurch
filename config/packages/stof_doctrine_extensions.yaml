@@ -6,5 +6,3 @@ stof_doctrine_extensions:
         default:
             loggable: true
             softdeleteable: true
-    class:
-        logger: App\Listener\ApiLoggerListener
