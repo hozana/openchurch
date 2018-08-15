@@ -2,6 +2,8 @@
 
 namespace App\Listener;
 
+use App\Entity\AccessToken;
+use FOS\OAuthServerBundle\Security\Authentication\Token\OAuthToken;
 use FOS\OAuthServerBundle\Storage\OAuthStorage;
 use Gedmo\Loggable\LoggableListener;
 use Stof\DoctrineExtensionsBundle\EventListener\LoggerListener;
@@ -12,18 +14,24 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 class ApiLoggerListener extends LoggerListener
 {
+    /** @var AuthorizationCheckerInterface */
     private $authorizationChecker;
+    /** @var TokenStorageInterface */
     private $tokenStorage;
+    /** @var LoggableListener */
     private $loggableListener;
-    private $OAuthStorage;
+    /** @var OAuthStorage */
+    private $oAuthStorage;
 
     public function __construct(LoggableListener $loggableListener,
                                 TokenStorageInterface $tokenStorage = null,
                                 AuthorizationCheckerInterface $authorizationChecker = null,
-                                OAuthStorage $OAuthStorage = null)
+                                OAuthStorage $oAuthStorage = null)
     {
-        $this->OAuthStorage = $OAuthStorage;
-        parent::__construct($loggableListener, $tokenStorage, $authorizationChecker);
+        $this->loggableListener = $loggableListener;
+        $this->tokenStorage = $tokenStorage;
+        $this->authorizationChecker = $authorizationChecker;
+        $this->oAuthStorage = $oAuthStorage;
     }
 
     public function onKernelRequest(GetResponseEvent $event)
@@ -36,12 +44,15 @@ class ApiLoggerListener extends LoggerListener
             return;
         }
 
+        /** @var OAuthToken $token */
         $token = $this->tokenStorage->getToken();
-
         if (null !== $token && $this->authorizationChecker->isGranted('IS_AUTHENTICATED_REMEMBERED')) {
             $this->loggableListener->setUsername($token);
         }
 
-        $this->loggableListener->setUsername($this->OAuthStorage->getAccessToken($token->getToken())->getClient()->getUser()->getUsername());
+        /** @var AccessToken $accessToken */
+        $accessToken = $this->oAuthStorage->getAccessToken($token->getToken());
+        $username = $accessToken->getClient()->getUser()->getUsername();
+        $this->loggableListener->setUsername($username);
     }
 }
