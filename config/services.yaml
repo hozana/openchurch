@@ -30,6 +30,18 @@ services:
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 
+    App\Listener\ApiLoggerListener:
+        arguments:
+            $loggableListener: '@stof_doctrine_extensions.listener.loggable'
+            $tokenStorage: '@?security.token_storage'
+            $authorizationChecker: '@?security.authorization_checker'
+            $oAuthStorage : '@?fos_oauth_server.storage'
+        public: true
+        tags:
+        - { name: kernel.event_subscriber }
+    # override default Logger class
+    stof_doctrine_extensions.event_listener.logger: '@App\Listener\ApiLoggerListener'
+
     App\DataProvider\ChurchCollectionDataProvider:
         arguments:
             $finder: '@fos_elastica.finder.app.church'
