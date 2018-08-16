@@ -9,6 +9,7 @@ use Gedmo\Loggable\LoggableListener;
 use Stof\DoctrineExtensionsBundle\EventListener\LoggerListener;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\Security\Core\Authentication\Token\AnonymousToken;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
@@ -46,13 +47,23 @@ class ApiLoggerListener extends LoggerListener
 
         /** @var OAuthToken $token */
         $token = $this->tokenStorage->getToken();
-        if (null !== $token && $this->authorizationChecker->isGranted('IS_AUTHENTICATED_REMEMBERED')) {
+        if (null === $token) {
+            return;
+        }
+
+        if ($this->authorizationChecker->isGranted('IS_AUTHENTICATED_REMEMBERED')) {
             $this->loggableListener->setUsername($token);
         }
 
-        /** @var AccessToken $accessToken */
-        $accessToken = $this->oAuthStorage->getAccessToken($token->getToken());
-        $username = $accessToken->getClient()->getUser()->getUsername();
-        $this->loggableListener->setUsername($username);
+        if ($token instanceof AnonymousToken) {
+            return;
+        }
+
+        if (null !== $this->oAuthStorage) {
+            /** @var AccessToken $accessToken */
+            $accessToken = $this->oAuthStorage->getAccessToken($token->getToken());
+            $username = $accessToken->getClient()->getUser()->getUsername();
+            $this->loggableListener->setUsername($username);
+        }
     }
 }
