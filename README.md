@@ -4,11 +4,31 @@
 
 ## A few commands
 
-- To generate our schema: `vendor/bin/schema generate-types config/schema.yaml` to have the PHP entities, then `bin/console doctrine:schema:update --force` to update database.
-- To test the app: `bin/console server:run` in project root folder
-- To test the react client: `npm start` in `openchurch-admin` folder
-- To create a oAuth2 client to test the API: `bin/console oauth:client:create client_credentials`
-- To fill ES: `bin/console fos:elastica:populate`
+### Database
+
+To generate our schema we first used `vendor/bin/schema generate-types config/schema.yaml` to have the PHP entities generated from yaml and [schema.org](https://schema.org/Church). But as these generated entities has been modified, we could just remove the [schema-generator](https://api-platform.com/docs/schema-generator/configuration/) and the schema.yaml file.
+ 
+- `bin/console doctrine:schema:update --force` to update database
+- or `bin/console doctrine:migrations:diff` to create a migration, 
+- and `bin/console doctrine:migrations:migrate` to run the migration.
+
+### To start the API
+
+- To test the app: `bin/console server:run` in project root folder and then reach [http://127.0.0.1:8000](http://127.0.0.1:8000).
+- To create a oAuth2 client to test the API: `bin/console oauth:client:create client_credentials` (or use the upcoming web interface).
+- To fill ES: `bin/console fos:elastica:populate`.
+
+### To start the react app
+
+This app is provided by API Platform. It connects to the PHP API and autodiscover it.
+
+```
+cd openchurch-admin
+npm start
+```
+
+Then `http://localhost:3000` should be automatically opened.
+In `openchurch-admin/src/App.js` you can define the API's URL : it's the only configuration.
 
 ## For ElasticSearch
 
