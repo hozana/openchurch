@@ -14,9 +14,11 @@ To generate our schema we first used `vendor/bin/schema generate-types config/sc
 
 ### To start the API
 
-- To test the app: `bin/console server:run` in project root folder and then reach [http://127.0.0.1:8000](http://127.0.0.1:8000).
+To test the app: `bin/console server:run` in project root folder and then reach [http://127.0.0.1:8000](http://127.0.0.1:8000). There is also a GraphiQL interface to help you write down your GraphQL requests : [http://localhost:8000/api/graphql](http://localhost:8000/api/graphql).
+
 - To create a oAuth2 client to test the API: `bin/console oauth:client:create client_credentials` (or use the upcoming web interface).
-- To fill ES: `bin/console fos:elastica:populate`.
+- To fill Elasticsearch: `bin/console fos:elastica:populate`.
+- To generate the assets `yarn encore dev`.
 
 ### To start the react app
 
@@ -30,7 +32,7 @@ npm start
 Then `http://localhost:3000` should be automatically opened.
 In `openchurch-admin/src/App.js` you can define the API's URL : it's the only configuration.
 
-## For ElasticSearch
+## For Elasticsearch
 
 On a VM:
 

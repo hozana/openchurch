@@ -28,6 +28,9 @@
     <div class="container">
         {% block body %}{% endblock %}
     </div>
+    <div class="container-fluid">
+        {% block fullwidthbody %}{% endblock %}
+    </div>
 
     {% block javascripts %}<script src="{{ asset('build/app.js') }}"></script>{% endblock %}
 </body>
