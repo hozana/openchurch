@@ -1,0 +1,99 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Openchurch{% endblock %}
+
+{% block body %}
+    <div class="row align-items-center">
+        <div class="col-6 mx-auto col-md-6 order-md-2">
+            <p style="font-size: 280px">💒</p>
+        </div>
+        <div class="col-md-6 order-md-1 text-center text-md-left pr-md-5">
+            <h1 class="mb-3">OpenChurch</h1>
+            <p class="lead">OpenChurch est une plateforme collaborative d'open-data de l'église catholique visant à faciliter la création de produits et services. Les données principales sont les églises et leurs position.</p>
+            <p class="lead mb-4">C'est un <a href="https://github.com/hozana/openchurch">projet open-source</a>.</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12 col-md-4">
+            <h2>🗝 Sécurité</h2>
+            <p>La création d'un compte permet de créer une clé d'API oAuth2. Cette clé d'API est nécessaire pour modifier la base de données. Toutes les modifications sont loguées, et ce log est accessible.</p>
+        </div>
+        <div class="col-12 col-md-4">
+            <h2>⛪️ Exhaustivité️</h2>
+            <p>La base contient pour le moment {{ nbChurch|number_format(0) }} églises, dans {{ nbCommune|number_format(0) }} villes et {{ nbDepartement|number_format(0) }} départements. Ces données sont issues de <a href="http://maparoisse.eu">maparoisse.eu</a>.</p>
+        </div>
+        <div class="col-12 col-md-4">
+            <h2>🕊 Open source</h2>
+            <p>Un projet en PHP, MySQL et ElasticSearch, se reposant sur <a href="https://symfony.com">Symfony 4</a>, <a href="https://api-platform.com">API Platform</a>, <a href="https://github.com/FriendsOfSymfony/FOSElasticaBundle">FOSElasticaBundle</a>, <a href="https://github.com/FriendsOfSymfony/FOSOAuthServerBundle">FOSOAuthServerBundle</a>.</p>
+        </div>
+    </div>
+    <div class="row">
+        <h2>Exemples de requêtes</h2>
+        <p>
+        <pre>GET http://127.0.0.1:8000/api/churches?name=elisabeth&communeName=Paris</pre>
+        <figure class="highlight">
+            <pre>
+                <code>
+{
+	"@context": "\/api\/contexts\/Church",
+	"@id": "\/api\/churches",
+	"@type": "hydra:Collection",
+	"hydra:member": [
+		{
+			"@id": "\/api\/churches\/12839",
+			"@type": "http:\/\/schema.org\/Church",
+			"pin": "48.865833,2.360278",
+			"id": 12839,
+			"name": "Église Sainte-Élisabeth-de-Hongrie",
+			"alternateName": null,
+			"description": null,
+			"address": null,
+			"commune": "\/api\/communes\/30837",
+			"latitude": 48.865833,
+			"longitude": 2.360278,
+			"departement": "\/api\/departements\/76",
+			"hasMap": null,
+			"telephone": null,
+			"faxNumber": null,
+			"wikidataId": "Q1629790",
+			"wikidataDioceseId": "Q1242250",
+			"merimeeId": "PA00086110",
+			"egliseInfoId": "75\/paris-03\/sainte-elisabeth",
+			"wikipediaId": "Église Sainte-Élisabeth-de-Hongrie",
+			"commonsId": "Église Sainte-Élisabeth-de-Hongrie (Paris)",
+			"clochersId": "75\/accueil_75103b",
+			"patrimoineReligieuxId": "172764",
+			"url": null,
+			"confessionUrl": null,
+			"adorationUrl": null,
+			"massUrl": null,
+			"photo": "Église Sainte-Élisabeth-de-Hongrie (Paris) 1.jpg",
+			"thumbnail": "d\/d3\/Église_Sainte-Élisabeth-de-Hongrie_(Paris)_1.jpg\/90px-Église_Sainte-Élisabeth-de-Hongrie_(Paris)_1.jpg",
+			"logo": null,
+			"isAccessibleForFree": null,
+			"publicAccess": null,
+			"maximumAttendeeCapacity": null,
+			"additionalType": null,
+			"event": null,
+			"review": null,
+			"openingHour": null,
+			"openingHoursSpecifications": [],
+			"specialOpeningHoursSpecification": null,
+			"dateCreated": null,
+			"dateModified": null,
+			"deletedAt": null,
+			"deleted": false
+		}
+	],
+	"hydra:totalItems": 1,
+	"hydra:view": {
+		"@id": "\/api\/churches?name=elisabeth&communeName=Paris",
+		"@type": "hydra:PartialCollectionView"
+	}
+}
+                </code>
+            </pre>
+        </figure>
+        </p>
+    </div>
+{% endblock %}

@@ -7,3 +7,6 @@ fos_user:
     from_email:
         address:        noreply@openchurch.fr
         sender_name:    noreply OpenChurch
+    registration:
+        form:
+            type: App\Form\RegistrationType

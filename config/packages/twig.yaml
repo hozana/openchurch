@@ -3,3 +3,7 @@ twig:
     debug: '%kernel.debug%'
     strict_variables: '%kernel.debug%'
     form_themes: ['bootstrap_4_horizontal_layout.html.twig']
+    number_format:
+        decimals: 2
+        decimal_point: ','
+        thousands_separator: ' ' # non-breaking space

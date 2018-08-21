@@ -21,7 +21,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @see http://schema.org/Church Documentation on Schema.org
  *
- * @ORM\Entity
+ * @ORM\Entity(repositoryClass="App\Repository\ChurchRepository")
  * @Gedmo\SoftDeleteable(fieldName="deletedAt", timeAware=false, hardDelete=true)
  * @Gedmo\Loggable
  * @ORM\Table(indexes={

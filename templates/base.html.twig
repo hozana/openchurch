@@ -9,6 +9,22 @@
     <title>{% block title %}Welcome!{% endblock %}</title>
 </head>
 <body>
+    <header class="navbar navbar-expand">
+        <a class="navbar-brand" href="/">💒</a>
+
+        <div class="navbar-nav-scroll">
+            <ul class="navbar-nav bd-navbar-nav flex-row">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ path('api_doc') }}">Documentation de l'API</a>
+                </li>
+            </ul>
+        </div>
+
+        <ul class="navbar-nav flex-row ml-md-auto d-none d-md-flex">
+            <li class="nav-item"><a class="nav-link" href="{{ path('fos_user_registration_register') }}">Créer un compte</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ path('fos_user_security_login') }}">Connexion</a></li>
+        </ul>
+    </header>
     <div class="container">
         {% block body %}{% endblock %}
     </div>
