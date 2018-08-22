@@ -20,7 +20,7 @@ use Gedmo\SoftDeleteable\Traits\SoftDeleteableEntity;
  *
  * @see http://schema.org/Thing Documentation on Schema.org
  *
- * @ORM\Entity
+ * @ORM\Entity(repositoryClass="App\Repository\CommuneRepository")
  * @Gedmo\SoftDeleteable(fieldName="deletedAt", timeAware=false, hardDelete=true)
  * @Gedmo\Loggable
  * @ApiResource(iri="http://schema.org/Thing")

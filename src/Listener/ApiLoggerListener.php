@@ -45,7 +45,6 @@ class ApiLoggerListener extends LoggerListener
             return;
         }
 
-        /** @var OAuthToken $token */
         $token = $this->tokenStorage->getToken();
         if (null === $token) {
             return;
@@ -59,7 +58,7 @@ class ApiLoggerListener extends LoggerListener
             return;
         }
 
-        if (null !== $this->oAuthStorage) {
+        if (null !== $this->oAuthStorage && $token instanceof OAuthToken) {
             /** @var AccessToken $accessToken */
             $accessToken = $this->oAuthStorage->getAccessToken($token->getToken());
             $username = $accessToken->getClient()->getUser()->getUsername();

@@ -18,7 +18,7 @@ use Doctrine\ORM\PersistentCollection;
  *
  * @see http://schema.org/Thing Documentation on Schema.org
  *
- * @ORM\Entity
+ * @ORM\Entity(repositoryClass="App\Repository\DepartementRepository")
  * @ApiResource(iri="http://schema.org/Thing")
  * @ApiFilter(SearchFilter::class, properties={"name": "ipartial"})
  * @ApiFilter(OrderFilter::class, properties={"code", "name"}, arguments={"orderParameterName"="order"})

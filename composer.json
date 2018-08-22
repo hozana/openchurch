@@ -21,6 +21,7 @@
         "symfony/security-bundle": "^4.1",
         "symfony/templating": "^4.1",
         "symfony/web-server-bundle": "^4.1",
+        "symfony/webpack-encore-pack": "^1.0",
         "symfony/yaml": "^4.1",
         "webonyx/graphql-php": "^0.12.4"
     },

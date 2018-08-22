@@ -45,3 +45,8 @@ services:
     App\DataProvider\ChurchCollectionDataProvider:
         arguments:
             $finder: '@fos_elastica.finder.app.church'
+
+    app.form.registration:
+        class: App\Form\RegistrationType
+        tags:
+        - { name: form.type, alias: app_user_registration }
