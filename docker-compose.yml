@@ -19,7 +19,7 @@ services:
     depends_on:
     - db
     volumes:
-    - ./:./
+    - ./:/var/www
     ports:
     - 1819:80
     env_file: ./.env
