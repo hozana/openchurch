@@ -13,6 +13,8 @@ docker-compose build openchurch
 docker-compose up
 ```
 
+Always rebuild `openchurch` after modification.
+
 Then you should have three instances:
 
 ```
