@@ -6,11 +6,12 @@ services:
     environment:
     - ES_JAVA_OPTS=-Xms750m -Xmx750m
     - discovery.type=single-node
-    - http.host=0.0.0.0
-    - transport.host=127.0.0.1
+    - network.host=172.18.0.4
     ports:
     - 9200:9200
-    network_mode: "bridge"
+    networks:
+      ocnet:
+        ipv4_address: 172.18.0.4
 
   openchurch:
     build: .
@@ -26,7 +27,9 @@ services:
     ports:
     - 1819:80
     env_file: ./.env
-    network_mode: "bridge"
+    networks:
+      ocnet:
+        ipv4_address: 172.18.0.1
 
   db:
     image: mysql:latest
@@ -37,8 +40,14 @@ services:
     ports:
     - 13306:3306
     env_file: ./.env
-    network_mode: "bridge"
+    networks:
+      ocnet:
+        ipv4_address: 172.18.0.5
 
 networks:
-  default:
+  ocnet:
     driver: bridge
+    ipam:
+      config:
+      - subnet: 172.18.0.0/16
+        gateway: 172.18.0.1
