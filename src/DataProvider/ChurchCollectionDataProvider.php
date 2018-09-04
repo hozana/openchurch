@@ -7,7 +7,6 @@ use ApiPlatform\Core\DataProvider\RestrictedDataProviderInterface;
 use App\Entity\Church;
 use Doctrine\ORM\EntityManagerInterface;
 use Elastica\Query;
-use Elastica\QueryBuilder;
 use FOS\ElasticaBundle\Finder\PaginatedFinderInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 
