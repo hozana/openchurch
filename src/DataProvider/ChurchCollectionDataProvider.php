@@ -31,7 +31,6 @@ final class ChurchCollectionDataProvider implements CollectionDataProviderInterf
 
     public function getCollection(string $resourceClass, string $operationName = null)
     {
-        $qb = new QueryBuilder();
         $boolQuery = new Query\BoolQuery();
         $query = new Query();
 
@@ -71,8 +70,6 @@ final class ChurchCollectionDataProvider implements CollectionDataProviderInterf
         }
 
         $query->setQuery($boolQuery);
-        //die(var_dump(json_encode($query->toArray())));
-
         $paginator = $this->finder->findPaginated($query);
 
         return $paginator->getCurrentPageResults();
