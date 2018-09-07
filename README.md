@@ -4,6 +4,12 @@
 
 ## A few commands
 
+### To start
+
+- `cp .env.dist .env && vim .env` to setup your own environment.
+- `wget https://raw.githubusercontent.com/wiki/hozana/openchurch/20180806openchurch.sql && mysql -u root -p < openchurch < ./20180806openchurch.sql` to get a database.
+- `composer install && yarn install && cd openchurch-admin && yarn install` to install all dependencies.
+
 ### Database
 
 To generate our schema we first used `vendor/bin/schema generate-types config/schema.yaml` to have the PHP entities generated from yaml and [schema.org](https://schema.org/Church). But as these generated entities has been modified, we could just remove the [schema-generator](https://api-platform.com/docs/schema-generator/configuration/) and the schema.yaml file.
