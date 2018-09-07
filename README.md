@@ -18,7 +18,7 @@ To test the app: `bin/console server:run` in project root folder and then reach 
 
 - To create a oAuth2 client to test the API: `bin/console oauth:client:create client_credentials` (or use the upcoming web interface).
 - To fill Elasticsearch: `bin/console fos:elastica:populate`.
-- To generate the assets `yarn encore dev`.
+- To generate the assets `yarn run dev` (and `yarn run watch` while developing).
 
 ### To start the react app
 
