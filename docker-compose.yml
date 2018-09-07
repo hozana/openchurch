@@ -10,8 +10,7 @@ services:
     ports:
     - 9200:9200
     networks:
-      ocnet:
-        ipv4_address: 172.18.0.4
+    - ocnet
 
   openchurch:
     build: .
@@ -28,8 +27,7 @@ services:
     - 1819:80
     env_file: ./.env
     networks:
-      ocnet:
-        ipv4_address: 172.18.0.2
+    - ocnet
 
   db:
     image: mysql:latest
@@ -41,13 +39,8 @@ services:
     - 13306:3306
     env_file: ./.env
     networks:
-      ocnet:
-        ipv4_address: 172.18.0.5
+    - ocnet
 
 networks:
   ocnet:
     driver: bridge
-    ipam:
-      config:
-      - subnet: 172.18.0.0/16
-        gateway: 172.18.0.1

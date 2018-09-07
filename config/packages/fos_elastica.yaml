@@ -1,7 +1,7 @@
 # Read the documentation: https://github.com/FriendsOfSymfony/FOSElasticaBundle/blob/master/Resources/doc/setup.md
 fos_elastica:
     clients:
-        default: { host: '%env(resolve:ES_HOST)%', port: 9200 }
+        default: { host: '%env(resolve:ES_HOST)%', port: '%env(resolve:ES_PORT)%' }
     indexes:
         app:
             index_name: openchurch_%kernel.environment%
