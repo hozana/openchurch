@@ -9,6 +9,7 @@ use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use App\Controller\ChurchHistory;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -27,7 +28,14 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @ORM\Table(indexes={
  *     @ORM\Index(name="wikidata_id_index", columns={"wikidata_id"}, options={"length": 10})
  * })
- * @ApiResource(iri="http://schema.org/Church")
+ * @ApiResource(iri="http://schema.org/Church", itemOperations={
+ *     "get", "put", "delete",
+ *     "special"={
+ *         "method"="GET",
+ *         "path"="/churches/{id}/history",
+ *         "controller"=ChurchHistory::class
+ *     }
+ * })
  * @ApiFilter(SearchFilter::class, properties={"id": "exact", "wikidataId": "exact", "commune": "exact", "commune.name": "ipartial", "name": "ipartial"})
  * @ApiFilter(OrderFilter::class, properties={"id", "name"}, arguments={"orderParameterName"="order"})
  */

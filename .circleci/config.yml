@@ -47,7 +47,8 @@ jobs:
         - ./vendor
         key: v1-dependencies-{{ checksum "composer.json" }}
 
-    - run: mysql -h 127.0.0.1 -u root -psecured_password openchurch < data/20180806-openchurch.sql
+    - run: wget https://raw.githubusercontent.com/wiki/hozana/openchurch/20180806openchurch.sql
+    - run: mysql -h 127.0.0.1 -u root -psecured_password openchurch < 20180806openchurch.sql
 
     # run tests!
     - run: ./vendor/bin/phpunit -d memory_limit=512M

@@ -7,7 +7,6 @@ use ApiPlatform\Core\DataProvider\RestrictedDataProviderInterface;
 use App\Entity\Church;
 use Doctrine\ORM\EntityManagerInterface;
 use Elastica\Query;
-use Elastica\QueryBuilder;
 use FOS\ElasticaBundle\Finder\PaginatedFinderInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -31,7 +30,6 @@ final class ChurchCollectionDataProvider implements CollectionDataProviderInterf
 
     public function getCollection(string $resourceClass, string $operationName = null)
     {
-        $qb = new QueryBuilder();
         $boolQuery = new Query\BoolQuery();
         $query = new Query();
 
@@ -71,8 +69,6 @@ final class ChurchCollectionDataProvider implements CollectionDataProviderInterf
         }
 
         $query->setQuery($boolQuery);
-        //die(var_dump(json_encode($query->toArray())));
-
         $paginator = $this->finder->findPaginated($query);
 
         return $paginator->getCurrentPageResults();
