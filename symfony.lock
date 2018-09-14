@@ -113,6 +113,12 @@
             "ref": "3f73f240ee0c3719e89f1c994ce66904e2ef84f6"
         }
     },
+    "friendsofsymfony/oauth-server-bundle": {
+        "version": "1.6.1"
+    },
+    "friendsofsymfony/oauth2-php": {
+        "version": "1.2.3"
+    },
     "friendsofsymfony/user-bundle": {
         "version": "v2.1.2"
     },
@@ -154,6 +160,9 @@
     },
     "pagerfanta/pagerfanta": {
         "version": "v1.1.0"
+    },
+    "paragonie/random_compat": {
+        "version": "v2.0.17"
     },
     "phar-io/manifest": {
         "version": "1.0.1"
