@@ -4,13 +4,13 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:6.3.2
     container_name: elasticsearch
     environment:
-    - ES_JAVA_OPTS=-Xms750m -Xmx750m
-    - discovery.type=single-node
-    - network.host=172.18.0.4
+      - ES_JAVA_OPTS=-Xms750m -Xmx750m
+      - discovery.type=single-node
+      - network.host=172.18.0.4
     ports:
-    - 9200:9200
+      - 9200:9200
     networks:
-    - ocnet
+      - ocnet
 
   openchurch:
     build: .
@@ -18,28 +18,28 @@ services:
     command: apachectl -D "FOREGROUND"
     container_name: openchurch
     links:
-    - db
+      - db
     depends_on:
-    - db
+      - db
     volumes:
-    - ./:/var/www
+      - ./:/var/www
     ports:
-    - 1819:80
+      - 1819:80
     env_file: ./.env
     networks:
-    - ocnet
+      - ocnet
 
   db:
     image: mysql:latest
     container_name: db
     volumes:
-    - ./data/latest:/docker-entrypoint-initdb.d/
-    #- ./tools/docker/mysql:/etc/mysql/conf.d
+      - ./data/latest:/docker-entrypoint-initdb.d/
+      #- ./tools/docker/mysql:/etc/mysql/conf.d
     ports:
-    - 13306:3306
+      - 13306:3306
     env_file: ./.env
     networks:
-    - ocnet
+      - ocnet
 
 networks:
   ocnet:

@@ -9,13 +9,13 @@ doctrine:
     dbal:
         # configure these for your database server
         driver: 'pdo_mysql'
-        host: '%env(DB_HOST)%'
-        port: '%env(DB_PORT)%'
-        dbname: '%env(MYSQL_DATABASE)%'
-        user: '%env(MYSQL_USER)%'
-        password: ''
+        host:           '%env(DB_HOST)%'
+        port:           '%env(DB_PORT)%'
+        dbname:         '%env(MYSQL_DATABASE)%'
+        user:           '%env(MYSQL_USER)%'
+        password:       '%env(MYSQL_PASSWORD)%'
         server_version: '5.7'
-        charset: utf8mb4
+        charset:        utf8mb4
         default_table_options:
             charset: utf8mb4
             collate: utf8mb4_unicode_ci
