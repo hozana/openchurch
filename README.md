@@ -4,6 +4,34 @@
 
 ## A few commands
 
+### Docker
+
+To build and start the app:
+
+```
+docker-compose build openchurch
+docker-compose up
+```
+
+Always rebuild `openchurch` after modification.
+
+Then you should have three instances:
+
+```
+docker ps
+CONTAINER ID        IMAGE                                                 COMMAND                  CREATED             STATUS              PORTS                                NAMES                       
+1651a84b55b9        hozana/openchurch                                     "/data/scripts/docke…"   51 seconds ago      Up 50 seconds       0.0.0.0:1819->80/tcp                 openchurch                  
+7c9484d9ca5f        docker.elastic.co/elasticsearch/elasticsearch:6.3.2   "/usr/local/bin/dock…"   2 minutes ago       Up 51 seconds       0.0.0.0:9200->9200/tcp, 9300/tcp     elasticsearch               
+f368935297ef        mysql:latest                                          "docker-entrypoint.s…"   16 minutes ago      Up 51 seconds       33060/tcp, 0.0.0.0:13306->3306/tcp   db
+```
+
+If you need to directly hit inside our custom container:
+
+```
+docker exec -it container-id /bin/bash
+docker exec -it 1651a84b55b9 /bin/bash
+```
+
 ### To start
 
 - `cp .env.dist .env && vim .env` to setup your own environment.
