@@ -30,7 +30,7 @@ services:
       - ocnet
 
   db:
-    image: mysql:latest
+    image: mysql:5.7
     container_name: db
     volumes:
       - ./data/latest:/docker-entrypoint-initdb.d/
