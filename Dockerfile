@@ -34,7 +34,7 @@ RUN apt-get update && apt-get install -y yarn
 # RUN pecl install xdebug && docker-php-ext-enable xdebug
 
 # Configure PHP
-#COPY ./tools/docker/backend/php.ini /usr/local/etc/php/
+COPY ./config/docker/php.ini /usr/local/etc/php/
 
 # Configure Apache
 COPY ./config/docker/apache-vhost.conf /etc/apache2/sites-available/openchurch.conf
@@ -63,7 +63,7 @@ WORKDIR /var/www
 
 VOLUME ["/var/www"]
 
-EXPOSE 80
+EXPOSE 80 8000 3000
 
 #Run supervisord to launch Apache
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

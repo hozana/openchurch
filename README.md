@@ -4,14 +4,41 @@
 
 ## A few commands
 
-### Docker
+### Quick start
 
 To build and start the app:
 
 ```
-docker-compose build openchurch
+# build docker image
+cp .env.dist .env
+docker-compose build
 docker-compose up
+
+# install
+docker exec -it openchurch composer install
+docker exec -it openchurch yarn install
+docker exec -it openchurch sh -c "cd openchurch-admin && yarn install"
+docker exec -it openchurch yarn run dev
+
+# import database
+wget https://raw.githubusercontent.com/wiki/hozana/openchurch/20180806openchurch.sql
+mysql -uopenchurch -popenchurch openchurch < ./20180806openchurch.sql
+docker exec -it openchurch bin/console doctrine:schema:update --force
+
+# index data in ES
+docker exec -it openchurch bin/console fos:elastica:populate
+
+# run API
+docker exec -it openchurch bin/console server:run 0.0.0.0:8000
+
+# run backoffice
+docker exec -it openchurch sh -c "cd openchurch-admin && npm start"
 ```
+
+Check API works on [http://127.0.0.1:8000](http://127.0.0.1:8000). And backoffice on [http://127.0.0.1:3000](http://127.0.0.1:3000). 
+
+
+### Docker
 
 Always rebuild `openchurch` after modification.
 
@@ -19,10 +46,10 @@ Then you should have three instances:
 
 ```
 docker ps
-CONTAINER ID        IMAGE                                                 COMMAND                  CREATED             STATUS              PORTS                                NAMES                       
-1651a84b55b9        hozana/openchurch                                     "/data/scripts/docke…"   51 seconds ago      Up 50 seconds       0.0.0.0:1819->80/tcp                 openchurch                  
-7c9484d9ca5f        docker.elastic.co/elasticsearch/elasticsearch:6.3.2   "/usr/local/bin/dock…"   2 minutes ago       Up 51 seconds       0.0.0.0:9200->9200/tcp, 9300/tcp     elasticsearch               
-f368935297ef        mysql:latest                                          "docker-entrypoint.s…"   16 minutes ago      Up 51 seconds       33060/tcp, 0.0.0.0:13306->3306/tcp   db
+CONTAINER ID        IMAGE                                                 COMMAND                  CREATED             STATUS              PORTS                                                                NAMES
+1651a84b55b9        hozana/openchurch                                     "/data/scripts/docke…"   51 seconds ago      Up 50 seconds       0.0.0.0:3000->3000/tcp, 0.0.0.0:8000->8000/tcp, 0.0.0.0:1819->80/tcp openchurch
+7c9484d9ca5f        docker.elastic.co/elasticsearch/elasticsearch:6.3.2   "/usr/local/bin/dock…"   2 minutes ago       Up 51 seconds       0.0.0.0:9200->9200/tcp, 9300/tcp                                     elasticsearch
+f368935297ef        mysql:latest                                          "docker-entrypoint.s…"   16 minutes ago      Up 51 seconds       33060/tcp, 0.0.0.0:13306->3306/tcp                                   db
 ```
 
 If you need to directly hit inside our custom container:

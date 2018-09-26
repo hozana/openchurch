@@ -61,8 +61,11 @@ class ApiLoggerListener extends LoggerListener
         if (null !== $this->oAuthStorage && $token instanceof OAuthToken) {
             /** @var AccessToken $accessToken */
             $accessToken = $this->oAuthStorage->getAccessToken($token->getToken());
-            $username = $accessToken->getClient()->getUser()->getUsername();
-            $this->loggableListener->setUsername($username);
+            $user = $accessToken->getUser();
+            if (null !== $user) {
+                $username = $user->getUsername();
+                $this->loggableListener->setUsername($username);
+            }
         }
     }
 }
