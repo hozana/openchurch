@@ -258,3 +258,10 @@ sudo systemctl restart apache2
 ```
 
 You can check your installation on [https://open-church.io/](https://open-church.io/).
+
+### Configure backup
+- install backup-manager following these [guidelines](https://documentation.online.net/en/dedicated-server/tutorials/backup/configure-backup/start)
+- Setup a daily cron via `sudo crontab -e`, for example:
+```
+0 4 * * * /etc/backup-manager.sh
+```
