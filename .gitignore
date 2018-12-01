@@ -46,11 +46,6 @@
 
 # Embedded web-server pid file
 /.web-server-pid
-
-###> friendsofphp/php-cs-fixer ###
-/.php_cs.cache
-###< friendsofphp/php-cs-fixer ###
-
 .env
 
 ###> symfony/web-server-bundle ###

@@ -20,15 +20,16 @@
         "symfony/form": "^4.1",
         "symfony/framework-bundle": "^4.1",
         "symfony/lts": "^4@dev",
+        "symfony/profiler-pack": "^1.0",
         "symfony/security-bundle": "^4.1",
         "symfony/templating": "^4.1",
+        "symfony/translation": "^4.1",
         "symfony/web-server-bundle": "^4.1",
         "symfony/webpack-encore-pack": "^1.0",
         "symfony/yaml": "^4.1",
         "webonyx/graphql-php": "^0.12.4"
     },
     "require-dev": {
-        "api-platform/schema-generator": "^2.1",
         "phpunit/phpunit": "^6.5"
     },
     "config": {
