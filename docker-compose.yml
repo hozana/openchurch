@@ -6,7 +6,6 @@ services:
     environment:
       - ES_JAVA_OPTS=-Xms750m -Xmx750m
       - discovery.type=single-node
-      - network.host=172.18.0.4
     ports:
       - 9200:9200
     networks:
@@ -25,6 +24,8 @@ services:
       - ./:/var/www
     ports:
       - 1819:80
+      - 8000:8000
+      - 3000:3000
     env_file: ./.env
     networks:
       - ocnet
