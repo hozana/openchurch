@@ -1,93 +1,47 @@
 types:
-    Departement:
+    Places:
+        parent: false
         properties:
-            code: { range: Text }
+            parentId: { range: Places, cardinality: (0..1) }
             name: { range: Text }
-            de: { range: Text }
-    Commune:
+            type: { range: PlaceTypes }
+            createdAt: { range: DateTime, nullable: true }
+            updatedAt: { range: DateTime, nullable: true }
+    Calendars:
+        parent: false
         properties:
-            codeInsee: { range: Text }
-            name: { range: Text }
-            searchable: { range: Text }
-            departement: { range: Departement, cardinality: (*..0) }
-            commonsCategory: { range: Text }
-            latitude: { range: Number }
-            longitude: { range: Number }
-    Church:
+            churchId: { range: Churches }
+            calendarUrl: { range: Text, nullable: true }
+            rite: { range: Rites }
+            lang: { range: Text }
+            type: { range: CalendarTypes }
+            createdAt: { range: DateTime, nullable: true }
+            updatedAt: { range: DateTime, nullable: true }
+    TheodiaChurches:
+        parent: false
         properties:
-            name: ~
-            alternateName: ~
-            description: ~
-            address: { range: PostalAddress }
-            commune: { range: Commune, cardinality: (*..0) }
-            departement: { range: Departement, cardinality: (*..0) }
-            hasMap: ~
-            telephone: ~
-            faxNumber: ~
-            wikidataId: { range: Text, nullable: true }
-            wikidataDioceseId: { range: Text, nullable: true }
-            merimeeId: { range: Text, nullable: true }
-            egliseInfoId: { range: Text, nullable: true }
-            wikipediaId: { range: Text, nullable: true }
-            commonsId: { range: Text, nullable: true }
-            clochersId: { range: Text, nullable: true }
-            patrimoineReligieuxId: { range: Text, nullable: true }
+            createdAt: { range: DateTime, nullable: true }
+            updatedAt: { range: DateTime, nullable: true }
+    Churches:
+        parent: false
+        properties:
+            wikidataId: { range: WikidataChurches }
+            theodiaId: { range: TheodiaChurches }
+    Photos:
+        parent: false
+        properties:
             url: { range: Text }
-            confessionUrl: { range: Text, nullable: true }
-            adorationUrl: { range: Text, nullable: true }
-            massUrl: { range: Text, nullable: true }
-            geo: { range: GeoCoordinates }
-            photo: { range: Text }
-            thumbnail: { range: Text, nullable: true }
-            logo: { range: Text }
-            isAccessibleForFree: ~
-            publicAccess: ~
-            maximumAttendeeCapacity: ~
-            additionalType: ~
-            event: { range: Event }
-            review: { range: Review }
-            openingHours: ~
-            openingHoursSpecification: { range: OpeningHoursSpecification }
-            specialOpeningHoursSpecification: { range: OpeningHoursSpecification }
-            dateCreated: { range: DateTime, nullable: true }
-            dateModified: { range: DateTime, nullable: true }
-    GeoCoordinates:
+            createdAt: { range: DateTime, nullable: true }
+            updatedAt: { range: DateTime, nullable: true }
+    WikidataChurches:
+        parent: false
         properties:
+            name: { range: Text }
+            photoId: { range: Photos }
             latitude: { range: Number }
             longitude: { range: Number }
-    PostalAddress:
-        properties:
-            addressCountry: ~
-            addressLocality: ~
-            addressRegion: ~
-            postalCode: ~
-            streetAddress: ~
-    Event:
-        properties:
-            name: ~
-            description: ~
-            subEvent: ~
-            superEvent: ~
-            location: { range: Church }
-            isAccessibleForFree: ~
-            inLanguage: { range: Text }
-            startDate: { range: DateTime }
-            endDate: { range: DateTime }
-            doorTime: ~
-            duration: { range: Number }
-    OpeningHoursSpecification:
-        properties:
-            opens: ~
-            closes: ~
-            dayOfWeek: { range: DayOfWeek }
-            validFrom: ~
-            validThrough: ~
-    DayOfWeek:
-        properties:
-            name: ~
-    Review:
-        properties:
-            itemReviewed: { range: Church }
-            reviewAspect: { range: Text }
-            reviewBody: ~
-            reviewRating: { range: Number }
+            placeId: { range: Places }
+            address: { range: Text }
+            hozanaUserId: { range: Integer, nullable: True }
+            createdAt: { range: DateTime, nullable: true }
+            updatedAt: { range: DateTime, nullable: true }

@@ -21,8 +21,7 @@ docker exec -it openchurch sh -c "cd openchurch-admin && yarn install"
 docker exec -it openchurch yarn run dev
 
 # import database
-wget https://raw.githubusercontent.com/wiki/hozana/openchurch/20180806openchurch.sql
-mysql -uopenchurch -popenchurch openchurch < ./20180806openchurch.sql
+mysql -uopenchurch -popenchurch -h 127.0.0.1 -P 13306 openchurch < data/20180806-openchurch.sql
 docker exec -it openchurch bin/console doctrine:schema:update --force
 
 # index data in ES
@@ -35,7 +34,7 @@ docker exec -it openchurch bin/console server:run 0.0.0.0:8000
 docker exec -it openchurch sh -c "cd openchurch-admin && npm start"
 ```
 
-Check API works on [http://127.0.0.1:8000](http://127.0.0.1:8000). And backoffice on [http://127.0.0.1:3000](http://127.0.0.1:3000). 
+Check API works on [http://127.0.0.1:8000](http://127.0.0.1:8000). And backoffice on [http://127.0.0.1:3000](http://127.0.0.1:3000).
 
 
 ### Docker
@@ -68,9 +67,9 @@ docker exec -it 1651a84b55b9 /bin/bash
 ### Database
 
 To generate our schema we first used `vendor/bin/schema generate-types config/schema.yaml` to have the PHP entities generated from yaml and [schema.org](https://schema.org/Church). But as these generated entities has been modified, we could just remove the [schema-generator](https://api-platform.com/docs/schema-generator/configuration/) and the schema.yaml file.
- 
+
 - `bin/console doctrine:schema:update --force` to update database
-- or `bin/console doctrine:migrations:diff` to create a migration, 
+- or `bin/console doctrine:migrations:diff` to create a migration,
 - and `bin/console doctrine:migrations:migrate` to run the migration.
 
 ### To start the API
