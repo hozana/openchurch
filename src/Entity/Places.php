@@ -53,6 +53,13 @@ class Places
     private $type;
 
     /**
+     * @var array
+     *
+     * @ORM\OneToMany(targetEntity="Places", mappedBy="parentId")
+     **/
+    protected $children;
+
+    /**
      * @var \DateTimeInterface
      *
      * @ORM\Column(type="datetime")

@@ -26,6 +26,13 @@ class TheodiaChurches
     private $theodiaChurchId;
 
     /**
+     * @var array
+     *
+     * @ORM\OneToMany(targetEntity="Churches", mappedBy="theodiaChurchId")
+     **/
+    protected $churches;
+
+    /**
      * @var \DateTimeInterface
      *
      * @ORM\Column(type="datetime")

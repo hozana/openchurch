@@ -45,6 +45,13 @@ class Churches
      */
     private $theodiaChurchId;
 
+    /**
+     * @var array
+     *
+     * @ORM\OneToMany(targetEntity="Calendars", mappedBy="churchId")
+     **/
+    protected $calendars;
+
     public function getChurchId(): ?int
     {
         return $this->churchId;

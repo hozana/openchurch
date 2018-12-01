@@ -75,6 +75,13 @@ class WikidataChurches
     private $address;
 
     /**
+     * @var array
+     *
+     * @ORM\OneToMany(targetEntity="Churches", mappedBy="wikidataChurchId")
+     **/
+    protected $churches;
+
+    /**
      * @var \DateTimeInterface
      *
      * @ORM\Column(type="datetime")
