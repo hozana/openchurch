@@ -75,14 +75,6 @@ class WikidataChurches
     private $address;
 
     /**
-     * @var int
-     *
-     * @ORM\Column(type="integer")
-     * @Assert\NotNull
-     */
-    private $hozanaUserId;
-
-    /**
      * @var \DateTimeInterface
      *
      * @ORM\Column(type="datetime")
@@ -175,16 +167,6 @@ class WikidataChurches
     public function getAddress(): string
     {
         return $this->address;
-    }
-
-    public function setHozanaUserId(int $hozanaUserId): void
-    {
-        $this->hozanaUserId = $hozanaUserId;
-    }
-
-    public function getHozanaUserId(): int
-    {
-        return $this->hozanaUserId;
     }
 
     public function setCreatedAt(\DateTimeInterface $createdAt): void

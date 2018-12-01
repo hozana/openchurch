@@ -68,6 +68,14 @@ class Calendars
     private $type;
 
     /**
+     * @var int
+     *
+     * @ORM\Column(type="integer")
+     * @Assert\NotNull
+     */
+    private $hozanaUserId;
+
+    /**
      * @var \DateTimeInterface
      *
      * @ORM\Column(type="datetime")
@@ -150,6 +158,16 @@ class Calendars
     public function getType()
     {
         return $this->type;
+    }
+
+    public function setHozanaUserId(int $hozanaUserId): void
+    {
+        $this->hozanaUserId = $hozanaUserId;
+    }
+
+    public function getHozanaUserId(): int
+    {
+        return $this->hozanaUserId;
     }
 
     public function setCreatedAt(\DateTimeInterface $createdAt): void
