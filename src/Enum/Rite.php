@@ -4,7 +4,7 @@ namespace App\Enum;
 
 use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
 
-final class Rites extends AbstractEnumType
+final class Rite extends AbstractEnumType
 {
     public const ROMAN_RITE_ORDINARY = 1;
     public const ROMAN_RITE_EXTRAORDINARY = 2;

@@ -4,7 +4,7 @@ namespace App\Enum;
 
 use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
 
-final class PlaceTypes extends AbstractEnumType
+final class PlaceType extends AbstractEnumType
 {
     public const CITY = 'city';
     public const COUNTRY = 'country';

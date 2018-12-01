@@ -13,22 +13,30 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @see http://schema.org/Thing Documentation on Schema.org
  *
  * @ORM\Entity
+ * @ORM\Table(name="theodia_churches")
  */
-class TheodiaChurches
+class TheodiaChurch
 {
     /**
      * @var int|null
      *
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="integer", name="theodia_church_id")
      */
-    private $theodiaChurchId;
+    private $id;
 
     /**
      * @var array
      *
-     * @ORM\OneToMany(targetEntity="Churches", mappedBy="theodiaChurchId")
+     * @ORM\OneToMany(targetEntity="Photo", mappedBy="theodiaChurch")
+     **/
+    protected $photos;
+
+    /**
+     * @var array
+     *
+     * @ORM\OneToMany(targetEntity="Church", mappedBy="theodiaChurch")
      **/
     protected $churches;
 
@@ -50,9 +58,9 @@ class TheodiaChurches
      */
     private $updatedAt;
 
-    public function getTheodiaChurchId(): ?int
+    public function getId(): ?int
     {
-        return $this->theodiaChurchId;
+        return $this->id;
     }
 
     public function setCreatedAt(\DateTimeInterface $createdAt): void
