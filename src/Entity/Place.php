@@ -6,7 +6,7 @@ namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
-use App\Enum\PlaceTypes;
+use App\Enum\PlaceType;
 use Doctrine\ORM\Mapping as ORM;
 use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -17,26 +17,27 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @see http://schema.org/Thing Documentation on Schema.org
  *
  * @ORM\Entity
+ * @ORM\Table(name="places")
  * @ApiResource(iri="http://schema.org/Thing")
  */
-class Places
+class Place
 {
     /**
      * @var int|null
      *
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="integer", name="place_id")
      */
-    private $placeId;
+    private $id;
 
     /**
-     * @var Places|null
+     * @var Place|null
      *
-     * @ORM\ManyToOne(targetEntity="App\Entity\Places", inversedBy="children")
+     * @ORM\ManyToOne(targetEntity="Place", inversedBy="children")
      * @ORM\JoinColumn(nullable=true, referencedColumnName="place_id")
      */
-    private $parentId;
+    private $parent;
 
     /**
      * @var string|null the name of the item
@@ -47,15 +48,29 @@ class Places
     private $name;
 
     /**
-     * @ORM\Column(name="type", type="PlaceTypes", nullable=false)
-     * @DoctrineAssert\Enum(entity="App\Enum\PlaceTypes")
+     * @var string|null the country code of the item
+     *
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $countryCode;
+
+    /**
+     * @ORM\Column(name="type", type="PlaceType", nullable=false)
+     * @DoctrineAssert\Enum(entity="App\Enum\PlaceType")
      */
     private $type;
 
     /**
      * @var array
      *
-     * @ORM\OneToMany(targetEntity="Places", mappedBy="parentId")
+     * @ORM\OneToMany(targetEntity="WikidataChurch", mappedBy="place")
+     **/
+    protected $wikidataChurches;
+
+    /**
+     * @var array
+     *
+     * @ORM\OneToMany(targetEntity="Place", mappedBy="parent")
      **/
     protected $children;
 
@@ -77,19 +92,19 @@ class Places
      */
     private $updatedAt;
 
-    public function getPlaceId(): ?int
+    public function getId(): ?int
     {
-        return $this->placeId;
+        return $this->id;
     }
 
-    public function setParentId(?Places $parentId): void
+    public function setParent(?Place $parent): void
     {
-        $this->parentId = $parentId;
+        $this->parent = $parent;
     }
 
-    public function getParentId(): ?Places
+    public function getParent(): ?Place
     {
-        return $this->parentId;
+        return $this->parent;
     }
 
     public function setName(?string $name): void
@@ -102,8 +117,18 @@ class Places
         return $this->name;
     }
 
+    public function setCountryCode(?string $countryCode): void
+    {
+        $this->countryCode = $countryCode;
+    }
+
+    public function getCountryCode(): ?string
+    {
+        return $this->countryCode;
+    }
+
     /**
-     * @param PlaceTypes $type
+     * @param PlaceType $type
      */
     public function setType($type): void
     {
@@ -111,7 +136,7 @@ class Places
     }
 
     /**
-     * @return PlaceTypes
+     * @return PlaceType
      */
     public function getType()
     {

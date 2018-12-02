@@ -20,9 +20,9 @@ doctrine:
             charset: utf8mb4
             collate: utf8mb4_unicode_ci
         types:
-            CalendarTypes: App\Enum\CalendarTypes
-            PlaceTypes: App\Enum\PlaceTypes
-            Rites: App\Enum\Rites
+            CalendarType: App\Enum\CalendarType
+            PlaceType: App\Enum\PlaceType
+            Rite: App\Enum\Rite
 
     orm:
         auto_generate_proxy_classes: '%kernel.debug%'

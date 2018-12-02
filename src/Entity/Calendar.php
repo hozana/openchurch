@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
-use App\Enum\CalendarTypes;
-use App\Enum\Rites;
+use App\Enum\CalendarType;
+use App\Enum\Rite;
 use Doctrine\ORM\Mapping as ORM;
 use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -17,27 +17,28 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @see http://schema.org/Thing Documentation on Schema.org
  *
  * @ORM\Entity
+ * @ORM\Table(name="calendars")
  * @ApiResource(iri="http://schema.org/Thing")
  */
-class Calendars
+class Calendar
 {
     /**
      * @var int|null
      *
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="integer", name="calendar_id")
      */
-    private $calendarId;
+    private $id;
 
     /**
-     * @var Churches
+     * @var Church
      *
-     * @ORM\ManyToOne(targetEntity="App\Entity\Churches", inversedBy="calendars")
+     * @ORM\ManyToOne(targetEntity="Church", inversedBy="calendars")
      * @ORM\JoinColumn(nullable=false, referencedColumnName="church_id")
      * @Assert\NotNull
      */
-    private $churchId;
+    private $church;
 
     /**
      * @var string
@@ -48,8 +49,8 @@ class Calendars
     private $calendarUrl;
 
     /**
-     * @ORM\Column(name="rite", type="Rites", nullable=false)
-     * @DoctrineAssert\Enum(entity="App\Enum\Rites")
+     * @ORM\Column(name="rite", type="Rite", nullable=false)
+     * @DoctrineAssert\Enum(entity="App\Enum\Rite")
      */
     private $rite;
 
@@ -62,8 +63,8 @@ class Calendars
     private $lang;
 
     /**
-     * @ORM\Column(name="type", type="CalendarTypes", nullable=false)
-     * @DoctrineAssert\Enum(entity="App\Enum\CalendarTypes")
+     * @ORM\Column(name="type", type="CalendarType", nullable=false)
+     * @DoctrineAssert\Enum(entity="App\Enum\CalendarType")
      */
     private $type;
 
@@ -93,19 +94,19 @@ class Calendars
      */
     private $updatedAt;
 
-    public function getCalendarId(): ?int
+    public function getId(): ?int
     {
-        return $this->calendarId;
+        return $this->id;
     }
 
-    public function setChurchId(Churches $churchId): void
+    public function setChurch(Church $church): void
     {
-        $this->churchId = $churchId;
+        $this->church = $church;
     }
 
-    public function getChurchId(): Churches
+    public function getChurch(): Church
     {
-        return $this->churchId;
+        return $this->church;
     }
 
     public function setCalendarUrl(string $calendarUrl): void
@@ -119,7 +120,7 @@ class Calendars
     }
 
     /**
-     * @param Rites $rite
+     * @param Rite $rite
      */
     public function setRite($rite): void
     {
@@ -127,7 +128,7 @@ class Calendars
     }
 
     /**
-     * @return Rites
+     * @return Rite
      */
     public function getRite()
     {
@@ -145,7 +146,7 @@ class Calendars
     }
 
     /**
-     * @param CalendarTypes $type
+     * @param CalendarType $type
      */
     public function setType($type): void
     {
@@ -153,7 +154,7 @@ class Calendars
     }
 
     /**
-     * @return CalendarTypes
+     * @return CalendarType
      */
     public function getType()
     {

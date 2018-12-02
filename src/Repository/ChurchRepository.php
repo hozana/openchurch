@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use Doctrine\ORM\EntityRepository;
 
-class ChurchesRepository extends EntityRepository
+class ChurchRepository extends EntityRepository
 {
     public function count(array $criteria)
     {

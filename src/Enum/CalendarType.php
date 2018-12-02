@@ -4,7 +4,7 @@ namespace App\Enum;
 
 use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
 
-final class CalendarTypes extends AbstractEnumType
+final class CalendarType extends AbstractEnumType
 {
     public const MASS = 'mass';
     public const CONFESSION = 'confession';

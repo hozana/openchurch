@@ -65,3 +65,6 @@ yarn-error.log
 
 # IDE
 .idea
+.buildpath
+.project
+.settings

@@ -13,17 +13,18 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @see http://schema.org/Thing Documentation on Schema.org
  *
  * @ORM\Entity
+ * @ORM\Table(name="wikidata_churches")
  */
-class WikidataChurches
+class WikidataChurch
 {
     /**
      * @var int|null
      *
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="integer", name="wikidata_church_id")
      */
-    private $wikidataChurchId;
+    private $id;
 
     /**
      * @var string|null the name of the item
@@ -31,15 +32,6 @@ class WikidataChurches
      * @ORM\Column(type="text", nullable=true)
      */
     private $name;
-
-    /**
-     * @var Photos
-     *
-     * @ORM\ManyToOne(targetEntity="App\Entity\Photos", inversedBy="wikidataChurches")
-     * @ORM\JoinColumn(nullable=false, referencedColumnName="photo_id")
-     * @Assert\NotNull
-     */
-    private $photoId;
 
     /**
      * @var float
@@ -58,13 +50,13 @@ class WikidataChurches
     private $longitude;
 
     /**
-     * @var Places
+     * @var Place
      *
-     * @ORM\ManyToOne(targetEntity="App\Entity\Places", inversedBy="wikidataChurches")
+     * @ORM\ManyToOne(targetEntity="Place", inversedBy="wikidataChurches")
      * @ORM\JoinColumn(nullable=false, referencedColumnName="place_id")
      * @Assert\NotNull
      */
-    private $placeId;
+    private $place;
 
     /**
      * @var string
@@ -77,9 +69,16 @@ class WikidataChurches
     /**
      * @var array
      *
-     * @ORM\OneToMany(targetEntity="Churches", mappedBy="wikidataChurchId")
+     * @ORM\OneToMany(targetEntity="Church", mappedBy="wikidataChurch")
      **/
     protected $churches;
+
+    /**
+     * @var array
+     *
+     * @ORM\OneToMany(targetEntity="Photo", mappedBy="wikidataChurch")
+     **/
+    protected $photos;
 
     /**
      * @var \DateTimeInterface
@@ -99,9 +98,9 @@ class WikidataChurches
      */
     private $updatedAt;
 
-    public function getWikidataChurchId(): ?int
+    public function getId(): ?int
     {
-        return $this->wikidataChurchId;
+        return $this->id;
     }
 
     public function setName(?string $name): void
@@ -112,16 +111,6 @@ class WikidataChurches
     public function getName(): ?string
     {
         return $this->name;
-    }
-
-    public function setPhotoId(Photos $photoId): void
-    {
-        $this->photoId = $photoId;
-    }
-
-    public function getPhotoId(): Photos
-    {
-        return $this->photoId;
     }
 
     /**
@@ -156,14 +145,14 @@ class WikidataChurches
         return $this->longitude;
     }
 
-    public function setPlaceId(Places $placeId): void
+    public function setPlace(Place $place): void
     {
-        $this->placeId = $placeId;
+        $this->place = $place;
     }
 
-    public function getPlaceId(): Places
+    public function getPlace(): Place
     {
-        return $this->placeId;
+        return $this->place;
     }
 
     public function setAddress(string $address): void
