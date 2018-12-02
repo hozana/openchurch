@@ -1,22 +1,27 @@
 # Read the documentation: https://github.com/FriendsOfSymfony/FOSElasticaBundle/blob/master/Resources/doc/setup.md
 fos_elastica:
+    serializer: ~
     clients:
         default: { host: '%env(resolve:ES_HOST)%', port: '%env(resolve:ES_PORT)%' }
     indexes:
         app:
-            index_name: openchurch_%kernel.environment%
+            finder: ~
+            index_name: "openchurch_%kernel.environment%"
             types:
                 church:
                     properties:
-                        wikidataId: ~
-                        commune:
-                            type: "nested"
+                        id: { boost: 1 }
+                        wikidataChurch:
+                            type: "object"
                             properties:
-                                id: ~
-                                name: ~
-                        name: ~
-                        pin:
-                            type: geo_point
+                                id: { boost: 1 }
+                                name: { type: text, boost: 8 }
+                                pin: { type: geo_point }
+                                place:
+                                    type: "object"
+                                    properties:
+                                        id: { boost: 1 }
+                                        name: { type: text, boost: 5 }
                     persistence:
                         driver: orm
                         model: App\Entity\Church
@@ -26,3 +31,5 @@ fos_elastica:
                             insert: '%env(resolve:ES_ENABLED)%'
                             update: '%env(resolve:ES_ENABLED)%'
                             delete: '%env(resolve:ES_ENABLED)%'
+                    serializer:
+                        groups: ['place', 'church']

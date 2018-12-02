@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\MaxDepth;
@@ -16,6 +17,9 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @ORM\Entity
  * @ORM\Table(name="wikidata_churches")
+ * @ApiResource(attributes={
+ *   "normalization_context"={"groups"={"place","church"},"enable_max_depth"="true"}
+ * })
  */
 class WikidataChurch
 {
@@ -142,6 +146,14 @@ class WikidataChurch
     public function setPhotos($photos)
     {
         $this->photos = $photos;
+    }
+
+    /**
+     * @Groups("church")
+     */
+    public function getPin()
+    {
+        return $this->latitude.','.$this->longitude;
     }
 
     public function getId(): ?int

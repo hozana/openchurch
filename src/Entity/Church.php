@@ -18,7 +18,9 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @ORM\Entity
  * @ORM\Table(name="churches")
- * @ApiResource(iri="http://schema.org/Thing")
+ * @ApiResource(attributes={
+ *   "normalization_context"={"groups"={"place","church"},"enable_max_depth"="true"}
+ * })
  */
 class Church
 {
@@ -37,6 +39,8 @@ class Church
      *
      * @ORM\ManyToOne(targetEntity="WikidataChurch", inversedBy="churches")
      * @ORM\JoinColumn(nullable=true, referencedColumnName="wikidata_church_id")
+     * @Groups("church")
+     * @MaxDepth(1)
      */
     private $wikidataChurch;
 
