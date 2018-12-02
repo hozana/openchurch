@@ -7,6 +7,8 @@ namespace App\Entity;
 use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\MaxDepth;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -26,6 +28,7 @@ class Church
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      * @ORM\Column(type="integer", name="church_id")
+     * @Groups("church")
      */
     private $id;
 
@@ -33,8 +36,7 @@ class Church
      * @var WikidataChurch
      *
      * @ORM\ManyToOne(targetEntity="WikidataChurch", inversedBy="churches")
-     * @ORM\JoinColumn(nullable=false, referencedColumnName="wikidata_church_id")
-     * @Assert\NotNull
+     * @ORM\JoinColumn(nullable=true, referencedColumnName="wikidata_church_id")
      */
     private $wikidataChurch;
 
@@ -42,8 +44,7 @@ class Church
      * @var TheodiaChurch
      *
      * @ORM\ManyToOne(targetEntity="TheodiaChurch", inversedBy="churches")
-     * @ORM\JoinColumn(nullable=false, referencedColumnName="theodia_church_id")
-     * @Assert\NotNull
+     * @ORM\JoinColumn(nullable=true, referencedColumnName="theodia_church_id")
      */
     private $theodiaChurch;
 
@@ -52,6 +53,7 @@ class Church
      *
      * @ORM\Column(type="text", nullable=true)
      * @ApiProperty(iri="http://schema.org/url")
+     * @Groups("church")
      */
     private $massesUrl;
 
@@ -59,12 +61,38 @@ class Church
      * @var array
      *
      * @ORM\OneToMany(targetEntity="Calendar", mappedBy="church")
+     * @Groups("church")
+     * @MaxDepth(1)
      **/
-    protected $calendars;
+    private $calendars;
 
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    /**
+     * @return array $calendars
+     */
+    public function getCalendars()
+    {
+        return $this->calendars;
+    }
+
+    /**
+     * @param TheodiaChurch $theodiaChurch
+     */
+    public function setTheodiaChurch($theodiaChurch)
+    {
+        $this->theodiaChurch = $theodiaChurch;
+    }
+
+    /**
+     * @param array $calendars
+     */
+    public function setCalendars($calendars)
+    {
+        $this->calendars = $calendars;
     }
 
     public function setWikidataChurch(WikidataChurch $wikidataChurch): void
@@ -72,7 +100,7 @@ class Church
         $this->wikidataChurch = $wikidataChurch;
     }
 
-    public function getWikidataChurch(): WikidataChurch
+    public function getWikidataChurch(): ?WikidataChurch
     {
         return $this->wikidataChurch;
     }
@@ -82,7 +110,7 @@ class Church
         $this->theodiaChurch = $theodiaChurch;
     }
 
-    public function getTheodiaChurch(): TheodiaChurch
+    public function getTheodiaChurch(): ?TheodiaChurch
     {
         return $this->theodiaChurch;
     }

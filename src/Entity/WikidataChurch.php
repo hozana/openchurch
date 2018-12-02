@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\MaxDepth;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -23,6 +25,7 @@ class WikidataChurch
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      * @ORM\Column(type="integer", name="wikidata_church_id")
+     * @Groups("church")
      */
     private $id;
 
@@ -30,6 +33,7 @@ class WikidataChurch
      * @var string|null the name of the item
      *
      * @ORM\Column(type="text", nullable=true)
+     * @Groups("church")
      */
     private $name;
 
@@ -38,6 +42,7 @@ class WikidataChurch
      *
      * @ORM\Column(type="float")
      * @Assert\NotNull
+     * @Groups("church")
      */
     private $latitude;
 
@@ -46,6 +51,7 @@ class WikidataChurch
      *
      * @ORM\Column(type="float")
      * @Assert\NotNull
+     * @Groups("church")
      */
     private $longitude;
 
@@ -55,6 +61,8 @@ class WikidataChurch
      * @ORM\ManyToOne(targetEntity="Place", inversedBy="wikidataChurches")
      * @ORM\JoinColumn(nullable=false, referencedColumnName="place_id")
      * @Assert\NotNull
+     * @Groups("place")
+     * @MaxDepth(1)
      */
     private $place;
 
@@ -63,6 +71,7 @@ class WikidataChurch
      *
      * @ORM\Column(type="text")
      * @Assert\NotNull
+     * @Groups("church")
      */
     private $address;
 
@@ -70,15 +79,19 @@ class WikidataChurch
      * @var array
      *
      * @ORM\OneToMany(targetEntity="Church", mappedBy="wikidataChurch")
+     * @Groups("church")
+     * @MaxDepth(1)
      **/
-    protected $churches;
+    private $churches;
 
     /**
      * @var array
      *
      * @ORM\OneToMany(targetEntity="Photo", mappedBy="wikidataChurch")
+     * @Groups("church")
+     * @MaxDepth(1)
      **/
-    protected $photos;
+    private $photos;
 
     /**
      * @var \DateTimeInterface
@@ -95,8 +108,41 @@ class WikidataChurch
      * @ORM\Column(type="datetime")
      * @Assert\DateTime
      * @Assert\NotNull
+     * @Groups("church")
      */
     private $updatedAt;
+
+    /**
+     * @return array $churches
+     */
+    public function getChurches()
+    {
+        return $this->churches;
+    }
+
+    /**
+     * @return array $photos
+     */
+    public function getPhotos()
+    {
+        return $this->photos;
+    }
+
+    /**
+     * @param array $churches
+     */
+    public function setChurches($churches)
+    {
+        $this->churches = $churches;
+    }
+
+    /**
+     * @param array $photos
+     */
+    public function setPhotos($photos)
+    {
+        $this->photos = $photos;
+    }
 
     public function getId(): ?int
     {
