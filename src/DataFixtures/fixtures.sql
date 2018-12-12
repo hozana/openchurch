@@ -1,3 +1,5 @@
+SET FOREIGN_KEY_CHECKS = 0;
+
 DROP TABLE IF EXISTS `churches`;
 
 CREATE TABLE `churches` (
@@ -66,3 +68,5 @@ INSERT INTO `wikidata_churches` VALUES
 (2981,3,'cathédrale Notre-Dame-de-Paris',48.853,2.3498,'6 Parvis Notre-Dame - place Jean-Paul-II',NOW(),NOW());
 
 UNLOCK TABLES;
+
+SET FOREIGN_KEY_CHECKS = 1;
