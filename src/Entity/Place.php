@@ -127,12 +127,12 @@ class Place
         return $this->id;
     }
 
-    public function setParent(?Place $parent): void
+    public function setParent(?self $parent): void
     {
         $this->parent = $parent;
     }
 
-    public function getParent(): ?Place
+    public function getParent(): ?self
     {
         return $this->parent;
     }
