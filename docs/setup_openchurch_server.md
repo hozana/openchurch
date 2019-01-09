@@ -73,8 +73,10 @@ sudo mysql -uroot -p
 
 CREATE DATABASE openchurch;
 INSERT INTO mysql.user (User,Host,authentication_string,ssl_cipher,x509_issuer,x509_subject) VALUES('openchurch','localhost',PASSWORD('****PASSWORD***'),'','','');
+INSERT INTO mysql.user (User,Host,authentication_string,ssl_cipher,x509_issuer,x509_subject) VALUES('openchurch_backup','localhost',PASSWORD('****PASSWORD***'),'','','');
 FLUSH PRIVILEGES;
 GRANT ALL PRIVILEGES ON openchurch.* to openchurch@localhost;
+GRANT SELECT,LOCK TABLES ON openchurch.* to openchurch_backup@localhost;
 FLUSH PRIVILEGES;
 exit
 ```
@@ -264,4 +266,8 @@ You can check your installation on [https://open-church.io/](https://open-church
 - Setup a daily cron via `sudo crontab -e`, for example:
 ```
 0 4 * * * /etc/backup-manager.sh
+```
+- add this line in `/etc/backup-manager.sh`:
+```
+mysqldump -h 127.0.0.1 -u openchurch_backup -p****PASSWORD******* openchurch | gzip > /home/hozana/mysqldump/openchurch.dump.sql.gz
 ```
