@@ -103,7 +103,7 @@ docker run -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elas
 
 ## Deployment
 
-Follow these [guidelines](./docs/setup_openchurch_server.md) to setup prod server.
+Follow these [guidelines](./docs/setup_openchurch_server.md) to setup prod server. Lost server? [Here](./docs/restore_backup.md) is the process to restore db backup.
 
 ## API usage example
 
