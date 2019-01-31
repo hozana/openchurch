@@ -31,14 +31,14 @@ class TheodiaChurch
      *
      * @ORM\OneToMany(targetEntity="Photo", mappedBy="theodiaChurch")
      **/
-    protected $photos;
+    private $photos;
 
     /**
      * @var array
      *
      * @ORM\OneToMany(targetEntity="Church", mappedBy="theodiaChurch")
      **/
-    protected $churches;
+    private $churches;
 
     /**
      * @var \DateTimeInterface
@@ -57,6 +57,38 @@ class TheodiaChurch
      * @Assert\NotNull
      */
     private $updatedAt;
+
+    /**
+     * @return Photo[] $photos
+     */
+    public function getPhotos()
+    {
+        return $this->photos;
+    }
+
+    /**
+     * @return Church[] $churches
+     */
+    public function getChurches()
+    {
+        return $this->churches;
+    }
+
+    /**
+     * @param array $photos
+     */
+    public function setPhotos($photos)
+    {
+        $this->photos = $photos;
+    }
+
+    /**
+     * @param array $churches
+     */
+    public function setChurches($churches)
+    {
+        $this->churches = $churches;
+    }
 
     public function getId(): ?int
     {

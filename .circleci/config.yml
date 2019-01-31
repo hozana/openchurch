@@ -13,7 +13,7 @@ jobs:
 
     docker:
     # specify the version you desire here
-    - image: circleci/php:7.1-browsers
+    - image: circleci/php:7.1
 
     # Specify service dependencies here if necessary
     # CircleCI maintains a library of pre-built images
@@ -22,13 +22,20 @@ jobs:
       environment:
         MYSQL_ROOT_PASSWORD: 'secured_password'
         MYSQL_DATABASE: openchurch
+        MYSQL_DATABASE: openchurch
+        MYSQL_USER: openchurch
+        MYSQL_PASSWORD: openchurch
+
+    - image: docker.elastic.co/elasticsearch/elasticsearch:6.3.2
+      environment:
+        ES_JAVA_OPTS=-Xms750m -Xmx750m
 
     working_directory: ~/repo
 
     steps:
     - checkout
     - run: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORT
-    - run: cp .env.dist .env
+    - run: cp .env.test .env
 
     # Download and cache dependencies
     - restore_cache:
@@ -39,19 +46,25 @@ jobs:
 
     - run: composer install -n --prefer-dist
     - run: sudo apt-get update && sudo apt-get install -y mysql-client wget
-    - run: wget -O php-cs-fixer.phar https://github.com/FriendsOfPHP/PHP-CS-Fixer/releases/download/v2.12.2/php-cs-fixer.phar
-    - run: chmod +x php-cs-fixer.phar
+    - run: sudo docker-php-ext-install pdo pdo_mysql
+    - run: wget -O php-cs-fixer.phar https://github.com/FriendsOfPHP/PHP-CS-Fixer/releases/download/v2.12.2/php-cs-fixer.phar && chmod +x php-cs-fixer.phar
 
     - save_cache:
         paths:
         - ./vendor
         key: v1-dependencies-{{ checksum "composer.json" }}
 
-    - run: wget https://raw.githubusercontent.com/wiki/hozana/openchurch/20180806openchurch.sql
-    - run: mysql -h 127.0.0.1 -u root -psecured_password openchurch < 20180806openchurch.sql
+    # import DB schema
+    - run: bin/console doctrine:schema:update --force --env=test
+
+    # import fixtures
+    - run: mysql -h 127.0.0.1 -u root -psecured_password openchurch < src/DataFixtures/fixtures.sql
+
+    # fill elasticsearch
+    - run: bin/console fos:elastica:populate --env=test
 
     # run tests!
-    - run: ./vendor/bin/phpunit -d memory_limit=512M
+    - run: ./vendor/bin/phpunit
     # Linter
     - run: ./php-cs-fixer.phar -vvv --no-ansi fix --dry-run --diff
 

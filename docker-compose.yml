@@ -18,6 +18,7 @@ services:
     container_name: openchurch
     links:
       - db
+      - elasticsearch
     depends_on:
       - db
     volumes:

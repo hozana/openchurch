@@ -9,6 +9,8 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use App\Enum\PlaceType;
 use Doctrine\ORM\Mapping as ORM;
 use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\MaxDepth;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -18,7 +20,9 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @ORM\Entity
  * @ORM\Table(name="places")
- * @ApiResource(iri="http://schema.org/Thing")
+ * @ApiResource(attributes={
+ *   "normalization_context"={"groups"={"place","church"},"enable_max_depth"="true"}
+ * })
  */
 class Place
 {
@@ -28,6 +32,7 @@ class Place
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      * @ORM\Column(type="integer", name="place_id")
+     * @Groups("place")
      */
     private $id;
 
@@ -36,6 +41,8 @@ class Place
      *
      * @ORM\ManyToOne(targetEntity="Place", inversedBy="children")
      * @ORM\JoinColumn(nullable=true, referencedColumnName="place_id")
+     * @Groups("place")
+     * @MaxDepth(1)
      */
     private $parent;
 
@@ -44,6 +51,7 @@ class Place
      *
      * @ORM\Column(type="text", nullable=true)
      * @ApiProperty(iri="http://schema.org/name")
+     * @Groups("place")
      */
     private $name;
 
@@ -51,12 +59,14 @@ class Place
      * @var string|null the country code of the item
      *
      * @ORM\Column(type="text", nullable=true)
+     * @Groups("place")
      */
     private $countryCode;
 
     /**
      * @ORM\Column(name="type", type="PlaceType", nullable=false)
      * @DoctrineAssert\Enum(entity="App\Enum\PlaceType")
+     * @Groups("place")
      */
     private $type;
 
@@ -64,15 +74,19 @@ class Place
      * @var array
      *
      * @ORM\OneToMany(targetEntity="WikidataChurch", mappedBy="place")
+     * @Groups("place")
+     * @MaxDepth(1)
      **/
-    protected $wikidataChurches;
+    private $wikidataChurches;
 
     /**
      * @var array
      *
      * @ORM\OneToMany(targetEntity="Place", mappedBy="parent")
+     * @Groups("place")
+     * @MaxDepth(1)
      **/
-    protected $children;
+    private $children;
 
     /**
      * @var \DateTimeInterface
@@ -92,17 +106,33 @@ class Place
      */
     private $updatedAt;
 
+    /**
+     * @return Place[] $children
+     */
+    public function getChildren()
+    {
+        return $this->children;
+    }
+
+    /**
+     * @param array $children
+     */
+    public function setChildren($children)
+    {
+        $this->children = $children;
+    }
+
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function setParent(?Place $parent): void
+    public function setParent(?self $parent): void
     {
         $this->parent = $parent;
     }
 
-    public function getParent(): ?Place
+    public function getParent(): ?self
     {
         return $this->parent;
     }
@@ -141,6 +171,22 @@ class Place
     public function getType()
     {
         return $this->type;
+    }
+
+    /**
+     * @param array $wikidataChurches
+     */
+    public function setWikidataChurches($wikidataChurches): void
+    {
+        $this->wikidataChurches = $wikidataChurches;
+    }
+
+    /**
+     * @return array
+     */
+    public function getWikidataChurches()
+    {
+        return $this->wikidataChurches;
     }
 
     public function setCreatedAt(\DateTimeInterface $createdAt): void

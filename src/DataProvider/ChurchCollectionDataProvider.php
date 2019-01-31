@@ -32,40 +32,42 @@ final class ChurchCollectionDataProvider implements CollectionDataProviderInterf
     {
         $boolQuery = new Query\BoolQuery();
         $query = new Query();
+        $request = $this->requestStack->getCurrentRequest();
 
-        if ($name = $this->requestStack->getCurrentRequest()->get('name')) {
-            $nameQuery = new Query\Match();
-            $nameQuery->setFieldQuery('name', $name);
-            $nameQuery->setFieldFuzziness('name', 2);
-            $boolQuery->addMust($nameQuery);
+        if ($id = $request->get('id')) {
+            $matchQuery = new Query\Match();
+            $matchQuery->setFieldQuery('id', $id);
+            $matchQuery->setFieldFuzziness('id', 0);
+            $boolQuery->addMust($matchQuery);
         }
-        if ($communeId = $this->requestStack->getCurrentRequest()->get('communeId')) {
-            $nestedQuery = new Query\BoolQuery();
-            $communeIdQuery = new Query\Nested();
-            $communeIdQuery->setPath('commune')->setQuery(
-                $nestedQuery->addMust(
-                    new Query\Match('commune.id', $communeId)
-                )
-            );
-            $boolQuery->addMust($communeIdQuery);
+        if ($name = $request->get('name')) {
+            $matchQuery = new Query\Match();
+            $matchQuery->setFieldQuery('wikidataChurch.name', $name);
+            $matchQuery->setFieldFuzziness('wikidataChurch.name', 2);
+            $boolQuery->addMust($matchQuery);
         }
-        if ($communeName = $this->requestStack->getCurrentRequest()->get('communeName')) {
-            $nestedQuery = new Query\BoolQuery();
-            $communeNameQuery = new Query\Nested();
-            $communeNameQuery->setPath('commune')->setQuery(
-                $nestedQuery->addMust(
-                    new Query\Match('commune.name', $communeName)
-                )
-            );
-            $boolQuery->addMust($communeNameQuery);
+        if ($placeId = (int) $request->get('placeId')) {
+            $matchQuery = new Query\Match();
+            $matchQuery->setFieldQuery('wikidataChurch.place.id', $placeId);
+            $matchQuery->setFieldFuzziness('wikidataChurch.place.id', 0);
+            $boolQuery->addMust($matchQuery);
         }
-        if ($wikidataId = $this->requestStack->getCurrentRequest()->get('wikidataId')) {
-            $boolQuery->addMust(new Query\Match('wikidataId', $wikidataId));
+        if ($placeName = $request->get('placeName')) {
+            $matchQuery = new Query\Match();
+            $matchQuery->setFieldQuery('wikidataChurch.place.name', $placeName);
+            $matchQuery->setFieldFuzziness('wikidataChurch.place.name', 2);
+            $boolQuery->addMust($matchQuery);
         }
-        if (($longitude = $this->requestStack->getCurrentRequest()->get('longitude')) && ($latitude = $this->requestStack->getCurrentRequest()->get('latitude'))) {
+        if ($wikidataChurchId = (int) $request->get('wikidataId')) {
+            $matchQuery = new Query\Match();
+            $matchQuery->setFieldQuery('wikidataChurch.id', $wikidataChurchId);
+            $matchQuery->setFieldFuzziness('wikidataChurch.id', 0);
+            $boolQuery->addMust($matchQuery);
+        }
+        if (($longitude = $request->get('longitude')) && ($latitude = $request->get('latitude'))) {
             $geoPoint = ['lat' => $latitude, 'lon' => $longitude];
-            $boolQuery->addFilter(new Query\GeoDistance('pin', $geoPoint, '3km'));
-            $query->addSort(['_geo_distance' => ['pin' => $geoPoint, 'order' => 'asc']]);
+            $boolQuery->addFilter(new Query\GeoDistance('wikidataChurch.pin', $geoPoint, '3km'));
+            $query->addSort(['_geo_distance' => ['wikidataChurch.pin' => $geoPoint, 'order' => 'asc']]);
         }
 
         $query->setQuery($boolQuery);
