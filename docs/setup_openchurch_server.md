@@ -184,7 +184,7 @@ yarn run build
 - Add auto-renew in root crontab:
 ```
 sudo crontab -e
-0 0 1 * * certbot renew
+0 2 * * 1,4 service apache2 stop; certbot renew; service apache2 start;
 ```
 - Generate certificate (you need to stop apache first)
 ```
