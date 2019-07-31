@@ -1,6 +1,8 @@
 # openchurch
 
 [![CircleCI](https://circleci.com/gh/hozana/openchurch.svg?style=svg)](https://circleci.com/gh/hozana/openchurch)
+[![BrowserStack Status](https://www.browserstack.com/automate/badge.svg?badge_key=ZSt3N2Rtd2hhWWZDcDhVNmNFUjAycVNjSW0rYXJIdWhINmpXODJmYVB2TT0tLWc4WjFweGtmN29Fc3AyNldaRVZycEE9PQ==--1d3f8aa35e09306748448a275969f0d8de70fa6f)](https://www.browserstack.com/automate/public-build/ZSt3N2Rtd2hhWWZDcDhVNmNFUjAycVNjSW0rYXJIdWhINmpXODJmYVB2TT0tLWc4WjFweGtmN29Fc3AyNldaRVZycEE9PQ==--1d3f8aa35e09306748448a275969f0d8de70fa6f)
+
 
 ## A few commands
 
