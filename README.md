@@ -5,7 +5,7 @@
 
 ## They help us
 
-[![](https://3fxtqy18kygf3on3bu39kh93-wpengine.netdna-ssl.com/wp-content/themes/browserstack/img/browserstack-logo.svg "BrowserStack")](https://www.browserstack.com/)
+[![](https://marker.io/vendor/img/logo/browserstack-logo.svg "BrowserStack")](https://www.browserstack.com/)
 
 BrowserStack is a useful tool to test our app on different browsers, different OS and different versions. They give free access to their platform to open-source projects. Thanks to them!
 
