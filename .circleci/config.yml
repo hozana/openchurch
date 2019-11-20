@@ -22,7 +22,6 @@ jobs:
       environment:
         MYSQL_ROOT_PASSWORD: 'secured_password'
         MYSQL_DATABASE: openchurch
-        MYSQL_DATABASE: openchurch
         MYSQL_USER: openchurch
         MYSQL_PASSWORD: openchurch
 
@@ -45,7 +44,7 @@ jobs:
         - v1-dependencies-
 
     - run: composer install -n --prefer-dist
-    - run: sudo apt-get update && sudo apt-get install -y mysql-client wget
+    - run: sudo apt-get update && sudo apt-get install -y mariadb-client wget
     - run: sudo docker-php-ext-install pdo pdo_mysql
     - run: wget -O php-cs-fixer.phar https://github.com/FriendsOfPHP/PHP-CS-Fixer/releases/download/v2.12.2/php-cs-fixer.phar && chmod +x php-cs-fixer.phar
 
