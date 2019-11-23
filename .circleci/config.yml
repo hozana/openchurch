@@ -54,7 +54,7 @@ jobs:
         key: v1-dependencies-{{ checksum "composer.json" }}
 
     # import DB schema
-    - run: bin/console doctrine:schema:update --force --env=test
+    - run: bin/console doctrine:migration:migrate -n --env=test
 
     # import fixtures
     - run: mysql -h 127.0.0.1 -u root -psecured_password openchurch < src/DataFixtures/fixtures.sql

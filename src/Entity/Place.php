@@ -74,8 +74,6 @@ class Place
      * @var array
      *
      * @ORM\OneToMany(targetEntity="WikidataChurch", mappedBy="place")
-     * @Groups("place")
-     * @MaxDepth(1)
      **/
     private $wikidataChurches;
 
@@ -83,8 +81,6 @@ class Place
      * @var array
      *
      * @ORM\OneToMany(targetEntity="Place", mappedBy="parent")
-     * @Groups("place")
-     * @MaxDepth(1)
      **/
     private $children;
 
