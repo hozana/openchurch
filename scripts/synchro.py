@@ -10,13 +10,14 @@ import pywikibot
 import urllib.parse
 
 from codecs import open
+from dotenv import load_dotenv
 from sqlalchemy import create_engine, exc, MetaData, Table, orm, func, insert, update
 from SPARQLWrapper import SPARQLWrapper, JSON
 
 endpoint = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
 agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'
 churches_query = '''PREFIX schema: <http://schema.org/>
-	'SELECT DISTINCT ?churches ?P17 ?P18 ?P31 ?P131 ?P625 ?P708 ?P1644 ?label_fr ?modified WHERE {
+	SELECT DISTINCT ?churches ?P17 ?P18 ?P31 ?P131 ?P625 ?P708 ?P1644 ?label_fr ?modified WHERE {
 	{?churches (wdt:P31/wdt:P279*) wd:Q16970 .}
 	?churches schema:dateModified ?modified
 	OPTIONAL {?churches wdt:P17 ?P17 .} # country
@@ -55,7 +56,15 @@ parishes_query = '''PREFIX schema: <http://schema.org/>
 
 class DB:
     now = func.current_timestamp()
-    engine = create_engine("mysql+pymysql://openchurch:openchurch@127.0.0.1:13306/openchurch")
+    load_dotenv(dotenv_path='../.env')
+    host = os.getenv('DB_HOST')
+    port = os.getenv('DB_PORT')
+    database = os.getenv('MYSQL_DATABASE')
+    user = os.getenv('MYSQL_USER')
+    password = os.getenv('MYSQL_PASSWORD')
+    dsn = 'mysql+pymysql://%s:%s@%s:%s/%s' % (user, password, host, port, database)
+    print(dsn)
+    engine = create_engine(dsn)
     con = engine.connect()
     metadata = MetaData(bind=engine)
     session = orm.sessionmaker(bind=engine)()
@@ -254,7 +263,7 @@ class Query(object):
                 self.cache_churches[wikidata_id] = datetime.datetime.strptime(modified, Query.dateformat)
             DB.session.commit()
             # FIXME then do: insert into churches (wikidata_church_id) select wikidata_church_id from wikidata_churches where wikidata_church_id not in (select wikidata_church_id from churches)
-            print('Finished')
+            print('\nFinished')
 
     def update_dioceses(self, data):
         if 'results' in data.keys() and 'bindings' in data['results'].keys():
@@ -305,7 +314,7 @@ class Query(object):
 
                 self.cache_dioceses[wikidata_id] = datetime.datetime.strptime(modified, Query.dateformat)
             DB.session.commit()
-            print('Finished')
+            print('\nFinished')
 
     def update_parishes(self, data):
         if 'results' in data.keys() and 'bindings' in data['results'].keys():
@@ -364,7 +373,7 @@ class Query(object):
 
                 self.cache_parishes[wikidata_id] = datetime.datetime.strptime(modified, Query.dateformat)
             DB.session.commit()
-            print('Finished')
+            print('\nFinished')
 
 if __name__ == '__main__':
     q = Query()
