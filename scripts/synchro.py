@@ -10,13 +10,22 @@ import pywikibot
 import urllib.parse
 
 from codecs import open
+from dotenv import load_dotenv
 from sqlalchemy import create_engine, exc, MetaData, Table, orm, func, insert, update
 from SPARQLWrapper import SPARQLWrapper, JSON
 
 
 class DB:
     now = func.current_timestamp()
-    engine = create_engine("mysql+pymysql://openchurch:openchurch@127.0.0.1:13306/openchurch")
+    load_dotenv(dotenv_path='../.env')
+    host = os.getenv('DB_HOST')
+    port = os.getenv('DB_PORT')
+    database = os.getenv('MYSQL_DATABASE')
+    user = os.getenv('MYSQL_USER')
+    password = os.getenv('MYSQL_PASSWORD')
+    dsn = 'mysql+pymysql://%s:%s@%s:%s/%s' % (user, password, '127.0.0.1', port, database)
+    print(dsn)
+    engine = create_engine(dsn)
     con = engine.connect()
     metadata = MetaData(bind=engine)
     session = orm.sessionmaker(bind=engine)()
