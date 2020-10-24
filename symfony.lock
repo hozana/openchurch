@@ -341,6 +341,9 @@
             "ref": "87c585d24de9f43bca80ebcfd5cf5cb39445d95f"
         }
     },
+    "symfony/http-client-contracts": {
+        "version": "v1.1.10"
+    },
     "symfony/http-foundation": {
         "version": "v4.1.1"
     },
@@ -371,11 +374,17 @@
     "symfony/options-resolver": {
         "version": "v4.1.1"
     },
+    "symfony/orm-pack": {
+        "version": "v2.0.0"
+    },
     "symfony/polyfill-intl-icu": {
         "version": "v1.8.0"
     },
     "symfony/polyfill-intl-idn": {
         "version": "v1.12.0"
+    },
+    "symfony/polyfill-intl-normalizer": {
+        "version": "v1.19.0"
     },
     "symfony/polyfill-mbstring": {
         "version": "v1.8.0"
@@ -385,6 +394,9 @@
     },
     "symfony/polyfill-php73": {
         "version": "v1.12.0"
+    },
+    "symfony/polyfill-php80": {
+        "version": "v1.19.0"
     },
     "symfony/process": {
         "version": "v4.1.1"
@@ -430,6 +442,9 @@
     },
     "symfony/serializer": {
         "version": "v4.1.1"
+    },
+    "symfony/serializer-pack": {
+        "version": "v1.0.4"
     },
     "symfony/service-contracts": {
         "version": "v1.1.8"
