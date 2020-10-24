@@ -2,16 +2,27 @@
 
 namespace App\Repository;
 
-use Doctrine\ORM\EntityRepository;
+use App\Entity\Church;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Common\Persistence\ManagerRegistry;
 
-class ChurchRepository extends EntityRepository
+/**
+ * @method Church|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Church|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Church[]    findAll()
+ * @method Church[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ */
+class ChurchRepository extends ServiceEntityRepository
 {
-    public function count(array $criteria)
+    public function __construct(ManagerRegistry $registry)
     {
-        $qb = $this->createQueryBuilder('c');
+        parent::__construct($registry, Church::class);
+    }
 
-        return $qb
-            ->select('count(c.church_id)')
+    public function countAll()
+    {
+        return $this->createQueryBuilder('c')
+            ->select('count(c.id)')
             ->getQuery()
             ->useQueryCache(true)
             ->useResultCache(true, 86400) // one day

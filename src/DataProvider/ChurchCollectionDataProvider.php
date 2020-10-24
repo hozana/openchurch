@@ -48,7 +48,7 @@ final class ChurchCollectionDataProvider implements CollectionDataProviderInterf
         }
         if ($placeId = (int) $request->get('placeId')) {
             $matchQuery = new Query\Match();
-            $matchQuery->setFieldQuery('wikidataChurch.place.id', $placeId);
+            $matchQuery->setFieldQuery('wikidataChurch.place.id', (string) $placeId);
             $matchQuery->setFieldFuzziness('wikidataChurch.place.id', 0);
             $boolQuery->addMust($matchQuery);
         }
@@ -60,7 +60,7 @@ final class ChurchCollectionDataProvider implements CollectionDataProviderInterf
         }
         if ($wikidataChurchId = (int) $request->get('wikidataId')) {
             $matchQuery = new Query\Match();
-            $matchQuery->setFieldQuery('wikidataChurch.id', $wikidataChurchId);
+            $matchQuery->setFieldQuery('wikidataChurch.id', (string) $wikidataChurchId);
             $matchQuery->setFieldFuzziness('wikidataChurch.id', 0);
             $boolQuery->addMust($matchQuery);
         }

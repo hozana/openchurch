@@ -108,7 +108,7 @@ class Church
         return $this->wikidataChurch;
     }
 
-    public function setTheodiaChurchId(TheodiaChurch $theodia): void
+    public function setTheodiaChurchId(TheodiaChurch $theodiaChurch): void
     {
         $this->theodiaChurch = $theodiaChurch;
     }

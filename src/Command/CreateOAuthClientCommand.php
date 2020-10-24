@@ -11,6 +11,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class CreateOAuthClientCommand extends Command
 {
+    protected $clientManager;
+
     public function __construct(ClientManagerInterface $clientManager)
     {
         $this->clientManager = $clientManager;
@@ -52,5 +54,7 @@ final class CreateOAuthClientCommand extends Command
             $client->getPublicId(),
             $client->getSecret()
         ));
+
+        return 0;
     }
 }

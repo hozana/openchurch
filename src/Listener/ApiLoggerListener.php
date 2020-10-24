@@ -7,7 +7,6 @@ use FOS\OAuthServerBundle\Security\Authentication\Token\OAuthToken;
 use FOS\OAuthServerBundle\Storage\OAuthStorage;
 use Gedmo\Loggable\LoggableListener;
 use Stof\DoctrineExtensionsBundle\EventListener\LoggerListener;
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\AnonymousToken;

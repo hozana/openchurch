@@ -30,17 +30,11 @@ class Client extends BaseClient
         // your own logic
     }
 
-    /**
-     * @return mixed
-     */
     public function getUser(): ?UserInterface
     {
         return $this->user;
     }
 
-    /**
-     * @param mixed $user
-     */
     public function setUser(UserInterface $user): void
     {
         $this->user = $user;

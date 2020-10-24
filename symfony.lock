@@ -14,6 +14,12 @@
     "behat/transliterator": {
         "version": "v1.2.0"
     },
+    "composer/semver": {
+        "version": "1.7.1"
+    },
+    "composer/xdebug-handler": {
+        "version": "1.4.4"
+    },
     "doctrine/annotations": {
         "version": "1.0",
         "recipe": {
@@ -95,6 +101,18 @@
             "ref": "fab86661c13bc12e4f14f706c86af09912d55bfb"
         }
     },
+    "friendsofphp/php-cs-fixer": {
+        "version": "2.2",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "master",
+            "version": "2.2",
+            "ref": "cc05ab6abf6894bddb9bbd6a252459010ebe040b"
+        },
+        "files": [
+            ".php_cs.dist"
+        ]
+    },
     "friendsofsymfony/elastica-bundle": {
         "version": "5.0",
         "recipe": {
@@ -161,6 +179,9 @@
     "phar-io/version": {
         "version": "1.0.1"
     },
+    "php-cs-fixer/diff": {
+        "version": "v1.3.1"
+    },
     "phpdocumentor/reflection-common": {
         "version": "1.0.1"
     },
@@ -172,6 +193,15 @@
     },
     "phpspec/prophecy": {
         "version": "1.8.0"
+    },
+    "phpstan/phpstan": {
+        "version": "0.12.51"
+    },
+    "phpstan/phpstan-doctrine": {
+        "version": "0.12.22"
+    },
+    "phpstan/phpstan-symfony": {
+        "version": "0.12.10"
     },
     "phpunit/php-code-coverage": {
         "version": "5.3.2"
