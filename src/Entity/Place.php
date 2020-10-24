@@ -41,8 +41,6 @@ class Place
      *
      * @ORM\ManyToOne(targetEntity="Place", inversedBy="children")
      * @ORM\JoinColumn(nullable=true, referencedColumnName="place_id")
-     * @Groups("place")
-     * @MaxDepth(1)
      */
     private $parent;
 
@@ -74,8 +72,6 @@ class Place
      * @var array
      *
      * @ORM\OneToMany(targetEntity="WikidataChurch", mappedBy="place")
-     * @Groups("place")
-     * @MaxDepth(1)
      **/
     private $wikidataChurches;
 
@@ -83,8 +79,6 @@ class Place
      * @var array
      *
      * @ORM\OneToMany(targetEntity="Place", mappedBy="parent")
-     * @Groups("place")
-     * @MaxDepth(1)
      **/
     private $children;
 
