@@ -7,6 +7,8 @@ namespace App\Entity;
 use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use App\Enum\PlaceType;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -99,6 +101,22 @@ class Place
      * @Assert\NotNull
      */
     private $updatedAt;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Diocese", mappedBy="country")
+     */
+    private $dioceses;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Parish", mappedBy="country")
+     */
+    private $parishes;
+
+    public function __construct()
+    {
+        $this->dioceses = new ArrayCollection();
+        $this->parishes = new ArrayCollection();
+    }
 
     /**
      * @return Place[] $children
@@ -201,5 +219,67 @@ class Place
     public function getUpdatedAt(): \DateTimeInterface
     {
         return $this->updatedAt;
+    }
+
+    /**
+     * @return Collection|Diocese[]
+     */
+    public function getDioceses(): Collection
+    {
+        return $this->dioceses;
+    }
+
+    public function addDiocese(Diocese $diocese): self
+    {
+        if (!$this->dioceses->contains($diocese)) {
+            $this->dioceses[] = $diocese;
+            $diocese->setCountry($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDiocese(Diocese $diocese): self
+    {
+        if ($this->dioceses->contains($diocese)) {
+            $this->dioceses->removeElement($diocese);
+            // set the owning side to null (unless already changed)
+            if ($diocese->getCountry() === $this) {
+                $diocese->setCountry(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Parish[]
+     */
+    public function getParishes(): Collection
+    {
+        return $this->parishes;
+    }
+
+    public function addParish(Parish $parish): self
+    {
+        if (!$this->parishes->contains($parish)) {
+            $this->parishes[] = $parish;
+            $parish->setCountry($this);
+        }
+
+        return $this;
+    }
+
+    public function removeParish(Parish $parish): self
+    {
+        if ($this->parishes->contains($parish)) {
+            $this->parishes->removeElement($parish);
+            // set the owning side to null (unless already changed)
+            if ($parish->getCountry() === $this) {
+                $parish->setCountry(null);
+            }
+        }
+
+        return $this;
     }
 }
