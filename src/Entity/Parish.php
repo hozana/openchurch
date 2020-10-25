@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -17,38 +18,45 @@ class Parish
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer", name="parish_id")
+     * @Groups("parish")
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups("parish")
      */
     private $name;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Diocese", inversedBy="parishes")
      * @ORM\JoinColumn(nullable=true, referencedColumnName="diocese_id")
+     * @Groups("diocese")
      */
     private $diocese;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Place", inversedBy="parishes")
      * @ORM\JoinColumn(nullable=true, referencedColumnName="place_id")
+     * @Groups("place")
      */
     private $country;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups("parish")
      */
     private $messesinfoId;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups("parish")
      */
     private $website;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups("parish")
      */
     private $zipCode;
 

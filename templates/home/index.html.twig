@@ -20,20 +20,25 @@
         </div>
         <div class="col-12 col-md-4">
             <h2>⛪️ Exhaustivité️</h2>
-            <p>La base contient pour le moment {{ nbChurches|number_format(0) }} églises. Ces données sont issues de <a href="https://www.maparoisse.eu">maparoisse.eu</a>.</p>
+            <p>La base contient pour le moment {{ nbChurches|number_format(0) }} églises. Ces données sont issues de <a href="https://www.wikidata.org">Wikidata</a>.</p>
+            <p>Note&nbsp;: les id des églises sont susceptibles de changer. Pour des id qui ne changeront pas, utilisez ceux de WikidataChurch.</p>
         </div>
         <div class="col-12 col-md-4">
             <h2>🕊 Open source</h2>
             <p>Un projet en PHP, MySQL et ElasticSearch, se reposant sur <a href="https://symfony.com">Symfony 4</a>, <a href="https://api-platform.com">API Platform</a>, <a href="https://github.com/FriendsOfSymfony/FOSElasticaBundle">FOSElasticaBundle</a>, <a href="https://github.com/FriendsOfSymfony/FOSOAuthServerBundle">FOSOAuthServerBundle</a>.</p>
         </div>
     </div>
-{% endblock %}
-
-{% block fullwidthbody %}
-<div class="row">
-    <div class="col-12">
-        <h2>Exemples de requêtes</h2>
-        <p>(à faire)</p>
+    <div class="row">
+        <div class="col-12">
+            <h2>Exemples de requêtes</h2>
+            <p>Rechercher des églises par nom&nbsp;:</p>
+            <pre>curl -X GET "http://localhost:1819/api/churches?name=Notre-Dame" -H  "accept: application/ld+json"</pre>
+            <p>Rechercher des diocèses par nom&nbsp;:</p>
+            <pre>curl -X GET "http://localhost:1819/api/dioceses?name=Paris" -H  "accept: application/ld+json"</pre>
+            <p>Rechercher des paroisses par nom&nbsp;:</p>
+            <pre>curl -X GET "http://localhost:1819/api/parishes?name=Paris" -H  "accept: application/ld+json"</pre>
+            <p>Rechercher des paroisses par nom de diocèse&nbsp;:</p>
+            <pre>curl -X GET "http://localhost:1819/api/parishes?dioceseName=Paris" -H  "accept: application/ld+json"</pre>
+        </div>
     </div>
-</div>
 {% endblock %}
