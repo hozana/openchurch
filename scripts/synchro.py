@@ -14,6 +14,7 @@ from sqlalchemy import create_engine, exc, MetaData, Table, orm, func, insert, u
 from SPARQLWrapper import SPARQLWrapper, JSON
 
 endpoint = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
+agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'
 churches_query = '''PREFIX schema: <http://schema.org/>
 	'SELECT DISTINCT ?churches ?P17 ?P18 ?P31 ?P131 ?P625 ?P708 ?P1644 ?label_fr ?modified WHERE {
 	{?churches (wdt:P31/wdt:P279*) wd:Q16970 .}
@@ -41,14 +42,14 @@ dioceses_query = '''PREFIX schema: <http://schema.org/>
 
 parishes_query = '''PREFIX schema: <http://schema.org/>
 	SELECT DISTINCT ?parishes ?P17 ?P31 ?P281 ?P708 ?P856 ?P6788 ?label_fr ?modified WHERE {
-	{?parishes (wdt:P31/wdt:P279*) wd:Q665487 .}
+	{?parishes (wdt:P31/wdt:P279*) wd:Q102496 .}
 	?parishes schema:dateModified ?modified
 	OPTIONAL {?parishes wdt:P17 ?P17 .} # country
 	OPTIONAL {?parishes wdt:P31 ?P31 .} # type
 	OPTIONAL {?parishes wdt:P281 ?P281 .} # zip_code
 	OPTIONAL {?parishes wdt:P708 ?P708 .} # diocese
 	OPTIONAL {?parishes wdt:P856 ?P856 .} # website
-	OPTIONAL {?parishes wdt:P6788 ?P6788 .} # messes_info
+	{?parishes wdt:P6788 ?P6788 .} # messes_info
 	OPTIONAL {?parishes rdfs:label ?label_fr filter (lang(?label_fr) = "fr") .}
 	SERVICE wikibase:label {bd:serviceParam wikibase:language "fr".} }'''
 
@@ -160,7 +161,7 @@ class Query(object):
                 return json.loads(content_file.read())
 
         print('Query running, please wait...')
-        sparql = SPARQLWrapper(endpoint)
+        sparql = SPARQLWrapper(endpoint, agent=agent)
         sparql.setQuery(query)
         sparql.setReturnFormat(JSON)
         data = sparql.query().convert()
@@ -252,6 +253,7 @@ class Query(object):
 
                 self.cache_churches[wikidata_id] = datetime.datetime.strptime(modified, Query.dateformat)
             DB.session.commit()
+            # FIXME then do: insert into churches (wikidata_church_id) select wikidata_church_id from wikidata_churches where wikidata_church_id not in (select wikidata_church_id from churches)
             print('Finished')
 
     def update_dioceses(self, data):
