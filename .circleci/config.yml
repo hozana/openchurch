@@ -46,7 +46,6 @@ jobs:
     - run: composer install -n --prefer-dist
     - run: sudo apt-get update && sudo apt-get install -y mariadb-client wget
     - run: sudo docker-php-ext-install pdo pdo_mysql
-    - run: wget -O php-cs-fixer.phar https://github.com/FriendsOfPHP/PHP-CS-Fixer/releases/download/v2.12.2/php-cs-fixer.phar && chmod +x php-cs-fixer.phar
 
     - save_cache:
         paths:
@@ -54,7 +53,7 @@ jobs:
         key: v1-dependencies-{{ checksum "composer.json" }}
 
     # import DB schema
-    - run: bin/console doctrine:schema:update --force --env=test
+    - run: bin/console doctrine:migration:migrate -n --env=test
 
     # import fixtures
     - run: mysql -h 127.0.0.1 -u root -psecured_password openchurch < src/DataFixtures/fixtures.sql
@@ -62,10 +61,14 @@ jobs:
     # fill elasticsearch
     - run: bin/console fos:elastica:populate --env=test
 
+    # PHPStan
+    - run: ./vendor/bin/phpstan analyze src
+
+    # Linter
+    - run: ./vendor/bin/php-cs-fixer -vvv --no-ansi fix --dry-run --diff
+
     # run tests!
     - run: ./vendor/bin/phpunit
-    # Linter
-    - run: ./php-cs-fixer.phar -vvv --no-ansi fix --dry-run --diff
 
     # Save test results
     - store_test_results:

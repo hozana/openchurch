@@ -30,7 +30,6 @@ class ApiPlaceControllerTest extends WebTestCase
             $json = $client->getResponse()->getContent();
             $data = json_decode($json, true);
             $this->assertEquals($place['name'], $data['name']);
-            $this->assertEquals($place['parent'], $data['parent']['id']);
         }
     }
 
