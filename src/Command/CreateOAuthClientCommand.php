@@ -11,7 +11,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class CreateOAuthClientCommand extends Command
 {
-    protected $clientManager;
+    protected ClientManagerInterface $clientManager;
 
     public function __construct(ClientManagerInterface $clientManager)
     {

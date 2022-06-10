@@ -11,8 +11,8 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 final class ChurchCollectionDataProvider implements CollectionDataProviderInterface, RestrictedDataProviderInterface
 {
-    private $finder;
-    private $requestStack;
+    private PaginatedFinderInterface $finder;
+    private RequestStack $requestStack;
 
     public function __construct(PaginatedFinderInterface $finder, RequestStack $requestStack)
     {

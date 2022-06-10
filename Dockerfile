@@ -1,4 +1,4 @@
-FROM php:7.1-apache
+FROM php:7.4-apache
 MAINTAINER Hozana team
 
 # Add necesary libraries
@@ -10,6 +10,8 @@ RUN apt-get update \
         git \
         rsyslog \
         supervisor \
+        libonig-dev \
+        libzip-dev \
         # needed for nodejs:
         gnupg \
         # needed for php's zip extensions:
@@ -19,7 +21,7 @@ RUN apt-get update \
 RUN docker-php-ext-install mbstring pdo pdo_mysql zip
 
 # Add Node.js for npm install
-RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 RUN apt-get install -y --force-yes nodejs
 RUN apt-get install -y --force-yes build-essential
 

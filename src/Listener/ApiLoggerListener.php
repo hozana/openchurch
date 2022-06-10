@@ -15,20 +15,17 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 class ApiLoggerListener extends LoggerListener
 {
-    /** @var AuthorizationCheckerInterface */
-    private $authorizationChecker;
-    /** @var TokenStorageInterface */
-    private $tokenStorage;
-    /** @var LoggableListener */
-    private $loggableListener;
-    /** @var OAuthStorage */
-    private $oAuthStorage;
+    private AuthorizationCheckerInterface $authorizationChecker;
+    private LoggableListener $loggableListener;
+    private OAuthStorage $oAuthStorage;
+    private TokenStorageInterface $tokenStorage;
 
-    public function __construct(LoggableListener $loggableListener,
-                                TokenStorageInterface $tokenStorage = null,
-                                AuthorizationCheckerInterface $authorizationChecker = null,
-                                OAuthStorage $oAuthStorage = null)
-    {
+    public function __construct(
+        LoggableListener $loggableListener,
+        TokenStorageInterface $tokenStorage = null,
+        AuthorizationCheckerInterface $authorizationChecker = null,
+        OAuthStorage $oAuthStorage = null
+    ) {
         $this->loggableListener = $loggableListener;
         $this->tokenStorage = $tokenStorage;
         $this->authorizationChecker = $authorizationChecker;
@@ -38,10 +35,6 @@ class ApiLoggerListener extends LoggerListener
     public function onKernelRequest(RequestEvent $event)
     {
         if (HttpKernelInterface::MASTER_REQUEST !== $event->getRequestType()) {
-            return;
-        }
-
-        if (null === $this->tokenStorage || null === $this->authorizationChecker) {
             return;
         }
 

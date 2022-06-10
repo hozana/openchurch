@@ -57,8 +57,8 @@ parishes_query = '''PREFIX schema: <http://schema.org/>
 class DB:
     now = func.current_timestamp()
     load_dotenv(dotenv_path='../.env')
-    host = os.getenv('DB_HOST')
-    port = os.getenv('DB_PORT')
+    host = '127.0.0.1'#os.getenv('DB_HOST')
+    port = 13306#os.getenv('DB_PORT')
     database = os.getenv('MYSQL_DATABASE')
     user = os.getenv('MYSQL_USER')
     password = os.getenv('MYSQL_PASSWORD')
