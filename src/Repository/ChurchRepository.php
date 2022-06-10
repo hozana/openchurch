@@ -25,7 +25,7 @@ class ChurchRepository extends ServiceEntityRepository
             ->select('count(c.id)')
             ->getQuery()
             ->useQueryCache(true)
-            ->useResultCache(true, 86400) // one day
+            ->enableResultCache(86400) // one day
             ->getSingleScalarResult();
     }
 }

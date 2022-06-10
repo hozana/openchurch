@@ -20,7 +20,13 @@
         </div>
         <div class="col-12 col-md-4">
             <h2>⛪️ Exhaustivité️</h2>
-            <p>La base contient pour le moment {{ nbChurches|number_format(0) }} églises. Ces données sont issues de <a href="https://www.wikidata.org">Wikidata</a>.</p>
+            <p>La base contient pour le moment :</p>
+            <ul>
+                <li>{{ nbChurches|number_format(0) }} églises ;</li>
+                <li>{{ nbDioceses|number_format(0) }} diocèses ;</li>
+                <li>{{ nbParishes|number_format(0) }} paroisses.</li>
+            </ul>
+            <p>Ces données sont issues de <a href="https://www.wikidata.org">Wikidata</a>.</p>
             <p>Note&nbsp;: les id des églises sont susceptibles de changer. Pour des id qui ne changeront pas, utilisez ceux de WikidataChurch.</p>
         </div>
         <div class="col-12 col-md-4">

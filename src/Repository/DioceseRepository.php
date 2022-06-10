@@ -18,4 +18,14 @@ class DioceseRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Diocese::class);
     }
+
+    public function countAll()
+    {
+        return $this->createQueryBuilder('c')
+            ->select('count(c.id)')
+            ->getQuery()
+            ->useQueryCache(true)
+            ->enableResultCache(86400) // one day
+            ->getSingleScalarResult();
+    }
 }
