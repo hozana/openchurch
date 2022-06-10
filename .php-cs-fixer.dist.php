@@ -1,6 +1,8 @@
 <?php
 
-return PhpCsFixer\Config::create()
+$finder = (new PhpCsFixer\Finder())->in(__DIR__.'/src');
+
+return (new PhpCsFixer\Config())
     ->setRules([
         '@Symfony' => true,
         'array_syntax' => ['syntax' => 'short'],
@@ -9,4 +11,4 @@ return PhpCsFixer\Config::create()
             'sort_algorithm' => 'alpha',
         ],
     ])
-;
+    ->setFinder($finder);

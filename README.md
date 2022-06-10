@@ -41,7 +41,7 @@ docker exec -it openchurch bin/console server:run 0.0.0.0:8000
 docker exec -it openchurch sh -c "cd openchurch-admin && npm start"
 ```
 
-Check API works on [http://127.0.0.1:8000](http://127.0.0.1:8000). And backoffice on [http://127.0.0.1:3000](http://127.0.0.1:3000).
+Check API works on [http://127.0.0.1:1819](http://127.0.0.1:1819). And backoffice on [http://127.0.0.1:3000](http://127.0.0.1:3000).
 
 
 ### Docker
@@ -68,7 +68,7 @@ docker exec -it 1651a84b55b9 /bin/bash
 ### To start
 
 - `cp .env.dist .env && vim .env` to setup your own environment.
-- `wget https://raw.githubusercontent.com/wiki/hozana/openchurch/20180806openchurch.sql && mysql -u root -p < openchurch < ./20180806openchurch.sql` to get a database.
+- `docker exec -it openchurch bin/console doctrine:migration:migrate`
 - `composer install && yarn install && cd openchurch-admin && yarn install` to install all dependencies.
 
 ### Database
@@ -98,6 +98,15 @@ npm start
 
 Then `http://localhost:3000` should be automatically opened.
 In `openchurch-admin/src/App.js` you can define the API's URL : it's the only configuration.
+
+### To synchronize the database from Wikidata
+
+```
+cd scripts
+pip3 install pywikibot sqlalchemy sparqlwrapper pymysql
+touch user-config.py
+python3 synchro.py
+```
 
 ## For Elasticsearch
 

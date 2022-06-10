@@ -3,5 +3,5 @@ includes:
     - vendor/phpstan/phpstan-symfony/extension.neon
 parameters:
     level: 5
-    excludes_analyse:
+    excludePaths:
         - src/Migrations/*

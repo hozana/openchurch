@@ -15,7 +15,7 @@ final class Version20201024140153 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
+        $this->abortIf('mysql' !== $this->connection->getDatabasePlatform()->getName(), 'Migration can only be executed safely on \'mysql\'.');
 
         $this->addSql('CREATE TABLE places (place_id INT AUTO_INCREMENT NOT NULL, parent_id INT DEFAULT NULL, name LONGTEXT DEFAULT NULL, country_code LONGTEXT DEFAULT NULL, type ENUM(\'city\', \'country\', \'state\', \'area\', \'unknown\') NOT NULL COMMENT \'(DC2Type:PlaceType)\', created_at DATETIME NOT NULL, updated_at DATETIME NOT NULL, INDEX IDX_FEAF6C55727ACA70 (parent_id), PRIMARY KEY(place_id)) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE = InnoDB');
         $this->addSql('CREATE TABLE refresh_token (id INT AUTO_INCREMENT NOT NULL, client_id INT NOT NULL, user_id INT DEFAULT NULL, token VARCHAR(255) NOT NULL, expires_at INT DEFAULT NULL, scope VARCHAR(255) DEFAULT NULL, UNIQUE INDEX UNIQ_C74F21955F37A13B (token), INDEX IDX_C74F219519EB6921 (client_id), INDEX IDX_C74F2195A76ED395 (user_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE = InnoDB');
@@ -48,7 +48,7 @@ final class Version20201024140153 extends AbstractMigration
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
-        $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
+        $this->abortIf('mysql' !== $this->connection->getDatabasePlatform()->getName(), 'Migration can only be executed safely on \'mysql\'.');
 
         $this->addSql('ALTER TABLE places DROP FOREIGN KEY FK_FEAF6C55727ACA70');
         $this->addSql('ALTER TABLE wikidata_churches DROP FOREIGN KEY FK_F72BF489DA6A219');

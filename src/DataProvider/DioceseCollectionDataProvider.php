@@ -5,20 +5,17 @@ namespace App\DataProvider;
 use ApiPlatform\Core\DataProvider\CollectionDataProviderInterface;
 use ApiPlatform\Core\DataProvider\RestrictedDataProviderInterface;
 use App\Entity\Diocese;
-use Doctrine\ORM\EntityManagerInterface;
 use Elastica\Query;
 use FOS\ElasticaBundle\Finder\PaginatedFinderInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 final class DioceseCollectionDataProvider implements CollectionDataProviderInterface, RestrictedDataProviderInterface
 {
-    private $entityManager;
     private $finder;
     private $requestStack;
 
-    public function __construct(EntityManagerInterface $entityManager, PaginatedFinderInterface $finder, RequestStack $requestStack)
+    public function __construct(PaginatedFinderInterface $finder, RequestStack $requestStack)
     {
-        $this->entityManager = $entityManager;
         $this->finder = $finder;
         $this->requestStack = $requestStack;
     }

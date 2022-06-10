@@ -15,7 +15,7 @@ final class Version20201024154827 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
+        $this->abortIf('mysql' !== $this->connection->getDatabasePlatform()->getName(), 'Migration can only be executed safely on \'mysql\'.');
 
         $this->addSql('CREATE TABLE dioceses (diocese_id INT AUTO_INCREMENT NOT NULL, country_id INT DEFAULT NULL, name VARCHAR(255) NOT NULL, website VARCHAR(255) NOT NULL, INDEX IDX_8849E742F92F3E70 (country_id), PRIMARY KEY(diocese_id)) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE = InnoDB');
         $this->addSql('CREATE TABLE parishes (parish_id INT AUTO_INCREMENT NOT NULL, diocese_id INT DEFAULT NULL, country_id INT DEFAULT NULL, name VARCHAR(255) NOT NULL, messesinfo_id VARCHAR(255) NOT NULL, website VARCHAR(255) NOT NULL, zip_code VARCHAR(255) NOT NULL, INDEX IDX_DFF9A978B600009 (diocese_id), INDEX IDX_DFF9A978F92F3E70 (country_id), PRIMARY KEY(parish_id)) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE = InnoDB');
@@ -32,7 +32,7 @@ final class Version20201024154827 extends AbstractMigration
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
-        $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
+        $this->abortIf('mysql' !== $this->connection->getDatabasePlatform()->getName(), 'Migration can only be executed safely on \'mysql\'.');
 
         $this->addSql('ALTER TABLE dioceses RENAME INDEX idx_8354a650f92f3e70 TO IDX_8849E742F92F3E70');
         $this->addSql('ALTER TABLE parishes RENAME INDEX idx_d8b39ad0f92f3e70 TO IDX_DFF9A978F92F3E70');
