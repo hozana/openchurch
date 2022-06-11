@@ -14,7 +14,7 @@
         "doctrine/doctrine-migrations-bundle": "^1.3",
         "doctrine/orm": "^2.7",
         "fresh/doctrine-enum-bundle": "^6.2",
-        "friendsofsymfony/elastica-bundle": "^5.0",
+        "friendsofsymfony/elastica-bundle": "^6.0",
         "friendsofsymfony/oauth-server-bundle": "^1.6",
         "friendsofsymfony/user-bundle": "~2.0",
         "myclabs/php-enum": "^1.6",

@@ -6,6 +6,7 @@ use ApiPlatform\Core\DataProvider\CollectionDataProviderInterface;
 use ApiPlatform\Core\DataProvider\RestrictedDataProviderInterface;
 use App\Entity\Parish;
 use Elastica\Query;
+use Elastica\Query\MatchQuery;
 use FOS\ElasticaBundle\Finder\PaginatedFinderInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -32,55 +33,55 @@ final class ParishCollectionDataProvider implements CollectionDataProviderInterf
         $request = $this->requestStack->getCurrentRequest();
 
         if ($id = $request->get('id')) {
-            $matchQuery = new Query\Match();
+            $matchQuery = new MatchQuery();
             $matchQuery->setFieldQuery('id', $id);
             $matchQuery->setFieldFuzziness('id', 0);
             $boolQuery->addMust($matchQuery);
         }
         if ($name = $request->get('name')) {
-            $matchQuery = new Query\Match();
+            $matchQuery = new MatchQuery();
             $matchQuery->setFieldQuery('name', $name);
             $matchQuery->setFieldFuzziness('name', 2);
             $boolQuery->addMust($matchQuery);
         }
         if ($name = $request->get('messesinfoId')) {
-            $matchQuery = new Query\Match();
+            $matchQuery = new MatchQuery();
             $matchQuery->setFieldQuery('messesinfoId', $name);
             $matchQuery->setFieldFuzziness('messesinfoId', 2);
             $boolQuery->addMust($matchQuery);
         }
         if ($name = $request->get('website')) {
-            $matchQuery = new Query\Match();
+            $matchQuery = new MatchQuery();
             $matchQuery->setFieldQuery('website', $name);
             $matchQuery->setFieldFuzziness('website', 2);
             $boolQuery->addMust($matchQuery);
         }
         if ($name = $request->get('zipCode')) {
-            $matchQuery = new Query\Match();
+            $matchQuery = new MatchQuery();
             $matchQuery->setFieldQuery('zipCode', $name);
             $matchQuery->setFieldFuzziness('zipCode', 2);
             $boolQuery->addMust($matchQuery);
         }
         if ($countryId = (int) $request->get('countryId')) {
-            $matchQuery = new Query\Match();
+            $matchQuery = new MatchQuery();
             $matchQuery->setFieldQuery('country.id', (string) $countryId);
             $matchQuery->setFieldFuzziness('country.id', 0);
             $boolQuery->addMust($matchQuery);
         }
         if ($countryName = $request->get('countryName')) {
-            $matchQuery = new Query\Match();
+            $matchQuery = new MatchQuery();
             $matchQuery->setFieldQuery('country.name', $countryName);
             $matchQuery->setFieldFuzziness('country.name', 2);
             $boolQuery->addMust($matchQuery);
         }
         if ($countryId = (int) $request->get('dioceseId')) {
-            $matchQuery = new Query\Match();
+            $matchQuery = new MatchQuery();
             $matchQuery->setFieldQuery('diocese.id', (string) $countryId);
             $matchQuery->setFieldFuzziness('diocese.id', 0);
             $boolQuery->addMust($matchQuery);
         }
         if ($countryName = $request->get('dioceseName')) {
-            $matchQuery = new Query\Match();
+            $matchQuery = new MatchQuery();
             $matchQuery->setFieldQuery('diocese.name', $countryName);
             $matchQuery->setFieldFuzziness('diocese.name', 2);
             $boolQuery->addMust($matchQuery);

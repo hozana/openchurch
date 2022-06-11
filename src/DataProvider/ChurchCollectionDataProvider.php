@@ -6,6 +6,7 @@ use ApiPlatform\Core\DataProvider\CollectionDataProviderInterface;
 use ApiPlatform\Core\DataProvider\RestrictedDataProviderInterface;
 use App\Entity\Church;
 use Elastica\Query;
+use Elastica\Query\MatchQuery;
 use FOS\ElasticaBundle\Finder\PaginatedFinderInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -32,31 +33,31 @@ final class ChurchCollectionDataProvider implements CollectionDataProviderInterf
         $request = $this->requestStack->getCurrentRequest();
 
         if ($id = $request->get('id')) {
-            $matchQuery = new Query\Match();
+            $matchQuery = new MatchQuery();
             $matchQuery->setFieldQuery('id', $id);
             $matchQuery->setFieldFuzziness('id', 0);
             $boolQuery->addMust($matchQuery);
         }
         if ($name = $request->get('name')) {
-            $matchQuery = new Query\Match();
+            $matchQuery = new MatchQuery();
             $matchQuery->setFieldQuery('wikidataChurch.name', $name);
             $matchQuery->setFieldFuzziness('wikidataChurch.name', 2);
             $boolQuery->addMust($matchQuery);
         }
         if ($placeId = (int) $request->get('placeId')) {
-            $matchQuery = new Query\Match();
+            $matchQuery = new MatchQuery();
             $matchQuery->setFieldQuery('wikidataChurch.place.id', (string) $placeId);
             $matchQuery->setFieldFuzziness('wikidataChurch.place.id', 0);
             $boolQuery->addMust($matchQuery);
         }
         if ($placeName = $request->get('placeName')) {
-            $matchQuery = new Query\Match();
+            $matchQuery = new MatchQuery();
             $matchQuery->setFieldQuery('wikidataChurch.place.name', $placeName);
             $matchQuery->setFieldFuzziness('wikidataChurch.place.name', 2);
             $boolQuery->addMust($matchQuery);
         }
         if ($wikidataChurchId = (int) $request->get('wikidataId')) {
-            $matchQuery = new Query\Match();
+            $matchQuery = new MatchQuery();
             $matchQuery->setFieldQuery('wikidataChurch.id', (string) $wikidataChurchId);
             $matchQuery->setFieldFuzziness('wikidataChurch.id', 0);
             $boolQuery->addMust($matchQuery);

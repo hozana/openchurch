@@ -6,6 +6,7 @@ use ApiPlatform\Core\DataProvider\CollectionDataProviderInterface;
 use ApiPlatform\Core\DataProvider\RestrictedDataProviderInterface;
 use App\Entity\Diocese;
 use Elastica\Query;
+use Elastica\Query\MatchQuery;
 use FOS\ElasticaBundle\Finder\PaginatedFinderInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -32,25 +33,25 @@ final class DioceseCollectionDataProvider implements CollectionDataProviderInter
         $request = $this->requestStack->getCurrentRequest();
 
         if ($id = $request->get('id')) {
-            $matchQuery = new Query\Match();
+            $matchQuery = new MatchQuery();
             $matchQuery->setFieldQuery('id', $id);
             $matchQuery->setFieldFuzziness('id', 0);
             $boolQuery->addMust($matchQuery);
         }
         if ($name = $request->get('name')) {
-            $matchQuery = new Query\Match();
+            $matchQuery = new MatchQuery();
             $matchQuery->setFieldQuery('name', $name);
             $matchQuery->setFieldFuzziness('name', 2);
             $boolQuery->addMust($matchQuery);
         }
         if ($countryId = (int) $request->get('countryId')) {
-            $matchQuery = new Query\Match();
+            $matchQuery = new MatchQuery();
             $matchQuery->setFieldQuery('country.id', (string) $countryId);
             $matchQuery->setFieldFuzziness('country.id', 0);
             $boolQuery->addMust($matchQuery);
         }
         if ($countryName = $request->get('countryName')) {
-            $matchQuery = new Query\Match();
+            $matchQuery = new MatchQuery();
             $matchQuery->setFieldQuery('country.name', $countryName);
             $matchQuery->setFieldFuzziness('country.name', 2);
             $boolQuery->addMust($matchQuery);

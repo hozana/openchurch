@@ -25,9 +25,10 @@ jobs:
         MYSQL_USER: openchurch
         MYSQL_PASSWORD: openchurch
 
-    - image: docker.elastic.co/elasticsearch/elasticsearch:6.3.2
+    - image: elasticsearch:7.17.3
       environment:
-        ES_JAVA_OPTS=-Xms750m -Xmx750m
+        - ES_JAVA_OPTS=-Xms750m -Xmx750m
+        - discovery.type=single-node
 
     working_directory: ~/repo
 

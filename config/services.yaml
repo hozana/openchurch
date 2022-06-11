@@ -44,15 +44,15 @@ services:
 
     App\DataProvider\ChurchCollectionDataProvider:
         arguments:
-            $finder: '@fos_elastica.finder.churches.church'
+            $finder: '@fos_elastica.finder.churches'
 
     App\DataProvider\DioceseCollectionDataProvider:
         arguments:
-            $finder: '@fos_elastica.finder.dioceses.diocese'
+            $finder: '@fos_elastica.finder.dioceses'
 
     App\DataProvider\ParishCollectionDataProvider:
         arguments:
-            $finder: '@fos_elastica.finder.parishes.parish'
+            $finder: '@fos_elastica.finder.parishes'
 
     app.form.registration:
         class: App\Form\RegistrationType
