@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    </head>
+    <body>
+        <div id="my_search_app"></div>
+        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+        <script id="my_view" type="x-template">
+            <div style="display: grid;grid-template-columns: 350px 350px 600px">
+                <div>
+                    <form name="searchDiocese" method="post" @submit.prevent="getDioceses" autocomplete="off">
+                        <input placeholder="Votre diocèse…" v-model="searchDiocese" v-on:input="getDioceses()" />
+                    </form>
+                    <div v-if="searchDiocese">
+                        <ul v-if="dioceses.length">
+                            <li v-for="(result, index) in dioceses" v-bind:key="index + '-' + result.id">
+                                <span @click="chooseDiocese(result.id)">{{ result.name }}</span>
+                            </li>
+                        </ul>
+                        <p v-else>Pas de résultat</p>
+                    </div>
+                </div>
+                <div v-if=dioceseId>
+                    <form name="searchParish" method="post" @submit.prevent="getParishes" autocomplete="off">
+                        <input placeholder="Votre paroisse…" v-model="searchParish" v-on:input="getParishes()" />
+                    </form>
+                    <div v-if="searchParish">
+                        <ul v-if="parishes.length">
+                            <li v-for="(result, index) in parishes" v-bind:key="index + '-' + result.id">
+                                <span @click="chooseParish(result.id)">{{ result.name }} - {{ result.zipCode }}</span>
+                            </li>
+                        </ul>
+                        <p v-else>Pas de résultat</p>
+                    </div>
+                </div>
+                <div v-if="churches">
+                    <div v-for="church in churches">
+                        {{ church.name }}
+                    </div>
+                </div>
+            </div>
+        </script>
+        <script type="text/javascript">
+var searchApp = new Vue({
+  el: '#my_search_app',
+  template: '#my_view',
+  data: {
+    dioceseId: null,
+    parishId: null,
+    churches: [],
+    dioceses: [],
+    parishes: [],
+    searchDiocese: '',
+    searchParish: '',
+    timer: null,
+  },
+  methods: {
+    chooseDiocese: function(id) {
+      this.searchDiocese = '';
+      this.dioceseId = id;
+    },
+    chooseParish: function(id) {
+      this.searchParish = '';
+      this.parishId = id;
+      this.getChurches();
+    },
+    getChurches: function() {
+      var that = this;
+      if (!this.parishId) {
+        this.churches = [];
+        return;
+      }
+      if (this.timer) {
+        clearTimeout(this.timer);
+        this.timer = null;
+      }
+      this.timer = setTimeout(() => {
+        fetch('https://open-church.io/api/wikidata_churches?parishId=' + this.parishId)
+        .then((response) => response.json())
+        .then(function(json) {
+          that.churches = json['hydra:member'] || [];
+        });
+      }, 250);
+    },
+    getDioceses: function() {
+      var that = this;
+      if (this.searchDiocese) {
+        this.dioceseId = null;
+        this.parishes = [];
+        this.parishSearch = '';
+      } else {
+        this.dioceses = [];
+        return;
+      }
+      if (this.timer) {
+        clearTimeout(this.timer);
+        this.timer = null;
+      }
+      this.timer = setTimeout(() => {
+        fetch('https://open-church.io/api/dioceses?name=' + this.searchDiocese)
+        .then((response) => response.json())
+        .then(function(json) {
+          that.dioceses = json['hydra:member'] || [];
+        });
+      }, 250);
+    },
+    getParishes: function() {
+      var that = this;
+      if (!this.searchParish) {
+        this.parishes = [];
+        return;
+      }
+      if (this.timer) {
+        clearTimeout(this.timer);
+        this.timer = null;
+      }
+      this.timer = setTimeout(() => {
+        fetch('https://open-church.io/api/parishes?name=' + this.searchParish + '&dioceseId=' + this.dioceseId)
+        .then((response) => response.json())
+        .then(function(json) {
+          that.parishes = json['hydra:member'] || [];
+        });
+      }, 250);
+    },
+  },
+  created: function() {
+    this.getDioceses();
+  }
+});
+        </script>
+    </body>
+</html>

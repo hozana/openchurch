@@ -434,3 +434,10 @@ if __name__ == '__main__':
         q.update_parishes(parishes)
         churches = q.fetch('wikidata_churches.json', churches_query)
         q.update_churches(churches)
+
+        # Create missing Churches
+        DB.con.execute('''
+            INSERT INTO churches (`wikidata_church_id`)
+            SELECT `wikidata_church_id` FROM wikidata_churches WHERE wikidata_church_id NOT IN
+            (SELECT `wikidata_church_id` FROM `churches`);
+        ''')

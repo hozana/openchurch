@@ -75,24 +75,24 @@ final class ChurchCollectionDataProvider implements CollectionDataProviderInterf
         }
         if ($dioceseId = (int) $request->get('dioceseId')) {
             $matchQuery = new MatchQuery();
-            $matchQuery->setFieldQuery('diocese.id', (string) $dioceseId);
+            $matchQuery->setFieldQuery('wikidataChurch.diocese.id', (string) $dioceseId);
             $boolQuery->addMust($matchQuery);
         }
         if ($dioceseName = $request->get('dioceseName')) {
             $matchQuery = new MatchQuery();
-            $matchQuery->setFieldQuery('diocese.name', $dioceseName);
-            $matchQuery->setFieldFuzziness('diocese.name', 2);
+            $matchQuery->setFieldQuery('wikidataChurch.diocese.name', $dioceseName);
+            $matchQuery->setFieldFuzziness('wikidataChurch.diocese.name', 2);
             $boolQuery->addMust($matchQuery);
         }
         if ($parishId = (int) $request->get('parishId')) {
             $matchQuery = new MatchQuery();
-            $matchQuery->setFieldQuery('parish.id', (string) $parishId);
+            $matchQuery->setFieldQuery('wikidataChurch.parish.id', (string) $parishId);
             $boolQuery->addMust($matchQuery);
         }
         if ($parishName = $request->get('parishName')) {
             $matchQuery = new MatchQuery();
-            $matchQuery->setFieldQuery('parish.name', $parishName);
-            $matchQuery->setFieldFuzziness('parish.name', 2);
+            $matchQuery->setFieldQuery('wikidataChurch.parish.name', $parishName);
+            $matchQuery->setFieldFuzziness('wikidataChurch.parish.name', 2);
             $boolQuery->addMust($matchQuery);
         }
 

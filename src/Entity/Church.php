@@ -119,4 +119,14 @@ class Church
     {
         return $this->massesUrl;
     }
+
+    public function getDiocese(): ?Diocese
+    {
+        return $this->wikidataChurch ? $this->wikidataChurch->getDiocese() : null;
+    }
+
+    public function getParish(): ?Parish
+    {
+        return $this->wikidataChurch ? $this->wikidataChurch->getParish() : null;
+    }
 }

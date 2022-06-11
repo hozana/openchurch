@@ -100,12 +100,16 @@ class WikidataChurch
     /**
      * @ORM\ManyToOne(targetEntity=Parish::class, inversedBy="wikidataChurches")
      * @ORM\JoinColumn(nullable=true, referencedColumnName="parish_id")
+     * @Groups("parish")
+     * @MaxDepth(1)
      */
     private ?Parish $parish = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=Diocese::class, inversedBy="wikidataChurches")
      * @ORM\JoinColumn(nullable=true, referencedColumnName="diocese_id")
+     * @Groups("diocese")
+     * @MaxDepth(1)
      */
     private ?Diocese $diocese = null;
 

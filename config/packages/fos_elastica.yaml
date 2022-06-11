@@ -20,6 +20,16 @@ fos_elastica:
                             properties:
                                 id: { boost: 1 }
                                 name: { type: text, boost: 5 }
+                        diocese:
+                            type: "object"
+                            properties:
+                                id: { boost: 1 }
+                                name: { type: text, boost: 2 }
+                        parish:
+                            type: "object"
+                            properties:
+                                id: { boost: 1 }
+                                name: { type: text, boost: 2 }
             persistence:
                 driver: orm
                 model: App\Entity\Church
@@ -27,7 +37,7 @@ fos_elastica:
                 finder: ~
                 listener: ~
             serializer:
-                groups: ["place", "church"]
+                groups: ["place", "church", "diocese", "parish"]
         dioceses:
             finder: ~
             index_name: "dioceses_%kernel.environment%"
