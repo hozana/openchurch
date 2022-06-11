@@ -76,9 +76,11 @@ class Photo
         return $this->id;
     }
 
-    public function setWikidataChurch(WikidataChurch $wikidataChurch): void
+    public function setWikidataChurch(WikidataChurch $wikidataChurch): self
     {
         $this->wikidataChurch = $wikidataChurch;
+
+        return $this;
     }
 
     public function getWikidataChurch(): WikidataChurch
@@ -86,9 +88,11 @@ class Photo
         return $this->wikidataChurch;
     }
 
-    public function setTheodiaChurch(TheodiaChurch $theodiaChurch): void
+    public function setTheodiaChurch(TheodiaChurch $theodiaChurch): self
     {
         $this->theodiaChurch = $theodiaChurch;
+
+        return $this;
     }
 
     public function getTheodiaChurch(): TheodiaChurch
@@ -96,9 +100,11 @@ class Photo
         return $this->theodiaChurch;
     }
 
-    public function setUrl(?string $url): void
+    public function setUrl(?string $url): self
     {
         $this->url = $url;
+
+        return $this;
     }
 
     public function getUrl(): ?string
@@ -106,9 +112,11 @@ class Photo
         return $this->url;
     }
 
-    public function setCreatedAt(\DateTimeInterface $createdAt): void
+    public function setCreatedAt(\DateTimeInterface $createdAt): self
     {
         $this->createdAt = $createdAt;
+
+        return $this;
     }
 
     public function getCreatedAt(): \DateTimeInterface
@@ -116,9 +124,11 @@ class Photo
         return $this->createdAt;
     }
 
-    public function setUpdatedAt(\DateTimeInterface $updatedAt): void
+    public function setUpdatedAt(\DateTimeInterface $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+
+        return $this;
     }
 
     public function getUpdatedAt(): \DateTimeInterface

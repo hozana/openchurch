@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -20,63 +22,69 @@ class Parish
      * @ORM\Column(type="integer", name="parish_id")
      * @Groups("parish")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups("parish")
      */
-    private $name;
+    private string $name = '';
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Diocese", inversedBy="parishes")
      * @ORM\JoinColumn(nullable=true, referencedColumnName="diocese_id")
      * @Groups("diocese")
      */
-    private $diocese;
+    private ?Diocese $diocese = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Place", inversedBy="parishes")
      * @ORM\JoinColumn(nullable=true, referencedColumnName="place_id")
      * @Groups("place")
      */
-    private $country;
+    private ?Place $country = null;
 
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups("parish")
      */
-    private $messesinfoId;
+    private string $messesinfoId = '';
 
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups("parish")
      */
-    private $website;
+    private string $website = '';
 
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups("parish")
      */
-    private $zipCode;
+    private string $zipCode = '';
 
     /**
-     * @var \DateTimeInterface
-     *
      * @ORM\Column(type="datetime")
      * @Assert\DateTime
      * @Assert\NotNull
      */
-    private $createdAt;
+    private ?\DateTimeInterface $createdAt = null;
 
     /**
-     * @var \DateTimeInterface
-     *
      * @ORM\Column(type="datetime")
      * @Assert\DateTime
      * @Assert\NotNull
      */
-    private $updatedAt;
+    private ?\DateTimeInterface $updatedAt = null;
+
+    /**
+     * @ORM\OneToMany(targetEntity=WikidataChurch::class, mappedBy="parish")
+     */
+    private Collection $wikidataChurches;
+
+    public function __construct()
+    {
+        $this->wikidataChurches = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -155,23 +163,57 @@ class Parish
         return $this;
     }
 
-    public function setCreatedAt(\DateTimeInterface $createdAt): void
+    public function setCreatedAt(\DateTimeInterface $createdAt): self
     {
         $this->createdAt = $createdAt;
+
+        return $this;
     }
 
-    public function getCreatedAt(): \DateTimeInterface
+    public function getCreatedAt(): ?\DateTimeInterface
     {
         return $this->createdAt;
     }
 
-    public function setUpdatedAt(\DateTimeInterface $updatedAt): void
+    public function setUpdatedAt(\DateTimeInterface $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+
+        return $this;
     }
 
-    public function getUpdatedAt(): \DateTimeInterface
+    public function getUpdatedAt(): ?\DateTimeInterface
     {
         return $this->updatedAt;
+    }
+
+    /**
+     * @return Collection<int, WikidataChurch>
+     */
+    public function getWikidataChurches(): Collection
+    {
+        return $this->wikidataChurches;
+    }
+
+    public function addWikidataChurch(WikidataChurch $wikidataChurch): self
+    {
+        if (!$this->wikidataChurches->contains($wikidataChurch)) {
+            $this->wikidataChurches[] = $wikidataChurch;
+            $wikidataChurch->setParish($this);
+        }
+
+        return $this;
+    }
+
+    public function removeWikidataChurch(WikidataChurch $wikidataChurch): self
+    {
+        if ($this->wikidataChurches->removeElement($wikidataChurch)) {
+            // set the owning side to null (unless already changed)
+            if ($wikidataChurch->getParish() === $this) {
+                $wikidataChurch->setParish(null);
+            }
+        }
+
+        return $this;
     }
 }

@@ -19,9 +19,9 @@ class ParishRepository extends ServiceEntityRepository
         parent::__construct($registry, Parish::class);
     }
 
-    public function countAll()
+    public function countAll(): int
     {
-        return $this->createQueryBuilder('c')
+        return (int) $this->createQueryBuilder('c')
             ->select('count(c.id)')
             ->getQuery()
             ->useQueryCache(true)

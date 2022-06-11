@@ -19,9 +19,9 @@ class ChurchRepository extends ServiceEntityRepository
         parent::__construct($registry, Church::class);
     }
 
-    public function countAll()
+    public function countAll(): int
     {
-        return $this->createQueryBuilder('c')
+        return (int) $this->createQueryBuilder('c')
             ->select('count(c.id)')
             ->getQuery()
             ->useQueryCache(true)

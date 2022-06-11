@@ -28,88 +28,72 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Place
 {
     /**
-     * @var int|null
-     *
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      * @ORM\Column(type="integer", name="place_id")
      * @Groups("place")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
-     * @var Place|null
-     *
      * @ORM\ManyToOne(targetEntity="Place", inversedBy="children")
      * @ORM\JoinColumn(nullable=true, referencedColumnName="place_id")
      */
-    private $parent;
+    private ?Place $parent = null;
 
     /**
-     * @var string|null the name of the item
-     *
      * @ORM\Column(type="text", nullable=true)
      * @ApiProperty(iri="http://schema.org/name")
      * @Groups("place")
      */
-    private $name;
+    private ?string $name = null;
 
     /**
-     * @var string|null the country code of the item
-     *
      * @ORM\Column(type="text", nullable=true)
      * @Groups("place")
      */
-    private $countryCode;
+    private ?string $countryCode = null;
 
     /**
      * @ORM\Column(name="type", type="PlaceType", nullable=false)
      * @DoctrineAssert\Enum(entity="App\Enum\PlaceType")
      * @Groups("place")
      */
-    private $type;
+    private ?string $type = null;
 
     /**
-     * @var array
-     *
      * @ORM\OneToMany(targetEntity="WikidataChurch", mappedBy="place")
      **/
-    private $wikidataChurches;
+    private Collection $wikidataChurches;
 
     /**
-     * @var array
-     *
      * @ORM\OneToMany(targetEntity="Place", mappedBy="parent")
      **/
-    private $children;
+    private Collection $children;
 
     /**
-     * @var \DateTimeInterface
-     *
      * @ORM\Column(type="datetime")
      * @Assert\DateTime
      * @Assert\NotNull
      */
-    private $createdAt;
+    private ?\DateTimeInterface $createdAt = null;
 
     /**
-     * @var \DateTimeInterface
-     *
      * @ORM\Column(type="datetime")
      * @Assert\DateTime
      * @Assert\NotNull
      */
-    private $updatedAt;
+    private ?\DateTimeInterface $updatedAt = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Diocese", mappedBy="country")
      */
-    private $dioceses;
+    private Collection $dioceses;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Parish", mappedBy="country")
      */
-    private $parishes;
+    private Collection $parishes;
 
     public function __construct()
     {
@@ -117,20 +101,16 @@ class Place
         $this->parishes = new ArrayCollection();
     }
 
-    /**
-     * @return Place[] $children
-     */
-    public function getChildren()
+    public function getChildren(): Collection
     {
         return $this->children;
     }
 
-    /**
-     * @param array $children
-     */
-    public function setChildren($children)
+    public function setChildren(Collection $children): self
     {
         $this->children = $children;
+
+        return $this;
     }
 
     public function getId(): ?int
@@ -138,9 +118,11 @@ class Place
         return $this->id;
     }
 
-    public function setParent(?self $parent): void
+    public function setParent(?self $parent): self
     {
         $this->parent = $parent;
+
+        return $this;
     }
 
     public function getParent(): ?self
@@ -148,9 +130,11 @@ class Place
         return $this->parent;
     }
 
-    public function setName(?string $name): void
+    public function setName(?string $name): self
     {
         $this->name = $name;
+
+        return $this;
     }
 
     public function getName(): ?string
@@ -158,9 +142,11 @@ class Place
         return $this->name;
     }
 
-    public function setCountryCode(?string $countryCode): void
+    public function setCountryCode(?string $countryCode): self
     {
         $this->countryCode = $countryCode;
+
+        return $this;
     }
 
     public function getCountryCode(): ?string
@@ -168,54 +154,50 @@ class Place
         return $this->countryCode;
     }
 
-    /**
-     * @param PlaceType $type
-     */
-    public function setType($type): void
+    public function setType(?string $type): self
     {
         $this->type = $type;
+
+        return $this;
     }
 
-    /**
-     * @return PlaceType
-     */
-    public function getType()
+    public function getType(): ?string
     {
         return $this->type;
     }
 
-    /**
-     * @param array $wikidataChurches
-     */
-    public function setWikidataChurches($wikidataChurches): void
+    public function setWikidataChurches(Collection $wikidataChurches): self
     {
         $this->wikidataChurches = $wikidataChurches;
+
+        return $this;
     }
 
-    /**
-     * @return array
-     */
-    public function getWikidataChurches()
+    public function getWikidataChurches(): Collection
     {
         return $this->wikidataChurches;
     }
 
-    public function setCreatedAt(\DateTimeInterface $createdAt): void
+    public function setCreatedAt(\DateTimeInterface $createdAt): self
     {
         $this->createdAt = $createdAt;
+
+        return $this;
     }
 
-    public function getCreatedAt(): \DateTimeInterface
+    public function getCreatedAt(): ?\DateTimeInterface
     {
         return $this->createdAt;
     }
 
-    public function setUpdatedAt(\DateTimeInterface $updatedAt): void
+    public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+
+        return $this;
     }
 
-    public function getUpdatedAt(): \DateTimeInterface
+    public function getUpdatedAt(): ?\DateTimeInterface
     {
         return $this->updatedAt;
     }

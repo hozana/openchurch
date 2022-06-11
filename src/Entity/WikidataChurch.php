@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\MaxDepth;
@@ -24,134 +25,123 @@ use Symfony\Component\Validator\Constraints as Assert;
 class WikidataChurch
 {
     /**
-     * @var int|null
-     *
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      * @ORM\Column(type="integer", name="wikidata_church_id")
      * @Groups("church")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
-     * @var string|null the name of the item
-     *
      * @ORM\Column(type="text", nullable=true)
      * @Groups("church")
      */
-    private $name;
+    private ?string $name = null;
 
     /**
-     * @var float
-     *
      * @ORM\Column(type="float")
      * @Assert\NotNull
      * @Groups("church")
      */
-    private $latitude;
+    private ?float $latitude = null;
 
     /**
-     * @var float
-     *
      * @ORM\Column(type="float")
      * @Assert\NotNull
      * @Groups("church")
      */
-    private $longitude;
+    private ?float $longitude = null;
 
     /**
-     * @var Place
-     *
      * @ORM\ManyToOne(targetEntity="Place", inversedBy="wikidataChurches")
      * @ORM\JoinColumn(nullable=false, referencedColumnName="place_id")
      * @Assert\NotNull
      * @Groups("place")
      * @MaxDepth(1)
      */
-    private $place;
+    private ?Place $place = null;
 
     /**
-     * @var string
-     *
      * @ORM\Column(type="text")
      * @Assert\NotNull
      * @Groups("church")
      */
-    private $address;
+    private string $address = '';
 
     /**
-     * @var array
-     *
      * @ORM\OneToMany(targetEntity="Church", mappedBy="wikidataChurch")
      * @Groups("church")
      * @MaxDepth(1)
      **/
-    private $churches;
+    private Collection $churches;
 
     /**
-     * @var array
-     *
      * @ORM\OneToMany(targetEntity="Photo", mappedBy="wikidataChurch")
      * @Groups("church")
      * @MaxDepth(1)
      **/
-    private $photos;
+    private Collection $photos;
 
     /**
-     * @var \DateTimeInterface
-     *
      * @ORM\Column(type="datetime")
      * @Assert\DateTime
      * @Assert\NotNull
      */
-    private $createdAt;
+    private ?\DateTimeInterface $createdAt = null;
 
     /**
-     * @var \DateTimeInterface
-     *
      * @ORM\Column(type="datetime")
      * @Assert\DateTime
      * @Assert\NotNull
      * @Groups("church")
      */
-    private $updatedAt;
+    private ?\DateTimeInterface $updatedAt = null;
 
     /**
-     * @return array $churches
+     * @ORM\ManyToOne(targetEntity=Parish::class, inversedBy="wikidataChurches")
+     * @ORM\JoinColumn(nullable=true, referencedColumnName="parish_id")
      */
-    public function getChurches()
+    private ?Parish $parish = null;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Diocese::class, inversedBy="wikidataChurches")
+     * @ORM\JoinColumn(nullable=true, referencedColumnName="diocese_id")
+     */
+    private ?Diocese $diocese = null;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private string $messesinfoId = '';
+
+    public function getChurches(): Collection
     {
         return $this->churches;
     }
 
-    /**
-     * @return array $photos
-     */
-    public function getPhotos()
+    public function getPhotos(): Collection
     {
         return $this->photos;
     }
 
-    /**
-     * @param array $churches
-     */
-    public function setChurches($churches)
+    public function setChurches(Collection $churches): self
     {
         $this->churches = $churches;
+
+        return $this;
     }
 
-    /**
-     * @param array $photos
-     */
-    public function setPhotos($photos)
+    public function setPhotos(Collection $photos): self
     {
         $this->photos = $photos;
+
+        return $this;
     }
 
     /**
      * @Groups("church")
      */
-    public function getPin()
+    public function getPin(): string
     {
         return $this->latitude.','.$this->longitude;
     }
@@ -161,9 +151,11 @@ class WikidataChurch
         return $this->id;
     }
 
-    public function setName(?string $name): void
+    public function setName(?string $name): self
     {
         $this->name = $name;
+
+        return $this;
     }
 
     public function getName(): ?string
@@ -171,51 +163,47 @@ class WikidataChurch
         return $this->name;
     }
 
-    /**
-     * @param float $latitude
-     */
-    public function setLatitude($latitude): void
+    public function setLatitude(?float $latitude): self
     {
         $this->latitude = $latitude;
+
+        return $this;
     }
 
-    /**
-     * @return float
-     */
-    public function getLatitude()
+    public function getLatitude(): ?float
     {
         return $this->latitude;
     }
 
-    /**
-     * @param float $longitude
-     */
-    public function setLongitude($longitude): void
+    public function setLongitude(?float $longitude): self
     {
         $this->longitude = $longitude;
+
+        return $this;
     }
 
-    /**
-     * @return float
-     */
-    public function getLongitude()
+    public function getLongitude(): ?float
     {
         return $this->longitude;
     }
 
-    public function setPlace(Place $place): void
+    public function setPlace(Place $place): self
     {
         $this->place = $place;
+
+        return $this;
     }
 
-    public function getPlace(): Place
+    public function getPlace(): ?Place
     {
         return $this->place;
     }
 
-    public function setAddress(string $address): void
+    public function setAddress(string $address): self
     {
         $this->address = $address;
+
+        return $this;
     }
 
     public function getAddress(): string
@@ -223,23 +211,63 @@ class WikidataChurch
         return $this->address;
     }
 
-    public function setCreatedAt(\DateTimeInterface $createdAt): void
+    public function setCreatedAt(\DateTimeInterface $createdAt): self
     {
         $this->createdAt = $createdAt;
+
+        return $this;
     }
 
-    public function getCreatedAt(): \DateTimeInterface
+    public function getCreatedAt(): ?\DateTimeInterface
     {
         return $this->createdAt;
     }
 
-    public function setUpdatedAt(\DateTimeInterface $updatedAt): void
+    public function setUpdatedAt(\DateTimeInterface $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+
+        return $this;
     }
 
-    public function getUpdatedAt(): \DateTimeInterface
+    public function getUpdatedAt(): ?\DateTimeInterface
     {
         return $this->updatedAt;
+    }
+
+    public function getParish(): ?Parish
+    {
+        return $this->parish;
+    }
+
+    public function setParish(?Parish $parish): self
+    {
+        $this->parish = $parish;
+
+        return $this;
+    }
+
+    public function getDiocese(): ?Diocese
+    {
+        return $this->diocese;
+    }
+
+    public function setDiocese(?Diocese $diocese): self
+    {
+        $this->diocese = $diocese;
+
+        return $this;
+    }
+
+    public function getMessesinfoId(): string
+    {
+        return $this->messesinfoId;
+    }
+
+    public function setMessesinfoId(string $messesinfoId): self
+    {
+        $this->messesinfoId = $messesinfoId;
+
+        return $this;
     }
 }

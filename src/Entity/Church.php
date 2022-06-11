@@ -6,6 +6,7 @@ namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\MaxDepth;
@@ -24,83 +25,70 @@ use Symfony\Component\Serializer\Annotation\MaxDepth;
 class Church
 {
     /**
-     * @var int|null
-     *
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      * @ORM\Column(type="integer", name="church_id")
      * @Groups("church")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
-     * @var WikidataChurch
-     *
      * @ORM\ManyToOne(targetEntity="WikidataChurch", inversedBy="churches")
      * @ORM\JoinColumn(nullable=true, referencedColumnName="wikidata_church_id")
      * @Groups("church")
      * @MaxDepth(1)
      */
-    private $wikidataChurch;
+    private ?WikidataChurch $wikidataChurch = null;
 
     /**
-     * @var TheodiaChurch
-     *
      * @ORM\ManyToOne(targetEntity="TheodiaChurch", inversedBy="churches")
      * @ORM\JoinColumn(nullable=true, referencedColumnName="theodia_church_id")
      */
-    private $theodiaChurch;
+    private ?TheodiaChurch $theodiaChurch = null;
 
     /**
-     * @var string|null URL of the item
-     *
      * @ORM\Column(type="text", nullable=true)
      * @ApiProperty(iri="http://schema.org/url")
      * @Groups("church")
      */
-    private $massesUrl;
+    private ?string $massesUrl = null;
 
     /**
-     * @var array
-     *
      * @ORM\OneToMany(targetEntity="Calendar", mappedBy="church")
      * @Groups("church")
      * @MaxDepth(1)
      **/
-    private $calendars;
+    private Collection $calendars;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    /**
-     * @return array $calendars
-     */
-    public function getCalendars()
+    public function getCalendars(): Collection
     {
         return $this->calendars;
     }
 
-    /**
-     * @param TheodiaChurch $theodiaChurch
-     */
-    public function setTheodiaChurch($theodiaChurch)
+    public function setTheodiaChurch(?TheodiaChurch $theodiaChurch): self
     {
         $this->theodiaChurch = $theodiaChurch;
+
+        return $this;
     }
 
-    /**
-     * @param array $calendars
-     */
-    public function setCalendars($calendars)
+    public function setCalendars(Collection $calendars): self
     {
         $this->calendars = $calendars;
+
+        return $this;
     }
 
-    public function setWikidataChurch(WikidataChurch $wikidataChurch): void
+    public function setWikidataChurch(?WikidataChurch $wikidataChurch): self
     {
         $this->wikidataChurch = $wikidataChurch;
+
+        return $this;
     }
 
     public function getWikidataChurch(): ?WikidataChurch
@@ -108,9 +96,11 @@ class Church
         return $this->wikidataChurch;
     }
 
-    public function setTheodiaChurchId(TheodiaChurch $theodiaChurch): void
+    public function setTheodiaChurchId(TheodiaChurch $theodiaChurch): self
     {
         $this->theodiaChurch = $theodiaChurch;
+
+        return $this;
     }
 
     public function getTheodiaChurch(): ?TheodiaChurch
@@ -118,9 +108,11 @@ class Church
         return $this->theodiaChurch;
     }
 
-    public function setMassesUrl(?string $massesUrl): void
+    public function setMassesUrl(?string $massesUrl): self
     {
         $this->massesUrl = $massesUrl;
+
+        return $this;
     }
 
     public function getMassesUrl(): ?string

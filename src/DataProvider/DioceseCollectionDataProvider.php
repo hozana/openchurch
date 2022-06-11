@@ -8,6 +8,7 @@ use App\Entity\Diocese;
 use Elastica\Query;
 use Elastica\Query\MatchQuery;
 use FOS\ElasticaBundle\Finder\PaginatedFinderInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 final class DioceseCollectionDataProvider implements CollectionDataProviderInterface, RestrictedDataProviderInterface
@@ -21,21 +22,28 @@ final class DioceseCollectionDataProvider implements CollectionDataProviderInter
         $this->requestStack = $requestStack;
     }
 
+    /**
+     * @param array<mixed> $context
+     */
     public function supports(string $resourceClass, string $operationName = null, array $context = []): bool
     {
         return Diocese::class === $resourceClass;
     }
 
+    /**
+     * @return iterable<Diocese>
+     */
     public function getCollection(string $resourceClass, string $operationName = null)
     {
         $boolQuery = new Query\BoolQuery();
         $query = new Query();
+
+        /** @var Request */
         $request = $this->requestStack->getCurrentRequest();
 
-        if ($id = $request->get('id')) {
+        if ($id = (int) $request->get('id')) {
             $matchQuery = new MatchQuery();
-            $matchQuery->setFieldQuery('id', $id);
-            $matchQuery->setFieldFuzziness('id', 0);
+            $matchQuery->setFieldQuery('id', (string) $id);
             $boolQuery->addMust($matchQuery);
         }
         if ($name = $request->get('name')) {
@@ -47,7 +55,6 @@ final class DioceseCollectionDataProvider implements CollectionDataProviderInter
         if ($countryId = (int) $request->get('countryId')) {
             $matchQuery = new MatchQuery();
             $matchQuery->setFieldQuery('country.id', (string) $countryId);
-            $matchQuery->setFieldFuzziness('country.id', 0);
             $boolQuery->addMust($matchQuery);
         }
         if ($countryName = $request->get('countryName')) {

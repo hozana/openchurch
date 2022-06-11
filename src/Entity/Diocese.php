@@ -22,53 +22,60 @@ class Diocese
      * @ORM\Column(type="integer", name="diocese_id")
      * @Groups("diocese")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups("diocese")
      */
-    private $name;
+    private string $name = '';
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Place", inversedBy="dioceses")
      * @ORM\JoinColumn(nullable=true, referencedColumnName="place_id")
      * @Groups("place")
      */
-    private $country;
+    private ?Place $country = null;
 
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups("diocese")
      */
-    private $website;
+    private string $website = '';
 
     /**
-     * @var \DateTimeInterface
-     *
      * @ORM\Column(type="datetime")
      * @Assert\DateTime
      * @Assert\NotNull
      */
-    private $createdAt;
+    private ?\DateTimeInterface $createdAt = null;
 
     /**
-     * @var \DateTimeInterface
-     *
      * @ORM\Column(type="datetime")
      * @Assert\DateTime
      * @Assert\NotNull
      */
-    private $updatedAt;
+    private ?\DateTimeInterface $updatedAt = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Parish", mappedBy="diocese")
      */
-    private $parishes;
+    private Collection $parishes;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private string $gcatholicId = '';
+
+    /**
+     * @ORM\OneToMany(targetEntity=WikidataChurch::class, mappedBy="diocese")
+     */
+    private Collection $wikidataChurches;
 
     public function __construct()
     {
         $this->parishes = new ArrayCollection();
+        $this->wikidataChurches = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -143,23 +150,69 @@ class Diocese
         return $this;
     }
 
-    public function setCreatedAt(\DateTimeInterface $createdAt): void
+    public function setCreatedAt(\DateTimeInterface $createdAt): self
     {
         $this->createdAt = $createdAt;
+
+        return $this;
     }
 
-    public function getCreatedAt(): \DateTimeInterface
+    public function getCreatedAt(): ?\DateTimeInterface
     {
         return $this->createdAt;
     }
 
-    public function setUpdatedAt(\DateTimeInterface $updatedAt): void
+    public function setUpdatedAt(\DateTimeInterface $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+
+        return $this;
     }
 
-    public function getUpdatedAt(): \DateTimeInterface
+    public function getUpdatedAt(): ?\DateTimeInterface
     {
         return $this->updatedAt;
+    }
+
+    public function getGcatholicId(): string
+    {
+        return $this->gcatholicId;
+    }
+
+    public function setGcatholicId(string $gcatholicId): self
+    {
+        $this->gcatholicId = $gcatholicId;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, WikidataChurch>
+     */
+    public function getWikidataChurches(): Collection
+    {
+        return $this->wikidataChurches;
+    }
+
+    public function addWikidataChurch(WikidataChurch $wikidataChurch): self
+    {
+        if (!$this->wikidataChurches->contains($wikidataChurch)) {
+            $this->wikidataChurches[] = $wikidataChurch;
+            $wikidataChurch->setDiocese($this);
+        }
+
+        return $this;
+    }
+
+    public function removeWikidataChurch(WikidataChurch $wikidataChurch): self
+    {
+        if ($this->wikidataChurches->removeElement($wikidataChurch)) {
+            // set the owning side to null (unless already changed)
+            if ($wikidataChurch->getDiocese() === $this) {
+                $wikidataChurch->setDiocese(null);
+            }
+        }
+
+        return $this;
     }
 }

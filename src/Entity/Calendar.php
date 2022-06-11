@@ -23,50 +23,42 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Calendar
 {
     /**
-     * @var int|null
-     *
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      * @ORM\Column(type="integer", name="calendar_id")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
-     * @var Church
-     *
      * @ORM\ManyToOne(targetEntity="Church", inversedBy="calendars")
      * @ORM\JoinColumn(nullable=false, referencedColumnName="church_id")
      * @Assert\NotNull
      */
-    private $church;
+    private ?Church $church = null;
 
     /**
-     * @var string
-     *
      * @ORM\Column(type="text")
      * @Assert\NotNull
      */
-    private $calendarUrl;
+    private string $calendarUrl = '';
 
     /**
      * @ORM\Column(name="rite", type="Rite", nullable=false)
      * @DoctrineAssert\Enum(entity="App\Enum\Rite")
      */
-    private $rite;
+    private ?string $rite = null;
 
     /**
-     * @var string
-     *
      * @ORM\Column(type="text")
      * @Assert\NotNull
      */
-    private $lang;
+    private string $lang = '';
 
     /**
      * @ORM\Column(name="type", type="CalendarType", nullable=false)
      * @DoctrineAssert\Enum(entity="App\Enum\CalendarType")
      */
-    private $type;
+    private ?string $type = null;
 
     /**
      * @var int
@@ -74,44 +66,44 @@ class Calendar
      * @ORM\Column(type="integer")
      * @Assert\NotNull
      */
-    private $hozanaUserId;
+    private ?int $hozanaUserId = null;
 
     /**
-     * @var \DateTimeInterface
-     *
      * @ORM\Column(type="datetime")
      * @Assert\DateTime
      * @Assert\NotNull
      */
-    private $createdAt;
+    private ?\DateTimeInterface $createdAt = null;
 
     /**
-     * @var \DateTimeInterface
-     *
-     * @ORM\Column(type="datetime")
+  ?   * @ORM\Column(type="datetime")
      * @Assert\DateTime
      * @Assert\NotNull
      */
-    private $updatedAt;
+    private ?\DateTimeInterface $updatedAt = null;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function setChurch(Church $church): void
+    public function setChurch(Church $church): self
     {
         $this->church = $church;
+
+        return $this;
     }
 
-    public function getChurch(): Church
+    public function getChurch(): ?Church
     {
         return $this->church;
     }
 
-    public function setCalendarUrl(string $calendarUrl): void
+    public function setCalendarUrl(string $calendarUrl): self
     {
         $this->calendarUrl = $calendarUrl;
+
+        return $this;
     }
 
     public function getCalendarUrl(): string
@@ -119,25 +111,23 @@ class Calendar
         return $this->calendarUrl;
     }
 
-    /**
-     * @param Rite $rite
-     */
-    public function setRite($rite): void
+    public function setRite(?string $rite): self
     {
         $this->rite = $rite;
+
+        return $this;
     }
 
-    /**
-     * @return Rite
-     */
-    public function getRite()
+    public function getRite(): ?string
     {
         return $this->rite;
     }
 
-    public function setLang(string $lang): void
+    public function setLang(string $lang): self
     {
         $this->lang = $lang;
+
+        return $this;
     }
 
     public function getLang(): string
@@ -145,48 +135,50 @@ class Calendar
         return $this->lang;
     }
 
-    /**
-     * @param CalendarType $type
-     */
-    public function setType($type): void
+    public function setType(?string $type): self
     {
         $this->type = $type;
+
+        return $this;
     }
 
-    /**
-     * @return CalendarType
-     */
-    public function getType()
+    public function getType(): ?string
     {
         return $this->type;
     }
 
-    public function setHozanaUserId(int $hozanaUserId): void
+    public function setHozanaUserId(int $hozanaUserId): self
     {
         $this->hozanaUserId = $hozanaUserId;
+
+        return $this;
     }
 
-    public function getHozanaUserId(): int
+    public function getHozanaUserId(): ?int
     {
         return $this->hozanaUserId;
     }
 
-    public function setCreatedAt(\DateTimeInterface $createdAt): void
+    public function setCreatedAt(\DateTimeInterface $createdAt): self
     {
         $this->createdAt = $createdAt;
+
+        return $this;
     }
 
-    public function getCreatedAt(): \DateTimeInterface
+    public function getCreatedAt(): ?\DateTimeInterface
     {
         return $this->createdAt;
     }
 
-    public function setUpdatedAt(\DateTimeInterface $updatedAt): void
+    public function setUpdatedAt(\DateTimeInterface $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+
+        return $this;
     }
 
-    public function getUpdatedAt(): \DateTimeInterface
+    public function getUpdatedAt(): ?\DateTimeInterface
     {
         return $this->updatedAt;
     }

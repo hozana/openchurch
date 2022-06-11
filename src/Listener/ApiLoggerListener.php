@@ -22,9 +22,9 @@ class ApiLoggerListener extends LoggerListener
 
     public function __construct(
         LoggableListener $loggableListener,
-        TokenStorageInterface $tokenStorage = null,
-        AuthorizationCheckerInterface $authorizationChecker = null,
-        OAuthStorage $oAuthStorage = null
+        TokenStorageInterface $tokenStorage,
+        AuthorizationCheckerInterface $authorizationChecker,
+        OAuthStorage $oAuthStorage
     ) {
         $this->loggableListener = $loggableListener;
         $this->tokenStorage = $tokenStorage;
@@ -32,7 +32,7 @@ class ApiLoggerListener extends LoggerListener
         $this->oAuthStorage = $oAuthStorage;
     }
 
-    public function onKernelRequest(RequestEvent $event)
+    public function onKernelRequest(RequestEvent $event): void
     {
         if (HttpKernelInterface::MASTER_REQUEST !== $event->getRequestType()) {
             return;

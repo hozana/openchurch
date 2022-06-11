@@ -21,15 +21,17 @@ class User extends BaseUser
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    protected $fullname;
+    protected ?string $fullname = null;
 
     protected $plainPassword;
 
     protected $username;
 
-    public function setFullname(?string $fullname): void
+    public function setFullname(?string $fullname): self
     {
         $this->fullname = $fullname;
+
+        return $this;
     }
 
     public function getFullname(): ?string

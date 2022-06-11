@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -18,76 +19,58 @@ use Symfony\Component\Validator\Constraints as Assert;
 class TheodiaChurch
 {
     /**
-     * @var int|null
-     *
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      * @ORM\Column(type="integer", name="theodia_church_id")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
-     * @var array
-     *
      * @ORM\OneToMany(targetEntity="Photo", mappedBy="theodiaChurch")
      **/
-    private $photos;
+    private Collection $photos;
 
     /**
-     * @var array
-     *
      * @ORM\OneToMany(targetEntity="Church", mappedBy="theodiaChurch")
      **/
-    private $churches;
+    private Collection $churches;
 
     /**
-     * @var \DateTimeInterface
-     *
      * @ORM\Column(type="datetime")
      * @Assert\DateTime
      * @Assert\NotNull
      */
-    private $createdAt;
+    private ?\DateTimeInterface $createdAt = null;
 
     /**
-     * @var \DateTimeInterface
-     *
      * @ORM\Column(type="datetime")
      * @Assert\DateTime
      * @Assert\NotNull
      */
-    private $updatedAt;
+    private ?\DateTimeInterface $updatedAt = null;
 
-    /**
-     * @return Photo[] $photos
-     */
-    public function getPhotos()
+    public function getPhotos(): Collection
     {
         return $this->photos;
     }
 
-    /**
-     * @return Church[] $churches
-     */
-    public function getChurches()
+    public function getChurches(): Collection
     {
         return $this->churches;
     }
 
-    /**
-     * @param array $photos
-     */
-    public function setPhotos($photos)
+    public function setPhotos(Collection $photos): self
     {
         $this->photos = $photos;
+
+        return $this;
     }
 
-    /**
-     * @param array $churches
-     */
-    public function setChurches($churches)
+    public function setChurches(Collection $churches): self
     {
         $this->churches = $churches;
+
+        return $this;
     }
 
     public function getId(): ?int
@@ -95,22 +78,26 @@ class TheodiaChurch
         return $this->id;
     }
 
-    public function setCreatedAt(\DateTimeInterface $createdAt): void
+    public function setCreatedAt(\DateTimeInterface $createdAt): self
     {
         $this->createdAt = $createdAt;
+
+        return $this;
     }
 
-    public function getCreatedAt(): \DateTimeInterface
+    public function getCreatedAt(): ?\DateTimeInterface
     {
         return $this->createdAt;
     }
 
-    public function setUpdatedAt(\DateTimeInterface $updatedAt): void
+    public function setUpdatedAt(\DateTimeInterface $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+
+        return $this;
     }
 
-    public function getUpdatedAt(): \DateTimeInterface
+    public function getUpdatedAt(): ?\DateTimeInterface
     {
         return $this->updatedAt;
     }

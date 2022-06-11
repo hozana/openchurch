@@ -22,21 +22,17 @@ class Client extends BaseClient
      * @ORM\ManyToOne(targetEntity="App\Entity\User")
      * @ORM\JoinColumn(name="user_id", referencedColumnName="id", onDelete="CASCADE")
      */
-    protected $user;
-
-    public function __construct()
-    {
-        parent::__construct();
-        // your own logic
-    }
+    protected ?UserInterface $user = null;
 
     public function getUser(): ?UserInterface
     {
         return $this->user;
     }
 
-    public function setUser(UserInterface $user): void
+    public function setUser(UserInterface $user): self
     {
         $this->user = $user;
+
+        return $this;
     }
 }

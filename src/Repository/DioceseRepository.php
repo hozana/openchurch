@@ -19,9 +19,9 @@ class DioceseRepository extends ServiceEntityRepository
         parent::__construct($registry, Diocese::class);
     }
 
-    public function countAll()
+    public function countAll(): int
     {
-        return $this->createQueryBuilder('c')
+        return (int) $this->createQueryBuilder('c')
             ->select('count(c.id)')
             ->getQuery()
             ->useQueryCache(true)
