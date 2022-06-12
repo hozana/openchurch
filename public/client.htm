@@ -37,7 +37,7 @@
                 </div>
                 <div v-if="churches">
                     <div v-for="church in churches">
-                        {{ church.name }}
+                        {{ church.wikidataChurch.name }}
                     </div>
                 </div>
             </div>
@@ -77,7 +77,7 @@ var searchApp = new Vue({
         this.timer = null;
       }
       this.timer = setTimeout(() => {
-        fetch('https://open-church.io/api/wikidata_churches?parishId=' + this.parishId)
+        fetch('https://open-church.io/api/churches?parishId=' + this.parishId)
         .then((response) => response.json())
         .then(function(json) {
           that.churches = json['hydra:member'] || [];
