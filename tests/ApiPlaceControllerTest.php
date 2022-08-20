@@ -16,6 +16,14 @@ class ApiPlaceControllerTest extends WebTestCase
         $this->assertCount(3, $data);
     }
 
+    public function testGetPlacesWithPagination()
+    {
+        $client = static::createClient();
+        $client->request('GET', 'http://127.0.0.1:1819/api/places.json?page=2');
+        $this->markTestIncomplete('Not implemented yet');
+        $this->assertSame(404, $client->getResponse()->getStatusCode());
+    }
+
     public function testGetEachPlace()
     {
         $client = static::createClient();

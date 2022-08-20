@@ -16,6 +16,16 @@ class ApiParishControllerTest extends WebTestCase
         $this->assertCount(1, $data);
     }
 
+    public function testGetParishesWithPagination()
+    {
+        $client = static::createClient();
+        $client->request('GET', 'http://127.0.0.1:1819/api/parishes.json?page=2');
+        $this->assertSame(200, $client->getResponse()->getStatusCode());
+        $json = $client->getResponse()->getContent();
+        $data = json_decode($json, true);
+        $this->assertCount(0, $data);
+    }
+
     public function testGetEachParish()
     {
         $client = static::createClient();
