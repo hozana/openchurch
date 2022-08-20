@@ -8,11 +8,15 @@ use App\Entity\Parish;
 use Elastica\Query;
 use Elastica\Query\MatchQuery;
 use FOS\ElasticaBundle\Finder\PaginatedFinderInterface;
+use Pagerfanta\Exception\OutOfRangeCurrentPageException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 final class ParishCollectionDataProvider implements CollectionDataProviderInterface, RestrictedDataProviderInterface
 {
+    /** @var array<mixed> */
+    private array $context = [];
+
     private PaginatedFinderInterface $finder;
     private RequestStack $requestStack;
 
@@ -27,6 +31,8 @@ final class ParishCollectionDataProvider implements CollectionDataProviderInterf
      */
     public function supports(string $resourceClass, string $operationName = null, array $context = []): bool
     {
+        $this->context = $context;
+
         return Parish::class === $resourceClass;
     }
 
@@ -95,6 +101,11 @@ final class ParishCollectionDataProvider implements CollectionDataProviderInterf
 
         $query->setQuery($boolQuery);
         $paginator = $this->finder->findPaginated($query);
+        try {
+            $paginator->setCurrentPage($this->context['filters']['page'] ?? 1);
+        } catch (OutOfRangeCurrentPageException $e) {
+            return [];
+        }
 
         return $paginator->getCurrentPageResults();
     }
