@@ -9,6 +9,7 @@ use Elastica\Query;
 use Elastica\Query\MatchQuery;
 use FOS\ElasticaBundle\Finder\PaginatedFinderInterface;
 use Pagerfanta\Exception\OutOfRangeCurrentPageException;
+use Pagerfanta\Pagerfanta;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -71,6 +72,7 @@ final class DioceseCollectionDataProvider implements CollectionDataProviderInter
         }
 
         $query->setQuery($boolQuery);
+        /** @var Pagerfanta<Diocese> */
         $paginator = $this->finder->findPaginated($query);
         try {
             $paginator->setCurrentPage($this->context['filters']['page'] ?? 1);
