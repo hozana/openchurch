@@ -22,6 +22,7 @@
         <env name="ES_HOST" value="127.0.0.1" force="true" />
         <env name="ES_PORT" value="9200" force="true" />
         <env name="ES_ENABLED" value="false" force="true" />
+        <env name="SENTRY_DSN" value="" force="" />
     </php>
 
     <testsuites>

@@ -278,6 +278,18 @@
     "sebastian/version": {
         "version": "2.0.1"
     },
+    "sentry/sentry-symfony": {
+        "version": "4.4",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "main",
+            "version": "3.0",
+            "ref": "fc6a6baeee961a34a70eca0f91e868d03ce7bd9b"
+        },
+        "files": [
+            "config/packages/prod/sentry.yaml"
+        ]
+    },
     "stof/doctrine-extensions-bundle": {
         "version": "1.2",
         "recipe": {
