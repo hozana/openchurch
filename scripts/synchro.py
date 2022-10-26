@@ -115,7 +115,9 @@ class Query(object):
         105071180, # Catholic Metropolitan Archdiocese
         105072138, # Catholic archdiocese
         105388829, # Roman Catholic diocese
+        105419665, # Roman Catholic archdiocese not metropolitan
         7100806, # Ordinariate for Eastern Catholic faithful
+        373074, # suffragan diocese
     ]
     dateformat = '%Y-%m-%d %H:%M:%S'
 
