@@ -61,8 +61,11 @@ f368935297ef        mysql:latest                                          "docke
 If you need to directly hit inside our custom container:
 
 ```
-docker exec -it container-id /bin/bash
-docker exec -it 1651a84b55b9 /bin/bash
+docker exec -it openchurch bash
+```
+
+```
+mysql -h 127.0.0.1 -P 13306 -u openchurch --protocol=tcp -p
 ```
 
 ### To start
@@ -104,8 +107,13 @@ In `openchurch-admin/src/App.js` you can define the API's URL : it's the only co
 ```
 cd scripts
 pip3 install pywikibot sqlalchemy sparqlwrapper pymysql
-touch user-config.py
-python3 synchro.py
+PYWIKIBOT_NO_USER_CONFIG=1 python3 synchro.py
+```
+
+If you need to override the MySQL configuration of your `.env` file:
+
+```
+DB_HOST=127.0.0.1 DB_PORT=13306 PYWIKIBOT_NO_USER_CONFIG=1 python3 synchro.py
 ```
 
 ## For Elasticsearch

@@ -8,12 +8,16 @@ import sys
 import time
 import datetime
 import pywikibot
+import sentry_sdk
 import urllib.parse
 
 from codecs import open
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, exc, MetaData, Table, orm, func, insert, update
 from SPARQLWrapper import SPARQLWrapper, JSON
+
+load_dotenv(dotenv_path='../.env')
+sentry_sdk.init(dsn=os.getenv('SENTRY_DSN_SYNCHRO'))
 
 endpoint = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
 agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'
@@ -58,7 +62,6 @@ parishes_query = '''PREFIX schema: <http://schema.org/>
 
 class DB:
     now = func.current_timestamp()
-    load_dotenv(dotenv_path='../.env')
     host = os.getenv('DB_HOST')
     port = os.getenv('DB_PORT')
     database = os.getenv('MYSQL_DATABASE')
