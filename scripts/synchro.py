@@ -313,8 +313,12 @@ class Query(object):
                 if not type_ or int(type_) not in Query.dioceses_types:
                     continue # ignore item FIXME we may want to delete if from the DB
                 country_id = Query.get_wikidata_id(item, 'P17')
-                website = Query.decode(item['P856']['value']) if 'P856' in item.keys() else ''
+                website = Query.get_decoded_value(item, 'P856', '')
                 label_fr = item['label_fr']['value'] if 'label_fr' in item.keys() else item['label_en']['value'] if 'label_en' in item.keys() else ''
+
+                # dirty hack so that Annecy appears in France and not in Switzerland
+                if wikidata_id == 866863: # Annecy
+                    country_id = 142 # France
 
                 if country_id and country_id not in self.cache_places:
                     self.add_location(country_id, True)
