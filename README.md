@@ -106,7 +106,9 @@ In `openchurch-admin/src/App.js` you can define the API's URL : it's the only co
 
 ```
 cd scripts
-pip3 install pywikibot sqlalchemy sparqlwrapper pymysql
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install -r requirements.txt
 PYWIKIBOT_NO_USER_CONFIG=1 python3 synchro.py
 ```
 

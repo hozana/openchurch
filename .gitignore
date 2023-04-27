@@ -1,11 +1,5 @@
 .DS_Store
 
-# Cache and logs (Symfony2)
-/app/cache/*
-/app/logs/*
-!app/cache/.gitkeep
-!app/logs/.gitkeep
-
 # Email spool folder
 /app/spool/*
 
@@ -48,7 +42,15 @@
 
 # Embedded web-server pid file
 /.web-server-pid
+
+# Local environment variables
 .env
+
+# Docker
+/.dev
+
+# Python venv
+/scripts/.venv
 
 ###> symfony/web-server-bundle ###
 /.web-server-pid
