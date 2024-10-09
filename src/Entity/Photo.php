@@ -15,7 +15,9 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @see http://schema.org/Thing Documentation on Schema.org
  *
  * @ORM\Entity
+ *
  * @ORM\Table(name="photos")
+ *
  * @ApiResource(iri="http://schema.org/Thing")
  */
 class Photo
@@ -24,7 +26,9 @@ class Photo
      * @var int|null
      *
      * @ORM\Id
+     *
      * @ORM\GeneratedValue(strategy="AUTO")
+     *
      * @ORM\Column(type="integer", name="photo_id")
      */
     private $id;
@@ -33,6 +37,7 @@ class Photo
      * @var WikidataChurch
      *
      * @ORM\ManyToOne(targetEntity="WikidataChurch", inversedBy="photos")
+     *
      * @ORM\JoinColumn(nullable=true, referencedColumnName="wikidata_church_id")
      */
     private $wikidataChurch;
@@ -41,6 +46,7 @@ class Photo
      * @var TheodiaChurch
      *
      * @ORM\ManyToOne(targetEntity="TheodiaChurch", inversedBy="photos")
+     *
      * @ORM\JoinColumn(nullable=true, referencedColumnName="theodia_church_id")
      */
     private $theodiaChurch;
@@ -49,6 +55,7 @@ class Photo
      * @var string|null URL of the item
      *
      * @ORM\Column(type="text", nullable=true)
+     *
      * @ApiProperty(iri="http://schema.org/url")
      */
     private $url;
@@ -57,7 +64,9 @@ class Photo
      * @var \DateTimeInterface
      *
      * @ORM\Column(type="datetime")
+     *
      * @Assert\DateTime
+     *
      * @Assert\NotNull
      */
     private $createdAt;
@@ -66,7 +75,9 @@ class Photo
      * @var \DateTimeInterface
      *
      * @ORM\Column(type="datetime")
+     *
      * @Assert\DateTime
+     *
      * @Assert\NotNull
      */
     private $updatedAt;

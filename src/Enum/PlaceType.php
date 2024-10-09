@@ -12,7 +12,7 @@ final class PlaceType extends AbstractEnumType
     public const AREA = 'area';
     public const UNKNOWN = 'unknown';
 
-    protected static $choices = [
+    protected static array $choices = [
         self::CITY => self::CITY,
         self::COUNTRY => self::COUNTRY,
         self::STATE => self::STATE,

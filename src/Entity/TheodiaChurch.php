@@ -14,13 +14,16 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @see http://schema.org/Thing Documentation on Schema.org
  *
  * @ORM\Entity
+ *
  * @ORM\Table(name="theodia_churches")
  */
 class TheodiaChurch
 {
     /**
      * @ORM\Id
+     *
      * @ORM\GeneratedValue(strategy="AUTO")
+     *
      * @ORM\Column(type="integer", name="theodia_church_id")
      */
     private ?int $id = null;
@@ -37,14 +40,18 @@ class TheodiaChurch
 
     /**
      * @ORM\Column(type="datetime")
+     *
      * @Assert\DateTime
+     *
      * @Assert\NotNull
      */
     private ?\DateTimeInterface $createdAt = null;
 
     /**
      * @ORM\Column(type="datetime")
+     *
      * @Assert\DateTime
+     *
      * @Assert\NotNull
      */
     private ?\DateTimeInterface $updatedAt = null;

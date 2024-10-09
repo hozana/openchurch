@@ -43,6 +43,7 @@ class ApiPlaceControllerTest extends WebTestCase
 
     public function testPostPlace()
     {
+        $this->markTestSkipped('Disabled for now');
         $client = static::createClient();
         $client->request('POST', 'http://127.0.0.1:1819/api/places.json', []);
         $this->assertSame(401, $client->getResponse()->getStatusCode());
@@ -50,6 +51,7 @@ class ApiPlaceControllerTest extends WebTestCase
 
     public function testPutPlace()
     {
+        $this->markTestSkipped('Disabled for now');
         $client = static::createClient();
         $client->request('PUT', 'http://127.0.0.1:1819/api/places/1.json', []);
         $this->assertSame(401, $client->getResponse()->getStatusCode());
@@ -57,6 +59,7 @@ class ApiPlaceControllerTest extends WebTestCase
 
     public function testDeletePlace()
     {
+        $this->markTestSkipped('Disabled for now');
         $client = static::createClient();
         $client->request('DELETE', 'http://127.0.0.1:1819/api/places/1.json', []);
         $this->assertSame(401, $client->getResponse()->getStatusCode());

@@ -1,66 +1,75 @@
 {
     "name": "hozana/openchurch",
-    "description": "An open database for churches using Symfony 4, API platform and ElasticSearch.",
+    "description": "An open database for churches using Symfony, API platform and ElasticSearch.",
     "type": "project",
     "license": "Apache-2.0",
+    "minimum-stability": "stable",
+    "prefer-stable": true,
     "require": {
-        "php": "^7.4.5",
+        "php": "^8.3",
         "ext-ctype": "*",
         "ext-iconv": "*",
-        "api-platform/core": "^2.6,<2.7",
+        "api-platform/core": "^2.6.5",
         "composer/package-versions-deprecated": "1.11.99.5",
-        "doctrine/annotations": "^1.0",
-        "doctrine/doctrine-bundle": "^1.12",
-        "doctrine/doctrine-migrations-bundle": "^1.3",
-        "doctrine/orm": "^2.7",
-        "fresh/doctrine-enum-bundle": "^6.2",
+        "doctrine/annotations": "^2.0",
+        "doctrine/doctrine-bundle": "^2.12",
+        "doctrine/doctrine-migrations-bundle": "^3.3",
+        "doctrine/orm": "^2.19",
+        "fresh/doctrine-enum-bundle": "^7.4",
         "friendsofsymfony/elastica-bundle": "^6.0",
-        "friendsofsymfony/oauth-server-bundle": "^1.6",
-        "friendsofsymfony/user-bundle": "~2.0",
+        "friendsofsymfony/user-bundle": "~3.0",
         "myclabs/php-enum": "^1.6",
         "nelmio/cors-bundle": "^2.2",
-        "phpdocumentor/reflection-docblock": "^4.3",
+        "phpdocumentor/reflection-docblock": "^5.4",
         "sentry/sentry-symfony": "^4.4",
         "stof/doctrine-extensions-bundle": "^1.3",
-        "symfony/asset": "^3.3|^4.0",
-        "symfony/console": "^4.1",
-        "symfony/dotenv": "^4.1",
-        "symfony/expression-language": "^4.1",
-        "symfony/flex": "^1.0",
-        "symfony/form": "^4.1",
-        "symfony/framework-bundle": "^4.1",
-        "symfony/lts": "^4@dev",
-        "symfony/property-access": "^4.1",
-        "symfony/property-info": "^4.1",
-        "symfony/security-bundle": "^4.1",
-        "symfony/serializer": "^4.1",
-        "symfony/templating": "^4.1",
-        "symfony/translation": "^4.1",
-        "symfony/twig-bundle": "^4.1",
-        "symfony/validator": "^4.1",
-        "symfony/web-server-bundle": "^4.1",
-        "symfony/yaml": "^4.1",
+        "symfony/asset": "5.4.*",
+        "symfony/console": "5.4.*",
+        "symfony/dotenv": "5.4.*",
+        "symfony/expression-language": "5.4.*",
+        "symfony/flex": "^1.17|^2",
+        "symfony/form": "5.4.*",
+        "symfony/framework-bundle": "5.4.*",
+        "symfony/property-access": "5.4.*",
+        "symfony/property-info": "5.4.*",
+        "symfony/runtime": "5.4.*",
+        "symfony/security-bundle": "5.4.*",
+        "symfony/serializer": "5.4.*",
+        "symfony/templating": "5.4.*",
+        "symfony/translation": "5.4.*",
+        "symfony/twig-bundle": "5.4.*",
+        "symfony/validator": "5.4.*",
+        "symfony/yaml": "5.4.*",
+        "twig/extra-bundle": "^2.12|^3.0",
+        "twig/twig": "^2.12|^3.0",
         "webonyx/graphql-php": "^14.0"
     },
     "require-dev": {
+        "roave/security-advisories": "dev-latest",
         "friendsofphp/php-cs-fixer": "^3.0",
         "phpstan/phpstan-doctrine": "^1.0",
         "phpstan/phpstan-symfony": "^1.0",
-        "phpunit/phpunit": "^6.5",
-        "symfony/browser-kit": "^4.1",
-        "symfony/css-selector": "^4.1",
+        "phpunit/phpunit": "^9.5",
+        "symfony/browser-kit": "5.4.*",
+        "symfony/css-selector": "5.4.*",
+        "symfony/debug-bundle": "5.4.*",
         "symfony/maker-bundle": "^1.9",
-        "symfony/stopwatch": "^4.1",
-        "symfony/web-profiler-bundle": "^4.1"
+        "symfony/phpunit-bridge": "^7.1",
+        "symfony/stopwatch": "5.4.*",
+        "symfony/web-profiler-bundle": "5.4.*"
     },
     "config": {
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true,
+            "php-http/discovery": true,
+            "symfony/flex": true,
+            "symfony/runtime": true
+        },
+        "optimize-autoloader": true,
         "preferred-install": {
             "*": "dist"
         },
-        "sort-packages": true,
-        "allow-plugins": {
-            "symfony/flex": true
-        }
+        "sort-packages": true
     },
     "autoload": {
         "psr-4": {
@@ -75,9 +84,7 @@
     "replace": {
         "symfony/polyfill-ctype": "*",
         "symfony/polyfill-iconv": "*",
-        "symfony/polyfill-php71": "*",
-        "symfony/polyfill-php70": "*",
-        "symfony/polyfill-php56": "*"
+        "symfony/polyfill-php72": "*"
     },
     "scripts": {
         "auto-scripts": {
@@ -96,7 +103,8 @@
     },
     "extra": {
         "symfony": {
-            "allow-contrib": false
+            "allow-contrib": false,
+            "require": "5.4.*"
         }
     }
 }

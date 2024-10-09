@@ -51,11 +51,6 @@
 
 # Python venv
 /scripts/.venv
-
-###> symfony/web-server-bundle ###
-/.web-server-pid
-###< symfony/web-server-bundle ###
-
 ###> phpunit/phpunit ###
 /phpunit.xml
 ###< phpunit/phpunit ###
@@ -78,3 +73,8 @@ yarn-error.log
 /.php_cs.cache
 /.php-cs-fixer.cache
 ###< friendsofphp/php-cs-fixer ###
+
+###> symfony/phpunit-bridge ###
+.phpunit.result.cache
+/phpunit.xml
+###< symfony/phpunit-bridge ###

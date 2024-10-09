@@ -1,8 +1,7 @@
-version: '2.2'
 services:
   elasticsearch:
     image: elasticsearch:7.17.3
-    container_name: elasticsearch
+    container_name: openchurch-elasticsearch
     environment:
       - ES_JAVA_OPTS=-Xms750m -Xmx750m
       - discovery.type=single-node
@@ -32,8 +31,8 @@ services:
       - ocnet
 
   db:
-    image: mysql:5.7
-    container_name: db
+    image: mysql:8
+    container_name: openchurch-db
     volumes:
       - ./.dev/mysql:/var/lib/mysql:delegated
       - ./data/latest:/docker-entrypoint-initdb.d/

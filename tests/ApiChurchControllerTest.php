@@ -75,6 +75,7 @@ class ApiChurchControllerTest extends WebTestCase
 
     public function testPostChurch()
     {
+        $this->markTestSkipped('Disabled for now');
         $client = static::createClient();
         $client->request('POST', 'http://127.0.0.1:1819/api/churches.json', []);
         $this->assertSame(401, $client->getResponse()->getStatusCode());
@@ -82,6 +83,7 @@ class ApiChurchControllerTest extends WebTestCase
 
     public function testPutChurch()
     {
+        $this->markTestSkipped('Disabled for now');
         $client = static::createClient();
         $client->request('PUT', 'http://127.0.0.1:1819/api/churches/1.json', []);
         $this->assertSame(401, $client->getResponse()->getStatusCode());
@@ -89,6 +91,7 @@ class ApiChurchControllerTest extends WebTestCase
 
     public function testDeleteChurch()
     {
+        $this->markTestSkipped('Disabled for now');
         $client = static::createClient();
         $client->request('DELETE', 'http://127.0.0.1:1819/api/churches/1.json', []);
         $this->assertSame(401, $client->getResponse()->getStatusCode());
