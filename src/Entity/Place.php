@@ -20,7 +20,9 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @see http://schema.org/Thing Documentation on Schema.org
  *
  * @ORM\Entity
+ *
  * @ORM\Table(name="places")
+ *
  * @ApiResource(attributes={
  *   "normalization_context"={"groups"={"place","church"},"enable_max_depth"="true"}
  * })
@@ -29,34 +31,43 @@ class Place
 {
     /**
      * @ORM\Id
+     *
      * @ORM\GeneratedValue(strategy="AUTO")
+     *
      * @ORM\Column(type="integer", name="place_id")
+     *
      * @Groups("place")
      */
     private ?int $id = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="Place", inversedBy="children")
+     *
      * @ORM\JoinColumn(nullable=true, referencedColumnName="place_id")
      */
     private ?Place $parent = null;
 
     /**
      * @ORM\Column(type="text", nullable=true)
+     *
      * @ApiProperty(iri="http://schema.org/name")
+     *
      * @Groups("place")
      */
     private ?string $name = null;
 
     /**
      * @ORM\Column(type="text", nullable=true)
+     *
      * @Groups("place")
      */
     private ?string $countryCode = null;
 
     /**
      * @ORM\Column(name="type", type="PlaceType", nullable=false)
+     *
      * @DoctrineAssert\Enum(entity="App\Enum\PlaceType")
+     *
      * @Groups("place")
      */
     private ?string $type = null;
@@ -73,14 +84,18 @@ class Place
 
     /**
      * @ORM\Column(type="datetime")
+     *
      * @Assert\DateTime
+     *
      * @Assert\NotNull
      */
     private ?\DateTimeInterface $createdAt = null;
 
     /**
      * @ORM\Column(type="datetime")
+     *
      * @Assert\DateTime
+     *
      * @Assert\NotNull
      */
     private ?\DateTimeInterface $updatedAt = null;

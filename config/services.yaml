@@ -35,7 +35,7 @@ services:
             $loggableListener: '@stof_doctrine_extensions.listener.loggable'
             $tokenStorage: '@?security.token_storage'
             $authorizationChecker: '@?security.authorization_checker'
-            $oAuthStorage : '@?fos_oauth_server.storage'
+            #$oAuthStorage : '@?fos_oauth_server.storage'
         public: true
         tags:
         - { name: kernel.event_subscriber }

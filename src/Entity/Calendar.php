@@ -17,67 +17,80 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @see http://schema.org/Thing Documentation on Schema.org
  *
  * @ORM\Entity
+ *
  * @ORM\Table(name="calendars")
+ *
  * @ApiResource(iri="http://schema.org/Thing")
  */
 class Calendar
 {
     /**
      * @ORM\Id
+     *
      * @ORM\GeneratedValue(strategy="AUTO")
+     *
      * @ORM\Column(type="integer", name="calendar_id")
      */
     private ?int $id = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="Church", inversedBy="calendars")
+     *
      * @ORM\JoinColumn(nullable=false, referencedColumnName="church_id")
+     *
      * @Assert\NotNull
      */
     private ?Church $church = null;
 
     /**
      * @ORM\Column(type="text")
+     *
      * @Assert\NotNull
      */
     private string $calendarUrl = '';
 
     /**
      * @ORM\Column(name="rite", type="Rite", nullable=false)
+     *
      * @DoctrineAssert\Enum(entity="App\Enum\Rite")
      */
     private ?string $rite = null;
 
     /**
      * @ORM\Column(type="text")
+     *
      * @Assert\NotNull
      */
     private string $lang = '';
 
     /**
      * @ORM\Column(name="type", type="CalendarType", nullable=false)
+     *
      * @DoctrineAssert\Enum(entity="App\Enum\CalendarType")
      */
     private ?string $type = null;
 
     /**
-     * @var int
-     *
      * @ORM\Column(type="integer")
+     *
      * @Assert\NotNull
      */
     private ?int $hozanaUserId = null;
 
     /**
      * @ORM\Column(type="datetime")
+     *
      * @Assert\DateTime
+     *
      * @Assert\NotNull
      */
     private ?\DateTimeInterface $createdAt = null;
 
     /**
-  ?   * @ORM\Column(type="datetime")
+     * ?   * @ORM\Column(type="datetime")
+     *
      * @Assert\DateTime
+     *
      * @Assert\NotNull
      */
     private ?\DateTimeInterface $updatedAt = null;

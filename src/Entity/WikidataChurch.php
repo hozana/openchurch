@@ -17,7 +17,9 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @see http://schema.org/Thing Documentation on Schema.org
  *
  * @ORM\Entity
+ *
  * @ORM\Table(name="wikidata_churches")
+ *
  * @ApiResource(attributes={
  *   "normalization_context"={"groups"={"place","church"},"enable_max_depth"="true"}
  * })
@@ -26,89 +28,118 @@ class WikidataChurch
 {
     /**
      * @ORM\Id
+     *
      * @ORM\GeneratedValue(strategy="AUTO")
+     *
      * @ORM\Column(type="integer", name="wikidata_church_id")
+     *
      * @Groups("church")
      */
     private ?int $id = null;
 
     /**
      * @ORM\Column(type="text", nullable=true)
+     *
      * @Groups("church")
      */
     private ?string $name = null;
 
     /**
      * @ORM\Column(type="float")
+     *
      * @Assert\NotNull
+     *
      * @Groups("church")
      */
     private ?float $latitude = null;
 
     /**
      * @ORM\Column(type="float")
+     *
      * @Assert\NotNull
+     *
      * @Groups("church")
      */
     private ?float $longitude = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="Place", inversedBy="wikidataChurches")
+     *
      * @ORM\JoinColumn(nullable=false, referencedColumnName="place_id")
+     *
      * @Assert\NotNull
+     *
      * @Groups("place")
+     *
      * @MaxDepth(1)
      */
     private ?Place $place = null;
 
     /**
      * @ORM\Column(type="text")
+     *
      * @Assert\NotNull
+     *
      * @Groups("church")
      */
     private string $address = '';
 
     /**
      * @ORM\OneToMany(targetEntity="Church", mappedBy="wikidataChurch")
+     *
      * @Groups("church")
+     *
      * @MaxDepth(1)
      **/
     private Collection $churches;
 
     /**
      * @ORM\OneToMany(targetEntity="Photo", mappedBy="wikidataChurch")
+     *
      * @Groups("church")
+     *
      * @MaxDepth(1)
      **/
     private Collection $photos;
 
     /**
      * @ORM\Column(type="datetime")
+     *
      * @Assert\DateTime
+     *
      * @Assert\NotNull
      */
     private ?\DateTimeInterface $createdAt = null;
 
     /**
      * @ORM\Column(type="datetime")
+     *
      * @Assert\DateTime
+     *
      * @Assert\NotNull
+     *
      * @Groups("church")
      */
     private ?\DateTimeInterface $updatedAt = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=Parish::class, inversedBy="wikidataChurches")
+     *
      * @ORM\JoinColumn(nullable=true, referencedColumnName="parish_id")
+     *
      * @Groups("parish")
+     *
      * @MaxDepth(1)
      */
     private ?Parish $parish = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=Diocese::class, inversedBy="wikidataChurches")
+     *
      * @ORM\JoinColumn(nullable=true, referencedColumnName="diocese_id")
+     *
      * @Groups("diocese")
+     *
      * @MaxDepth(1)
      */
     private ?Diocese $diocese = null;

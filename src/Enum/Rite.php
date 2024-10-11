@@ -22,7 +22,7 @@ final class Rite extends AbstractEnumType
     public const ARMENIAN_RITE = 14;
     public const GE_EZ_RITE = 15;
 
-    protected static $choices = [
+    protected static array $choices = [
         self::ROMAN_RITE_ORDINARY => self::ROMAN_RITE_ORDINARY,
         self::ROMAN_RITE_EXTRAORDINARY => self::ROMAN_RITE_EXTRAORDINARY,
         self::AMBROSIAN_RITE => self::AMBROSIAN_RITE,

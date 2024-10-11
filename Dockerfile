@@ -1,4 +1,4 @@
-FROM php:7.4-apache
+FROM php:8.3-apache
 MAINTAINER Hozana team
 
 # Add necesary libraries
@@ -15,10 +15,16 @@ RUN apt-get update \
         # needed for nodejs:
         gnupg \
         # needed for php's zip extensions:
-        zlib1g-dev
+        zlib1g-dev \
+        # needed for composer:
+        unzip
 
 # Add PHP extensions
 RUN docker-php-ext-install mbstring pdo pdo_mysql zip
+
+# Install symfony binary
+RUN curl -sS https://get.symfony.com/cli/installer | bash
+RUN mv /root/.symfony5/bin/symfony /usr/local/bin/symfony
 
 # Add Node.js for npm install
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -

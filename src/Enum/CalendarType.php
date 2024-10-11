@@ -11,7 +11,7 @@ final class CalendarType extends AbstractEnumType
     public const ADORATION = 'adoration';
     public const UNKNOWN = 'unknown';
 
-    protected static $choices = [
+    protected static array $choices = [
         self::MASS => self::MASS,
         self::CONFESSION => self::CONFESSION,
         self::ADORATION => self::ADORATION,

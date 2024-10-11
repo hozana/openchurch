@@ -11,48 +11,61 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ApiResource()
+ *
  * @ORM\Table(name="dioceses")
+ *
  * @ORM\Entity(repositoryClass="App\Repository\DioceseRepository")
  */
 class Diocese
 {
     /**
      * @ORM\Id()
+     *
      * @ORM\GeneratedValue()
+     *
      * @ORM\Column(type="integer", name="diocese_id")
+     *
      * @Groups("diocese")
      */
     private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=255)
+     *
      * @Groups("diocese")
      */
     private string $name = '';
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Place", inversedBy="dioceses")
+     *
      * @ORM\JoinColumn(nullable=true, referencedColumnName="place_id")
+     *
      * @Groups("place")
      */
     private ?Place $country = null;
 
     /**
      * @ORM\Column(type="string", length=255)
+     *
      * @Groups("diocese")
      */
     private string $website = '';
 
     /**
      * @ORM\Column(type="datetime")
+     *
      * @Assert\DateTime
+     *
      * @Assert\NotNull
      */
     private ?\DateTimeInterface $createdAt = null;
 
     /**
      * @ORM\Column(type="datetime")
+     *
      * @Assert\DateTime
+     *
      * @Assert\NotNull
      */
     private ?\DateTimeInterface $updatedAt = null;

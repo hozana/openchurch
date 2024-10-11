@@ -30,7 +30,7 @@ final class DioceseCollectionDataProvider implements CollectionDataProviderInter
     /**
      * @param array<mixed> $context
      */
-    public function supports(string $resourceClass, string $operationName = null, array $context = []): bool
+    public function supports(string $resourceClass, ?string $operationName = null, array $context = []): bool
     {
         $this->context = $context;
 
@@ -40,7 +40,7 @@ final class DioceseCollectionDataProvider implements CollectionDataProviderInter
     /**
      * @return iterable<Diocese>
      */
-    public function getCollection(string $resourceClass, string $operationName = null)
+    public function getCollection(string $resourceClass, ?string $operationName = null)
     {
         $boolQuery = new Query\BoolQuery();
         $query = new Query();

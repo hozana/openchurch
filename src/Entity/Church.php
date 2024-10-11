@@ -17,7 +17,9 @@ use Symfony\Component\Serializer\Annotation\MaxDepth;
  * @see http://schema.org/Thing Documentation on Schema.org
  *
  * @ORM\Entity
+ *
  * @ORM\Table(name="churches")
+ *
  * @ApiResource(attributes={
  *   "normalization_context"={"groups"={"place","church"},"enable_max_depth"="true"}
  * })
@@ -26,36 +28,47 @@ class Church
 {
     /**
      * @ORM\Id
+     *
      * @ORM\GeneratedValue(strategy="AUTO")
+     *
      * @ORM\Column(type="integer", name="church_id")
+     *
      * @Groups("church")
      */
     private ?int $id = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="WikidataChurch", inversedBy="churches")
+     *
      * @ORM\JoinColumn(nullable=true, referencedColumnName="wikidata_church_id")
+     *
      * @Groups("church")
+     *
      * @MaxDepth(1)
      */
     private ?WikidataChurch $wikidataChurch = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="TheodiaChurch", inversedBy="churches")
+     *
      * @ORM\JoinColumn(nullable=true, referencedColumnName="theodia_church_id")
      */
     private ?TheodiaChurch $theodiaChurch = null;
 
     /**
      * @ORM\Column(type="text", nullable=true)
+     *
      * @ApiProperty(iri="http://schema.org/url")
+     *
      * @Groups("church")
      */
     private ?string $massesUrl = null;
 
     /**
      * @ORM\OneToMany(targetEntity="Calendar", mappedBy="church")
+     *
      * @Groups("church")
+     *
      * @MaxDepth(1)
      **/
     private Collection $calendars;

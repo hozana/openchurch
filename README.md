@@ -15,11 +15,11 @@ BrowserStack is a useful tool to test our app on different browsers, different O
 
 To build and start the app:
 
-```
+```bash
 # build docker image
 cp .env.dist .env
-docker-compose build
-docker-compose up
+docker compose build
+docker compose up
 
 # install
 docker exec -it openchurch composer install
@@ -29,13 +29,17 @@ docker exec -it openchurch yarn run dev
 
 # import database
 mysql -uopenchurch -popenchurch -h 127.0.0.1 -P 13306 openchurch < data/20180806-openchurch.sql
-docker exec -it openchurch bin/console doctrine:schema:update --force
+docker exec -it openchurch bin/console doctrine:migrations:migrate
 
 # index data in ES
 docker exec -it openchurch bin/console fos:elastica:populate
+# tip: you can specify the index to populate:
+docker exec -it openchurch bin/console fos:elastica:populate --index=churches
+docker exec -it openchurch bin/console fos:elastica:populate --index=parishes
+docker exec -it openchurch bin/console fos:elastica:populate --index=dioceses
 
 # run API
-docker exec -it openchurch bin/console server:run 0.0.0.0:8000
+docker exec -it openchurch symfony server:start --port=8000
 
 # run backoffice
 docker exec -it openchurch sh -c "cd openchurch-admin && npm start"
@@ -84,9 +88,9 @@ To generate our schema we first used `vendor/bin/schema generate-types config/sc
 
 ### To start the API
 
-To test the app: `bin/console server:run` in project root folder and then reach [http://127.0.0.1:8000](http://127.0.0.1:8000). There is also a GraphiQL interface to help you write down your GraphQL requests : [http://localhost:8000/api/graphql](http://localhost:8000/api/graphql).
+To test the app: `docker exec -it openchurch symfony server:start --port=8000` in project root folder and then reach [http://127.0.0.1:8000](http://127.0.0.1:8000). There is also a GraphiQL interface to help you write down your GraphQL requests : [http://localhost:8000/api/graphql](http://localhost:8000/api/graphql).
 
-- To create a oAuth2 client to test the API: `bin/console oauth:client:create client_credentials` (or use the upcoming web interface).
+~~- To create a oAuth2 client to test the API: `bin/console oauth:client:create client_credentials` (or use the upcoming web interface).~~
 - To fill Elasticsearch: `bin/console fos:elastica:populate`.
 - To generate the assets `yarn run dev` (and `yarn run watch` while developing).
 
@@ -104,7 +108,7 @@ In `openchurch-admin/src/App.js` you can define the API's URL : it's the only co
 
 ### To synchronize the database from Wikidata
 
-```
+```bash
 cd scripts
 python3 -m venv .venv
 source .venv/bin/activate
@@ -114,8 +118,26 @@ PYWIKIBOT_NO_USER_CONFIG=1 python3 synchro.py
 
 If you need to override the MySQL configuration of your `.env` file:
 
-```
+```bash
 DB_HOST=127.0.0.1 DB_PORT=13306 PYWIKIBOT_NO_USER_CONFIG=1 python3 synchro.py
+```
+
+### To run tests
+Inspired by `.circleci/config.yml`
+
+```bash
+# Start the stack
+docker compose up -d
+docker exec -it openchurch bash
+bin/console doctrine:migration:migrate -n --env=test
+
+apt-get update && apt-get install -y mariadb-client
+mysql -h db -u openchurch -popenchurch openchurch < src/DataFixtures/fixtures.sql
+
+bin/console fos:elastica:populate --env=test
+
+# Run tests outside of docker
+bin/phpunit
 ```
 
 ## For Elasticsearch

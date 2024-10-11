@@ -11,73 +11,91 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ApiResource()
+ *
  * @ORM\Table(name="parishes")
+ *
  * @ORM\Entity(repositoryClass="App\Repository\ParishRepository")
  */
 class Parish
 {
     /**
      * @ORM\Id()
+     *
      * @ORM\GeneratedValue()
+     *
      * @ORM\Column(type="integer", name="parish_id")
+     *
      * @Groups("parish")
      */
     private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=255)
+     *
      * @Groups("parish")
      */
     private string $name = '';
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Diocese", inversedBy="parishes")
+     *
      * @ORM\JoinColumn(nullable=true, referencedColumnName="diocese_id")
+     *
      * @Groups("diocese")
      */
     private ?Diocese $diocese = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Place", inversedBy="parishes")
+     *
      * @ORM\JoinColumn(nullable=true, referencedColumnName="place_id")
+     *
      * @Groups("place")
      */
     private ?Place $country = null;
 
     /**
      * @ORM\Column(type="string", length=255)
+     *
      * @Groups("parish")
      */
     private string $messesinfoId = '';
 
     /**
      * @ORM\Column(type="string", length=255)
+     *
      * @Groups("parish")
      */
     private string $website = '';
 
     /**
      * @ORM\Column(type="string", length=255)
+     *
      * @Groups("parish")
      */
     private string $zipCode = '';
 
     /**
      * @ORM\Column(type="datetime")
+     *
      * @Assert\DateTime
+     *
      * @Assert\NotNull
      */
     private ?\DateTimeInterface $createdAt = null;
 
     /**
      * @ORM\Column(type="datetime")
+     *
      * @Assert\DateTime
+     *
      * @Assert\NotNull
      */
     private ?\DateTimeInterface $updatedAt = null;
 
     /**
      * @ORM\OneToMany(targetEntity=WikidataChurch::class, mappedBy="parish")
+     * @Groups("parish")
      */
     private Collection $wikidataChurches;
 
