@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\ApiResource;
 use App\Helper\Trait\Timestampable;
 use DateTime;
 use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
@@ -13,8 +14,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ApiResource]
-#[ORM\Entity()]
-#[ORM\Table()]
+#[ORM\Entity]
+#[ORM\Table]
 class Field
 {
     use Timestampable;
@@ -62,6 +63,18 @@ class Field
     #[ORM\Column(type: 'date', nullable: true)]
     public ?DateTimeImmutable $dateVal = null;
 
+    #[ORM\ManyToOne(targetEntity: Community::class, inversedBy: 'fieldsAsCommunityVal')]
+    public ?Community $communityVal = null;
+
+    #[ORM\ManyToMany(targetEntity: Community::class, inversedBy: 'fieldsAsCommunitiesVal')]
+    public ArrayCollection $communitiesVal;
+
+    #[ORM\ManyToOne(targetEntity: Place::class, inversedBy: 'fieldsAsPlaceVal')]
+    public ?Place $placeVal = null;
+
+    #[ORM\ManyToMany(targetEntity: Place::class, inversedBy: 'fieldsAsPlacesVal')]
+    public ArrayCollection $placesVal;
+
     #[ORM\ManyToOne(targetEntity: Agent::class, inversedBy: 'fields')]
     #[ORM\JoinColumn(nullable: false)]
     public Agent $agent;
@@ -95,7 +108,11 @@ class Field
             ?? $this->intVal
             ?? $this->floatVal
             ?? $this->datetimeVal
-            ?? $this->dateVal;
+            ?? $this->dateVal
+            ?? $this->communityVal
+            ?? $this->communitiesVal
+            ?? $this->placeVal
+            ?? $this->placesVal;
     }
 
     public function __toString(): string
@@ -148,6 +165,8 @@ class Field
                     Types::INTEGER => is_int($this->value),
                     Types::DATETIME_MUTABLE => DateTime::createFromFormat('Y-m-d H:i:s', $this->value) !== null,
                     Types::DATE_MUTABLE => DateTime::createFromFormat('Y-m-d', $this->value) !== null,
+                    'Community', 'Community[]' => $this->value instanceof Community,
+                    'Place', 'Place[]' => $this->value instanceof Place,
                 };
                 if (!$isValid) {
                     $context->buildViolation(sprintf('Field %s expected value of type %s', $this->name, $type))

@@ -35,6 +35,8 @@ enum PlaceFieldName: string
             'destroyed',
             'desecrated',
         ],
+        self::REPLACES->value => 'Place[]',
+        self::PARENT_COMMUNITIES->value => 'Community[]',
     ];
 
     case NAME = 'name';
@@ -50,6 +52,8 @@ enum PlaceFieldName: string
     case WIKIDATA_ID = 'wikidataId';
     case STATE = 'state';
     case DELETION_REASON = 'deletionReason';
+    case REPLACES = 'replaces';
+    case PARENT_COMMUNITIES = 'parentCommunities';
 
     public function getType(): array|string
     {

@@ -11,8 +11,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ApiResource]
-#[ORM\Entity()]
-#[ORM\Table()]
+#[ORM\Entity]
+#[ORM\Table]
 class Community
 {
     #[ORM\Id]
@@ -27,28 +27,23 @@ class Community
     #[ORM\OneToMany(targetEntity: Field::class, mappedBy: 'community')]
     public Collection $fields;
 
-    #[ORM\ManyToMany(targetEntity: self::class, mappedBy: 'replaces')]
-    public Collection $replacedBy;
+    /**
+     * @var ArrayCollection|Field[]
+     */
+    #[ORM\OneToMany(targetEntity: Field::class, mappedBy: 'communityVal')]
+    public Collection $fieldsAsCommunityVal;
 
-    #[ORM\ManyToMany(targetEntity: self::class, inversedBy: 'replacedBy')]
-    public Collection $replaces;
-
-    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'children')]
-    public ?Community $parent = null;
-
-    #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
-    public Collection $children;
-
-    #[ORM\ManyToMany(targetEntity: Place::class, mappedBy: 'parentCommunities')]
-    public Collection $placeChildren;
+    /**
+     * @var ArrayCollection|Field[]
+     */
+    #[ORM\ManyToMany(targetEntity: Field::class, mappedBy: 'communitiesVal')]
+    public Collection $fieldsAsCommunitiesVal;
 
     public function __construct()
     {
         $this->fields = new ArrayCollection();
-        $this->replacedBy = new ArrayCollection();
-        $this->replaces = new ArrayCollection();
-        $this->children = new ArrayCollection();
-        $this->placeChildren = new ArrayCollection();
+        $this->fieldsAsCommunityVal = new ArrayCollection();
+        $this->fieldsAsCommunitiesVal = new ArrayCollection();
     }
 
     public function __toString(): string

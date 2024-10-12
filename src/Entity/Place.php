@@ -10,7 +10,7 @@ use Symfony\Component\Uid\Uuid;
 
 #[ApiResource]
 #[ORM\Entity]
-#[ORM\Table()]
+#[ORM\Table]
 class Place
 {
     #[ORM\Id]
@@ -25,21 +25,23 @@ class Place
     #[ORM\OneToMany(targetEntity: Field::class, mappedBy: 'place')]
     public Collection $fields;
 
-    #[ORM\ManyToMany(targetEntity: self::class, mappedBy: 'replaces')]
-    public Collection $replacedBy;
+    /**
+     * @var ArrayCollection|Field[]
+     */
+    #[ORM\OneToMany(targetEntity: Field::class, mappedBy: 'placeVal')]
+    public Collection $fieldsAsPlaceVal;
 
-    #[ORM\ManyToMany(targetEntity: self::class, inversedBy: 'replacedBy')]
-    public Collection $replaces;
-
-    #[ORM\ManyToOne(targetEntity: Community::class, inversedBy: 'placeChildren')]
-    public Collection $parentCommunities;
+    /**
+     * @var ArrayCollection|Field[]
+     */
+    #[ORM\ManyToMany(targetEntity: Field::class, mappedBy: 'placesVal')]
+    public Collection $fieldsAsPlacesVal;
 
     public function __construct()
     {
         $this->fields = new ArrayCollection();
-        $this->replacedBy = new ArrayCollection();
-        $this->replaces = new ArrayCollection();
-        $this->parentCommunities = new ArrayCollection();
+        $this->fieldsAsPlaceVal = new ArrayCollection();
+        $this->fieldsAsPlacesVal = new ArrayCollection();
     }
 
     public function __toString(): string

@@ -34,6 +34,8 @@ enum CommunityFieldName: string
         self::CONTACT_CITY->value => Types::STRING,
         self::MESSESINFO_ID->value => Types::INTEGER,
         self::WIKIDATA_ID->value => Types::INTEGER,
+        self::PARENT_COMMUNITY_ID->value => 'Community',
+        self::REPLACES->value => 'Community[]',
     ];
 
     case NAME = 'name';
@@ -48,6 +50,8 @@ enum CommunityFieldName: string
     case CONTACT_CITY = 'contactCity';
     case MESSESINFO_ID = 'messesInfoId';
     case WIKIDATA_ID = 'wikidataId';
+    case PARENT_COMMUNITY_ID = 'parentCommunityId';
+    case REPLACES = 'replaces';
 
     public function getType(): string|array
     {
