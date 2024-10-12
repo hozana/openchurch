@@ -1,9 +1,0 @@
-// customize some Bootstrap variables
-$primary: darken(#428bca, 20%);
-
-// the ~ allows you to reference things in node_modules
-@import "../../../../node_modules/bootstrap/scss/bootstrap";
-
-body > .container, body > .container-fluid {
-  padding-top: 70px;
-}

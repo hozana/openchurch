@@ -1,5 +1,5 @@
-index:
-    path: /
-    controller: App\Controller\HomeController::index
-    defaults:
-        template: home/index.html.twig
+controllers:
+    resource:
+        path: ../src/Controller/
+        namespace: App\Controller
+    type: attribute

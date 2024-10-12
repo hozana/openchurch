@@ -1,28 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- https://phpunit.de/manual/current/en/appendixes.configuration.html -->
+<!-- https://phpunit.readthedocs.io/en/latest/configuration.html -->
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/6.1/phpunit.xsd"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
          backupGlobals="false"
          colors="true"
-         bootstrap="vendor/autoload.php"
+         bootstrap="tests/bootstrap.php"
+         convertDeprecationsToExceptions="false"
 >
     <php>
+        <ini name="display_errors" value="1" />
         <ini name="error_reporting" value="-1" />
-        <env name="KERNEL_CLASS" value="App\Kernel" force="true" />
-        <env name="APP_ENV" value="test" force="true" />
-        <env name="APP_DEBUG" value="1" force="true" />
-        <env name="APP_SECRET" value="s$cretf0rt3st" force="true" />
-        <env name="SHELL_VERBOSITY" value="-1" force="true" />
-        <env name="DB_HOST" value="127.0.0.1" force="true" />
-        <env name="DB_PORT" value="3306" force="true" />
-        <env name="MYSQL_DATABASE" value="openchurch" force="true" />
-        <env name="MYSQL_USER" value="openchurch" force="true" />
-        <env name="MYSQL_PASSWORD" value="openchurch" force="true" />
-        <env name="ES_HOST" value="127.0.0.1" force="true" />
-        <env name="ES_PORT" value="9200" force="true" />
-        <env name="ES_ENABLED" value="false" force="true" />
-        <env name="SENTRY_DSN" value="" force="" />
+        <server name="APP_ENV" value="test" force="true" />
+        <server name="SHELL_VERBOSITY" value="-1" />
+        <server name="SYMFONY_PHPUNIT_REMOVE" value="" />
+        <server name="SYMFONY_PHPUNIT_VERSION" value="9.5" />
     </php>
 
     <testsuites>
@@ -31,9 +23,16 @@
         </testsuite>
     </testsuites>
 
-    <filter>
-        <whitelist>
-            <directory>src</directory>
-        </whitelist>
-    </filter>
+    <coverage processUncoveredFiles="true">
+        <include>
+            <directory suffix=".php">src</directory>
+        </include>
+    </coverage>
+
+    <listeners>
+        <listener class="Symfony\Bridge\PhpUnit\SymfonyTestsListener" />
+    </listeners>
+
+    <extensions>
+    </extensions>
 </phpunit>
