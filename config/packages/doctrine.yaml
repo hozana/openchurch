@@ -12,6 +12,8 @@ doctrine:
         types:
             enum_reliability_type: App\Entity\Reliability
             enum_source_type: App\Entity\Source
+        mapping_types:
+            enum: string
     orm:
         auto_generate_proxy_classes: true
         enable_lazy_ghost_objects: true

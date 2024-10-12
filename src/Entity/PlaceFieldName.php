@@ -51,7 +51,7 @@ enum PlaceFieldName: string
     case STATE = 'state';
     case DELETION_REASON = 'deletionReason';
 
-    public function getType(): string
+    public function getType(): array|string
     {
         return self::TYPES[$this->value];
     }

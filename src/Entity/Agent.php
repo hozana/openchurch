@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity()]
+#[ORM\Table()]
 class Agent
 {
     #[ORM\Id]
