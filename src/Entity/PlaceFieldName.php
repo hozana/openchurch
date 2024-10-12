@@ -23,7 +23,7 @@ enum PlaceFieldName: string
         self::CITY->value => Types::STRING,
         self::LATITUDE->value => Types::FLOAT,
         self::LONGITUDE->value => Types::FLOAT,
-        self::MESSESINFO_ID->value => Types::INTEGER,
+        self::MESSESINFO_ID->value => Types::STRING,
         self::WIKIDATA_ID->value => Types::INTEGER,
         self::STATE->value => [
             'active',

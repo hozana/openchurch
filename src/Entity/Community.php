@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use App\Helper\Trait\Timestampable;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -15,6 +17,8 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 #[ORM\Table]
 class Community
 {
+    use Timestampable;
+
     #[ORM\Id]
     #[ORM\Column(type: 'uuid', unique: true)]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -41,6 +45,7 @@ class Community
 
     public function __construct()
     {
+        $this->createdAt = new DateTimeImmutable();
         $this->fields = new ArrayCollection();
         $this->fieldsAsCommunityVal = new ArrayCollection();
         $this->fieldsAsCommunitiesVal = new ArrayCollection();
@@ -60,7 +65,7 @@ class Community
         // - deletion reason must be set if state is deleted
 
         foreach ($this->getFieldsByName(CommunityFieldName::STATE) as $stateField) {
-            if ($stateField->getValue() === 'deleted' && !$this->getFieldsByNameAndAgent(CommunityFieldName::DELETION_REASON, $stateField->agent)) {
+            if ($stateField->getValue() === 'deleted' && !$this->getFieldByNameAndAgent(CommunityFieldName::DELETION_REASON, $stateField->agent)) {
                 $context->buildViolation('Deletion reason is mandatory when reporting a state=deleted state.')
                     ->atPath('fields')
                     ->addViolation();
@@ -71,18 +76,16 @@ class Community
     /**
      * @return Collection|Field[]
      */
-    private function getFieldsByName(CommunityFieldName $name): Collection
+    public function getFieldsByName(CommunityFieldName $name): Collection
     {
         return $this->fields
             ->filter(fn (Field $field) => $field->name === $name->value);
     }
 
-    /**
-     * @return Collection|Field[]
-     */
-    private function getFieldsByNameAndAgent(CommunityFieldName $name, Agent $agent): Collection
+    public function getFieldByNameAndAgent(CommunityFieldName $name, Agent $agent): ?Field
     {
         return $this->getFieldsByName($name)
-            ->filter(fn (Field $field) => $field->agent === $agent);
+            ->filter(fn (Field $field) => $field->agent === $agent)
+            ->first() ?: null;
     }
 }

@@ -7,8 +7,10 @@ use App\Helper\Trait\Timestampable;
 use DateTime;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
@@ -16,6 +18,9 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 #[ApiResource]
 #[ORM\Entity]
 #[ORM\Table]
+#[ORM\UniqueConstraint(
+    columns: ['community_id', 'place_id', 'name', 'agent_id'],
+)]
 class Field
 {
     use Timestampable;
@@ -66,14 +71,20 @@ class Field
     #[ORM\ManyToOne(targetEntity: Community::class, inversedBy: 'fieldsAsCommunityVal')]
     public ?Community $communityVal = null;
 
+    /**
+     * @var ArrayCollection|Community[]
+     */
     #[ORM\ManyToMany(targetEntity: Community::class, inversedBy: 'fieldsAsCommunitiesVal')]
-    public ArrayCollection $communitiesVal;
+    public Collection $communitiesVal;
 
     #[ORM\ManyToOne(targetEntity: Place::class, inversedBy: 'fieldsAsPlaceVal')]
     public ?Place $placeVal = null;
 
+    /**
+     * @var ArrayCollection|Place[]
+     */
     #[ORM\ManyToMany(targetEntity: Place::class, inversedBy: 'fieldsAsPlacesVal')]
-    public ArrayCollection $placesVal;
+    public Collection $placesVal;
 
     #[ORM\ManyToOne(targetEntity: Agent::class, inversedBy: 'fields')]
     #[ORM\JoinColumn(nullable: false)]
@@ -93,12 +104,14 @@ class Field
     #[ORM\Column(type: 'enum_source_type')]
     public string $source;
 
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'text', nullable: true)]
     public ?string $explanation;
 
     public function __construct()
     {
         $this->createdAt = new DateTimeImmutable();
+        $this->communitiesVal = new ArrayCollection();
+        $this->placesVal = new ArrayCollection();
     }
 
     public function getValue(): mixed
@@ -136,11 +149,7 @@ class Field
         }
 
         // Ensure name is OK according to community/place
-        $enum = match (true) {
-            $this->community !== null => CommunityFieldName::tryFrom($this->name),
-            $this->place !== null => PlaceFieldName::tryFrom($this->name),
-            default => null,
-        };
+        $enum = $this->getTypeEnum();
         if ($enum === null) {
             $context->buildViolation(sprintf('Field %s is not acceptable', $this->name))
                 ->atPath('name')
@@ -148,7 +157,7 @@ class Field
         }
 
         // Ensure type is OK
-        if ($this->value !== null && $enum !== null) {
+        if ($this->value !== null && $enum !== null && $enum !== false) {
             $type = $enum->getType();
 
             if (is_array($type)) {
@@ -175,5 +184,30 @@ class Field
                 }
             }
         }
+    }
+
+    private function getTypeEnum(): CommunityFieldName|PlaceFieldName|false|null
+    {
+        return match (true) {
+            $this->community !== null => CommunityFieldName::tryFrom($this->name),
+            $this->place !== null => PlaceFieldName::tryFrom($this->name),
+            default => false, // Use false to avoid triggering "Field name is not acceptable" when neither community nor place is attached.
+        };
+    }
+
+    public function applyValue(): void
+    {
+        $propertyName = match ($this->getTypeEnum()?->getType()) {
+            Types::STRING => 'stringVal',
+            Types::FLOAT => 'floatVal',
+            Types::INTEGER => 'intVal',
+            Types::DATETIME_MUTABLE => 'datetimeVal',
+            Types::DATE_MUTABLE => 'dateVal',
+            'Community' => 'communityVal',
+            'Place' => 'placeVal',
+        };
+
+        $propertyAccessor = new PropertyAccessor();
+        $propertyAccessor->setValue($this, $propertyName, $this->value);
     }
 }

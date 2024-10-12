@@ -32,7 +32,7 @@ enum CommunityFieldName: string
         self::CONTACT_ADDRESS->value => Types::STRING,
         self::CONTACT_ZIPCODE->value => Types::STRING,
         self::CONTACT_CITY->value => Types::STRING,
-        self::MESSESINFO_ID->value => Types::INTEGER,
+        self::MESSESINFO_ID->value => Types::STRING,
         self::WIKIDATA_ID->value => Types::INTEGER,
         self::PARENT_COMMUNITY_ID->value => 'Community',
         self::REPLACES->value => 'Community[]',
