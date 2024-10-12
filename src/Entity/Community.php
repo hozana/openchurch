@@ -12,7 +12,6 @@ use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
-#[ApiResource]
 #[ORM\Entity]
 #[ORM\Table]
 class Community
