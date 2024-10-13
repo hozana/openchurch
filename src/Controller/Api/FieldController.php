@@ -134,7 +134,7 @@ class FieldController extends AbstractController
      * @param string|array $value
      * @return Community|Community[]|Place|Place[]
      */
-    private function maybeTransformEntities(CommunityFieldName|PlaceFieldName $nameEnum, null|string|array $value): mixed
+    private function maybeTransformEntities(CommunityFieldName|PlaceFieldName $nameEnum, mixed $value): mixed
     {
         $type = $nameEnum->getType();
         if (!in_array($type, [
