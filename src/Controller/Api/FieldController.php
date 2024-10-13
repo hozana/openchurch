@@ -20,6 +20,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use function Symfony\Component\String\s;
 
 class FieldController extends AbstractController
 {
@@ -90,13 +91,16 @@ class FieldController extends AbstractController
                     $this->em->persist($field);
                 }
 
+                // Transform uuid into Community|Place and uuid[] into Community[]|Place[]
+                $value = $this->maybeTransformEntities($nameEnum, $mutation->value);
+
                 if ($entityClass === Community::class) {
                     $field->community = $entity;
                 } else {
                     $field->place = $entity;
                 }
                 $field->name = $mutation->name;
-                $field->value = $mutation->value;
+                $field->value = $value;
                 $field->source = $mutation->source;
                 $field->reliability = $mutation->reliability;
                 $field->explanation = $mutation->explanation;
@@ -123,5 +127,58 @@ class FieldController extends AbstractController
         return $this->json([
             'id' => $entity->id,
         ]);
+    }
+
+    /**
+     * @param CommunityFieldName|PlaceFieldName $field
+     * @param string|array $value
+     * @return Community|Community[]|Place|Place[]
+     */
+    private function maybeTransformEntities(CommunityFieldName|PlaceFieldName $nameEnum, null|string|array $value): mixed
+    {
+        $type = $nameEnum->getType();
+        if (!in_array($type, [
+            'Community',
+            'Community[]',
+            'Place',
+            'Place[]',
+        ], true)) {
+            return $value;
+        }
+
+        if ($value === null) {
+            return null;
+        }
+        if ($value === []) {
+            return [];
+        }
+
+        $entity = match(s($type)->trimSuffix('[]')->toString()) {
+            'Community' => Community::class,
+            'Place' => Place::class,
+        };
+        $repo = $this->em->getRepository($entity);
+
+        if (str_ends_with($type, '[]')) {
+            // That's an array
+            assert(is_array($value));
+            $instances = $repo->findBy(['id' => $value]);
+
+            if (count($instances) !== count($value)) {
+                throw new BadRequestHttpException($nameEnum->value.": Could not find some values from provided IDs");
+            }
+
+            return $instances;
+        } else {
+            // That's an object
+            assert(is_string($value));
+            $instance = $repo->find($value);
+
+            if (!$instance) {
+                throw new BadRequestHttpException($nameEnum->value.": Could not find value from provided ID");
+            }
+
+            return $instance;
+        }
     }
 }
