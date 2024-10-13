@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use App\Helper\Trait\Timestampable;
+use BackedEnum;
 use DateTime;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -169,10 +170,17 @@ class Field
         if ($this->value !== null && $enum !== null && $enum !== false) {
             $type = $enum->getType();
 
+            // Handle enums
+            if (is_string($type) && enum_exists($type)) {
+                assert($type instanceof BackedEnum);
+
+                $type = array_column($type::cases(), 'value');
+            }
+
             if (is_array($type)) {
                 // That's an enum value! Validate its value
                 if (!in_array($this->value, $type, true)) {
-                    $context->buildViolation(sprintf('Field %s does not accept value %s (accepted values: %s)', $this->name, $this->value, implode(',', $type)))
+                    $context->buildViolation(sprintf('Field %s does not accept value %s (accepted values: %s)', $this->name, $this->value, implode(', ', $type)))
                         ->atPath('value')
                         ->addViolation();
                 }
@@ -208,7 +216,7 @@ class Field
     {
         $type = $this->getTypeEnum()?->getType();
         // Special case: arrays
-        if (is_array($type)) {
+        if (is_array($type) || (is_string($type) && enum_exists($type))) {
             $type = 'array';
         }
         $propertyName = match ($type) {

@@ -2,20 +2,16 @@
 
 namespace App\Entity;
 
+use App\Domain\Place\Enum\PlaceDeletionReason;
+use App\Domain\Place\Enum\PlaceState;
+use App\Domain\Place\Enum\PlaceType;
 use Doctrine\DBAL\Types\Types;
 
 enum PlaceFieldName: string
 {
     public const TYPES = [
         self::NAME->value => Types::STRING,
-        self::TYPE->value => [
-            'church',
-            'cathedral',
-            'chapel',
-            'parishHall',
-            'abbey',
-            'crypt',
-        ],
+        self::TYPE->value => PlaceType::class,
         self::WEBSITE->value => Types::STRING,
         self::CAPACITY->value => Types::STRING,
         self::ADDRESS->value => Types::STRING,
@@ -26,16 +22,8 @@ enum PlaceFieldName: string
         self::LONGITUDE->value => Types::FLOAT,
         self::MESSESINFO_ID->value => Types::STRING,
         self::WIKIDATA_ID->value => Types::INTEGER,
-        self::STATE->value => [
-            'active',
-            'deleted',
-        ],
-        self::DELETION_REASON->value => [
-            'garbage',
-            'duplicate',
-            'destroyed',
-            'desecrated',
-        ],
+        self::STATE->value => PlaceState::class,
+        self::DELETION_REASON->value => PlaceDeletionReason::class,
         self::REPLACES->value => 'Place[]',
         self::PARENT_COMMUNITIES->value => 'Community[]',
     ];

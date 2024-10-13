@@ -2,30 +2,18 @@
 
 namespace App\Entity;
 
+use App\Domain\Community\Enum\CommunityDeletionReason;
+use App\Domain\Community\Enum\CommunityState;
+use App\Domain\Community\Enum\CommunityType;
 use Doctrine\DBAL\Types\Types;
 
 enum CommunityFieldName: string
 {
     public const TYPES = [
         self::NAME->value => Types::STRING,
-        self::TYPE->value => [
-            'parish',
-            'parishGroup',
-            'deanery',
-            'sanctuary',
-            'religiousCommunity',
-            'congregation',
-            'diocese',
-        ],
-        self::STATE->value => [
-            'active',
-            'deleted',
-        ],
-        self::DELETION_REASON->value => [
-            'garbage',
-            'duplicate',
-            'dissolved',
-        ],
+        self::TYPE->value => CommunityType::class,
+        self::STATE->value => CommunityState::class,
+        self::DELETION_REASON->value => CommunityDeletionReason::class,
         self::WEBSITE->value => Types::STRING,
         self::CONTACT_PHONE->value => Types::STRING,
         self::CONTACT_EMAIL->value => Types::STRING,
