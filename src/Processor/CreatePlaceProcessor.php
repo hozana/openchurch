@@ -48,7 +48,6 @@ final readonly class CreatePlaceProcessor implements ProcessorInterface
             $entityField->agent = $repo->find("01928276-75e8-7afc-832c-6b8101951a13");
             $entityField->place = $place;
 
-            // Valider l'entité Field
             $violations = $this->validator->validate($entityField);
             if (count($violations) > 0) {
                 // Gérer les violations, par exemple en lançant une exception
