@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api;
 
+use ApiPlatform\Validator\Exception\ValidationException;
 use App\Entity\Agent;
 use App\Entity\Community;
 use App\Entity\CommunityFieldName;
@@ -33,10 +34,9 @@ class FieldController extends AbstractController
     }
 
     #[Route('/{type}', name: 'add', requirements: [
-        'id' => '.+',
         'type' => '(places|communities)',
     ], methods: ['POST'])]
-    #[Route('/{type}/{id}/fields', name: 'api_field', requirements: [
+    #[Route('/{type}/{id}', name: 'patch', requirements: [
         'id' => '.+',
         'type' => '(places|communities)',
     ], methods: ['PATCH'])]
@@ -55,12 +55,12 @@ class FieldController extends AbstractController
         } else {
             $entity = $this->em->getRepository($entityClass)->find($id);
             if (!$entity) {
-                throw new NotFoundHttpException();
+                throw new NotFoundHttpException('entity-not-found');
             }
         }
         assert($entity instanceof Place || $entity instanceof Community);
 
-        // Lock for writing
+        // Lock specified resource for writing
         $lock = $this->lockFactory->createLock("$entityClass/$id");
         $lock->acquire(true);
 
@@ -109,11 +109,7 @@ class FieldController extends AbstractController
 
                 $violations = $this->validator->validate($field);
                 if (count($violations) > 0) {
-                    $messages = [];
-                    foreach ($violations as $violation) {
-                        $messages[] = $violation->getPropertyPath().': '.$violation->getMessage();
-                    }
-                    throw new BadRequestHttpException("Field $name: validation failed : ".implode(' ; ', $messages));
+                    throw new ValidationException($violations);
                 }
 
                 $field->applyValue();
