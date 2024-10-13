@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use App\Helper\Trait\Timestampable;
+use App\Repository\FieldRepository;
 use BackedEnum;
 use DateTime;
 use DateTimeImmutable;
@@ -11,19 +12,27 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use RuntimeException;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ApiResource]
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: FieldRepository::class)]
 #[ORM\Table]
 #[ORM\UniqueConstraint(
     columns: ['community_id', 'place_id', 'name', 'agent_id'],
 )]
 class Field
 {
+    public const UNIQUE_CONSTRAINTS = [
+        CommunityFieldName::MESSESINFO_ID->value,
+        CommunityFieldName::WIKIDATA_ID->value,
+        PlaceFieldName::MESSESINFO_ID->value,
+        PlaceFieldName::WIKIDATA_ID->value,
+    ];
+
     use Timestampable;
 
     #[ORM\Id]

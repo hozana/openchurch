@@ -10,6 +10,7 @@ use App\Entity\Field;
 use App\Entity\Place;
 use App\Entity\PlaceFieldName;
 use App\Model\Request\FieldMutations;
+use App\Repository\FieldRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -27,6 +28,7 @@ class FieldController extends AbstractController
 {
     public function __construct(
         private readonly EntityManagerInterface $em,
+        private readonly FieldRepository $fieldRepo,
         private readonly LockFactory $lockFactory,
         private readonly SerializerInterface $serializer,
         private readonly ValidatorInterface $validator,
@@ -106,6 +108,16 @@ class FieldController extends AbstractController
                 $field->source = $mutation->source;
                 $field->explanation = $mutation->explanation;
                 $field->touch();
+
+                // Unique constraints validation (TODO use custom Assert instead)
+                if ($field->value !== null
+                    && in_array($field->name, Field::UNIQUE_CONSTRAINTS, true)
+                    && (null !== $attachedToId = $this->fieldRepo->exists($nameEnum, $field->value))
+                    && $attachedToId !== $entity->id) {
+                    // TODO Malformed UTF-8 characters, possibly incorrectly encoded
+                    $attachedToIdStr = '(unknown)'; // s($attachedToId)->toString();
+                    throw new BadRequestHttpException("Found duplicate for field $field->name: see entity $attachedToIdStr");
+                }
 
                 $violations = $this->validator->validate($field);
                 if (count($violations) > 0) {
