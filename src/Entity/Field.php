@@ -98,12 +98,21 @@ class Field
     public string $reliability;
 
     /**
-     * @see Source
+     * @see Engine
      */
-    #[Assert\Choice(callback: [Source::class, 'values'])]
-    #[ORM\Column(type: 'enum_source_type')]
-    public string $source;
+    #[Assert\Choice(callback: [Engine::class, 'values'])]
+    #[ORM\Column(type: 'enum_engine_type')]
+    public string $engine;
 
+    /**
+     * Where the data comes from (openstreetmap, for instance)
+     */
+    #[ORM\Column(type: 'text', nullable: true)]
+    public ?string $source;
+
+    /**
+     * Explanation of the source (its URL)
+     */
     #[ORM\Column(type: 'text', nullable: true)]
     public ?string $explanation;
 

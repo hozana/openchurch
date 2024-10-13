@@ -4,7 +4,7 @@ namespace App\Entity;
 
 use App\Helper\Doctrine\EnumType;
 
-class Source extends EnumType
+class Engine extends EnumType
 {
     public const HUMAN = 'human';
     public const AI = 'ai';
@@ -12,6 +12,6 @@ class Source extends EnumType
 
     public function getName(): string
     {
-        return 'enum_source_type';
+        return 'enum_engine_type';
     }
 }

@@ -11,7 +11,7 @@ doctrine:
 
         types:
             enum_reliability_type: App\Entity\Reliability
-            enum_source_type: App\Entity\Source
+            enum_engine_type: App\Entity\Engine
         mapping_types:
             enum: string
     orm:

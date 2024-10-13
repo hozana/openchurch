@@ -101,8 +101,9 @@ class FieldController extends AbstractController
                 }
                 $field->name = $mutation->name;
                 $field->value = $value;
-                $field->source = $mutation->source;
+                $field->engine = $mutation->engine;
                 $field->reliability = $mutation->reliability;
+                $field->source = $mutation->source;
                 $field->explanation = $mutation->explanation;
                 $field->touch();
 
