@@ -197,8 +197,13 @@ class Field
 
     public function applyValue(): void
     {
-        $propertyName = match ($this->getTypeEnum()?->getType()) {
-            Types::STRING => 'stringVal',
+        $type = $this->getTypeEnum()?->getType();
+        // Special case: arrays
+        if (is_array($type)) {
+            $type = 'array';
+        }
+        $propertyName = match ($type) {
+            Types::STRING, 'array' => 'stringVal',
             Types::FLOAT => 'floatVal',
             Types::INTEGER => 'intVal',
             Types::DATETIME_MUTABLE => 'datetimeVal',
