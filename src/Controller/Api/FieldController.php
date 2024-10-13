@@ -162,16 +162,22 @@ class FieldController extends AbstractController
             return [];
         }
 
-        $entity = match(s($type)->trimSuffix('[]')->toString()) {
+        $targetEntityClassName = match(s($type)->trimSuffix('[]')->toString()) {
             'Community' => Community::class,
             'Place' => Place::class,
         };
-        $repo = $this->em->getRepository($entity);
+        $repo = $this->em->getRepository($targetEntityClassName);
 
         if (str_ends_with($type, '[]')) {
             // That's an array
+            if (!is_array($value)) {
+                throw new BadRequestHttpException($nameEnum->value.": should be an array");
+            }
             assert(is_array($value));
-            $instances = $repo->findBy(['id' => $value]);
+
+            //$instances = $repo->findBy(['id' => $value]);: does not work
+            $instances = array_map(fn (string $id) => $repo->find($id), $value);
+            $instances = array_filter($instances);
 
             if (count($instances) !== count($value)) {
                 throw new BadRequestHttpException($nameEnum->value.": Could not find some values from provided IDs");

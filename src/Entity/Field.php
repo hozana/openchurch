@@ -155,14 +155,9 @@ class Field
     #[Assert\Callback()]
     public function validate(ExecutionContextInterface $context, mixed $payload): void
     {
-        // Ensure either community or place is set, not both
-        if ($this->community === null && $this->place === null) {
-            $context->buildViolation('Field must be attached to community or place')
-                ->atPath('community')
-                ->addViolation();
-        }
-        if ($this->community !== null && $this->place !== null) {
-            $context->buildViolation('Field must be attached to community or place, not both!')
+        // Ensure either community or place is set, not none, not both
+        if (!($this->community !== null xor $this->place !== null)) {
+            $context->buildViolation('Field must be attached to a community or a place, not none, not both')
                 ->atPath('community')
                 ->addViolation();
         }
@@ -200,8 +195,10 @@ class Field
                     Types::INTEGER => is_int($this->value),
                     Types::DATETIME_MUTABLE => DateTime::createFromFormat('Y-m-d H:i:s', $this->value) !== null,
                     Types::DATE_MUTABLE => DateTime::createFromFormat('Y-m-d', $this->value) !== null,
-                    'Community', 'Community[]' => $this->value instanceof Community,
-                    'Place', 'Place[]' => $this->value instanceof Place,
+                    'Community' => $this->value instanceof Community,
+                    'Community[]' => is_array($this->value) && count($this->value) === count(array_filter($this->value, fn (mixed $item) => $item instanceof Community)),
+                    'Place' => $this->value instanceof Place,
+                    'Place[]' => is_array($this->value) && count($this->value) === count(array_filter($this->value, fn (mixed $item) => $item instanceof Place)),
                 };
                 if (!$isValid) {
                     $context->buildViolation(sprintf('Field %s expected value of type %s', $this->name, $type))
@@ -221,24 +218,40 @@ class Field
         };
     }
 
-    public function applyValue(): void
+    public static function getPropertyName(PlaceFieldName|CommunityFieldName $fieldName): string
     {
-        $type = $this->getTypeEnum()?->getType();
+        $type = $fieldName->getType();
         // Special case: arrays
         if (is_array($type) || (is_string($type) && enum_exists($type))) {
             $type = 'array';
         }
-        $propertyName = match ($type) {
+        return match ($type) {
             Types::STRING, 'array' => 'stringVal',
             Types::FLOAT => 'floatVal',
             Types::INTEGER => 'intVal',
             Types::DATETIME_MUTABLE => 'datetimeVal',
             Types::DATE_MUTABLE => 'dateVal',
             'Community' => 'communityVal',
+            'Community[]' => 'communitiesVal',
             'Place' => 'placeVal',
+            'Place[]' => 'placesVal',
         };
+    }
+
+    public function applyValue(): void
+    {
+        $typeEnum = $this->getTypeEnum();
+        if ($typeEnum === false) {
+            throw new RuntimeException('You must attach this Field to a Community or Place before attempting to call '.__METHOD__);
+        }
+        $propertyName = self::getPropertyName($typeEnum);
+
+        $value = $this->value;
+        if (is_array($this->value)) {
+            $value = new ArrayCollection($value);
+        }
 
         $propertyAccessor = new PropertyAccessor();
-        $propertyAccessor->setValue($this, $propertyName, $this->value);
+        $propertyAccessor->setValue($this, $propertyName, $value);
     }
 }
