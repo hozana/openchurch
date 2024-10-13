@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Shared\Infrastructure\Doctrine;
 
-use ApiPlatform\State\Pagination\PaginatorInterface;
+use App\Shared\Domain\Repository\PaginatorInterface;
 use App\Shared\Domain\Repository\RepositoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;

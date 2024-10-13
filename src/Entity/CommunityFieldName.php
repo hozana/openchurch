@@ -2,9 +2,9 @@
 
 namespace App\Entity;
 
-use App\Domain\Community\Enum\CommunityDeletionReason;
-use App\Domain\Community\Enum\CommunityState;
-use App\Domain\Community\Enum\CommunityType;
+use App\Community\Domain\Enum\CommunityDeletionReason;
+use App\Community\Domain\Enum\CommunityState;
+use App\Community\Domain\Enum\CommunityType;
 use Doctrine\DBAL\Types\Types;
 
 enum CommunityFieldName: string

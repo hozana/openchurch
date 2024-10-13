@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\BookStore\Domain\Repository;
+namespace App\Community\Domain\Repository;
 
 use App\Entity\Community;
 use App\Shared\Domain\Repository\RepositoryInterface;

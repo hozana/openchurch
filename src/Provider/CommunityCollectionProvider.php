@@ -7,7 +7,7 @@ namespace App\Provider;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\Pagination\Pagination;
 use ApiPlatform\State\ProviderInterface;
-use App\BookStore\Infrastructure\Doctrine\DoctrineCommunityRepository;
+use App\Community\Infrastructure\Doctrine\DoctrineCommunityRepository;
 use App\Shared\Infrastructure\ApiPlatform\State\Paginator;
 
 final readonly class CommunityCollectionProvider implements ProviderInterface
@@ -32,11 +32,12 @@ final readonly class CommunityCollectionProvider implements ProviderInterface
             $limit = $this->pagination->getLimit($operation, $context);
         }
 
-        $toto = $this->communityRepo
+        $models = $this->communityRepo
             ->withType($typeValue)
             ->withPagination(1, 10);
 
-            dd($toto);
-
+        foreach ($models as $model) {
+            dd($model);
+        }
     }
 }

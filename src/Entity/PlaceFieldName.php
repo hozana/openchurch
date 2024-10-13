@@ -2,9 +2,9 @@
 
 namespace App\Entity;
 
-use App\Domain\Place\Enum\PlaceDeletionReason;
-use App\Domain\Place\Enum\PlaceState;
-use App\Domain\Place\Enum\PlaceType;
+use App\Place\Domain\Enum\PlaceDeletionReason;
+use App\Place\Domain\Enum\PlaceState;
+use App\Place\Domain\Enum\PlaceType;
 use Doctrine\DBAL\Types\Types;
 
 enum PlaceFieldName: string

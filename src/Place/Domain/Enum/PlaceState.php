@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domain\Place\Enum;
+namespace App\Place\Domain\Enum;
 
 enum PlaceState: string
 {

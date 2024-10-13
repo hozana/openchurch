@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Shared\Domain\Repository;
 
-use ApiPlatform\State\Pagination\PaginatorInterface;
-
 /**
  * @template T of object
  *

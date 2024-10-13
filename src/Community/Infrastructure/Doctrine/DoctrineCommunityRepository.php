@@ -2,20 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\BookStore\Infrastructure\Doctrine;
+namespace App\Community\Infrastructure\Doctrine;
 
-use App\BookStore\Domain\Model\Book;
-use App\BookStore\Domain\Repository\BookRepositoryInterface;
-use App\BookStore\Domain\Repository\CommunityRepositoryInterface;
-use App\BookStore\Domain\ValueObject\Author;
-use App\BookStore\Domain\ValueObject\BookId;
+use App\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\Entity\Community;
 use App\Shared\Infrastructure\Doctrine\DoctrineRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 
 /**
- * @extends DoctrineRepository<Book>
+ * @extends DoctrineRepository<Community>
  */
 final class DoctrineCommunityRepository extends DoctrineRepository implements CommunityRepositoryInterface
 {
@@ -30,7 +26,9 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
     public function withType(string $value): static
     {
         return $this->filter(static function (QueryBuilder $qb) use ($value): void {
-            $qb->andWhere('field.name = type AND field.value = :value')
+            $qb->join('community.fields', 'fields')
+                ->andWhere('fields.name = :type AND fields.value = :value')
+                ->setParameter('type', 'type')
                 ->setParameter('value', $value);
         });
     }

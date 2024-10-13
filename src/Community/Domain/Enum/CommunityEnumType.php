@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domain\Community\Enum;
+namespace App\Community\Domain\Enum;
 
 use App\Helper\Doctrine\EnumType;
 
