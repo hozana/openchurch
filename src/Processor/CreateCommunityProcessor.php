@@ -12,6 +12,7 @@ use App\ApiResource\CommunityResource;
 use App\Entity\Agent;
 use App\Entity\Community;
 use App\Entity\Field;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Webmozart\Assert\Assert;
@@ -38,6 +39,8 @@ final readonly class CreateCommunityProcessor implements ProcessorInterface
         $community = new Community();
         $this->em->persist($community);
 
+        /** @var Collection|Field[] $insertedFields */
+        $insertedFields = [];
         foreach ($data->fields as $field) {
             $entityField = new Field();
             $entityField->name = $field->name;
@@ -54,10 +57,14 @@ final readonly class CreateCommunityProcessor implements ProcessorInterface
             }
 
             $this->em->persist($entityField);
+            $insertedFileds[] = $entityField;
         }
 
         $this->em->flush();
 
-        return new CommunityResource($community->id);
+        return new CommunityResource(
+            $community->id,
+            $insertedFields
+        );
     }
 }

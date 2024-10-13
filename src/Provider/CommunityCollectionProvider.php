@@ -7,6 +7,7 @@ namespace App\Provider;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\Pagination\Pagination;
 use ApiPlatform\State\ProviderInterface;
+use App\ApiResource\CommunityResource;
 use App\Community\Infrastructure\Doctrine\DoctrineCommunityRepository;
 use App\Shared\Infrastructure\ApiPlatform\State\Paginator;
 
@@ -36,8 +37,21 @@ final readonly class CommunityCollectionProvider implements ProviderInterface
             ->withType($typeValue)
             ->withPagination(1, 10);
 
+        $resources = [];
         foreach ($models as $model) {
-            dd($model);
+            $resources[] = CommunityResource::fromModel($model);
         }
+
+        if (null !== $paginator = $models->paginator()) {
+            $resources = new Paginator(
+                new \ArrayIterator($resources),
+                (float) $paginator->getCurrentPage(),
+                (float) $paginator->getItemsPerPage(),
+                (float) $paginator->getLastPage(),
+                (float) $paginator->getTotalItems(),
+            );
+        }
+
+        return $resources;
     }
 }

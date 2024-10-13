@@ -14,6 +14,8 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use RuntimeException;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\SerializedName;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
@@ -44,6 +46,7 @@ class Field
     public ?Community $community = null;
 
     #[ORM\ManyToOne(targetEntity: Place::class, inversedBy: 'fields')]
+    #[Groups(['communities'])]
     public ?Place $place = null;
 
     /**
@@ -55,6 +58,7 @@ class Field
      * @see PlaceFieldName
      */
     #[ORM\Column]
+    #[Groups(['communities'])]
     public string $name;
 
     /**
@@ -87,6 +91,7 @@ class Field
     public Collection $communitiesVal;
 
     #[ORM\ManyToOne(targetEntity: Place::class, inversedBy: 'fieldsAsPlaceVal')]
+    #[Groups(['communities'])]
     public ?Place $placeVal = null;
 
     /**
@@ -97,6 +102,7 @@ class Field
 
     #[ORM\ManyToOne(targetEntity: Agent::class, inversedBy: 'fields')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['communities'])]
     public Agent $agent;
 
     /**
@@ -104,6 +110,7 @@ class Field
      */
     #[Assert\Choice(callback: [Reliability::class, 'values'])]
     #[ORM\Column(type: 'enum_reliability_type')]
+    #[Groups(['communities'])]
     public string $reliability;
 
     /**
@@ -111,18 +118,21 @@ class Field
      */
     #[Assert\Choice(callback: [Engine::class, 'values'])]
     #[ORM\Column(type: 'enum_engine_type')]
+    #[Groups(['communities'])]
     public string $engine;
 
     /**
      * Where the data comes from (openstreetmap, for instance)
      */
     #[ORM\Column(type: 'text', nullable: true)]
+    #[Groups(['communities'])]
     public ?string $source;
 
     /**
      * Explanation of the source (its URL)
      */
     #[ORM\Column(type: 'text', nullable: true)]
+    #[Groups(['communities'])]
     public ?string $explanation;
 
     public function __construct()
@@ -132,6 +142,8 @@ class Field
         $this->placesVal = new ArrayCollection();
     }
 
+    #[Groups(['communities'])]
+    #[SerializedName('value')]
     public function getValue(): mixed
     {
         /** @noinspection ProperNullCoalescingOperatorUsageInspection */
