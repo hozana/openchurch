@@ -31,11 +31,15 @@ class FieldController extends AbstractController
     ) {
     }
 
+    #[Route('/{type}', name: 'add', requirements: [
+        'id' => '.+',
+        'type' => '(places|communities)',
+    ], methods: ['POST'])]
     #[Route('/{type}/{id}/fields', name: 'api_field', requirements: [
         'id' => '.+',
         'type' => '(places|communities)',
     ], methods: ['PATCH'])]
-    public function setFields(string $type, string $id, Request $request): JsonResponse
+    public function setFields(string $type, ?string $id, Request $request): JsonResponse
     {
         assert(in_array($type, ['places', 'communities']));
 
@@ -43,9 +47,15 @@ class FieldController extends AbstractController
             'places' => Place::class,
             'communities' => Community::class,
         };
-        $entity = $this->em->getRepository($entityClass)->find($id);
-        if (!$entity) {
-            throw new NotFoundHttpException();
+
+        if ($request->attributes->get('_route') === 'add') {
+            $entity = new $entityClass();
+            $this->em->persist($entity);
+        } else {
+            $entity = $this->em->getRepository($entityClass)->find($id);
+            if (!$entity) {
+                throw new NotFoundHttpException();
+            }
         }
         assert($entity instanceof Place || $entity instanceof Community);
 
@@ -53,8 +63,8 @@ class FieldController extends AbstractController
         $lock = $this->lockFactory->createLock("$entityClass/$id");
         $lock->acquire(true);
 
-        // TODO find logged in agent
-        $agent = $this->em->find(Agent::class, '0192827e-f437-798e-82a1-7b91c2a2d1c3');
+        $agent = $this->getUser();
+        assert($agent instanceof Agent);
 
         try {
             try {
@@ -110,6 +120,8 @@ class FieldController extends AbstractController
             $lock->release();
         }
 
-        return $this->json([]);
+        return $this->json([
+            'id' => $entity->id,
+        ]);
     }
 }
