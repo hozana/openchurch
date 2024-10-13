@@ -2,7 +2,6 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
 use App\Helper\Trait\Timestampable;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -10,7 +9,6 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 
-#[ApiResource]
 #[ORM\Entity]
 #[ORM\Table]
 class Place

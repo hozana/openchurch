@@ -7,11 +7,11 @@ namespace App\Processor;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use ApiPlatform\Validator\Exception\ValidationException;
-use App\ApiResource\Community\CreateCommunityInput;
-use App\ApiResource\CommunityResource;
+use App\ApiResource\Place\CreatePlaceInput;
+use App\ApiResource\PlaceResource;
 use App\Entity\Agent;
-use App\Entity\Community;
 use App\Entity\Field;
+use App\Entity\Place;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Webmozart\Assert\Assert;
@@ -19,7 +19,7 @@ use Webmozart\Assert\Assert;
 /**
  * @implements ProcessorInterface<null>
  */
-final readonly class CreateCommunityProcessor implements ProcessorInterface
+final readonly class CreatePlaceProcessor implements ProcessorInterface
 {
     public function __construct(
         private EntityManagerInterface $em,
@@ -28,15 +28,15 @@ final readonly class CreateCommunityProcessor implements ProcessorInterface
     }
 
     /**
-     * @param CreateCommunityInput $data
+     * @param CreatePlaceInput $data
      */
-    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): CommunityResource
+    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): PlaceResource
     {
-        Assert::isInstanceOf($data, CreateCommunityInput::class);
+        Assert::isInstanceOf($data, CreatePlaceInput::class);
 
         $repo = $this->em->getRepository(Agent::class);
-        $community = new Community();
-        $this->em->persist($community);
+        $place = new Place();
+        $this->em->persist($place);
 
         foreach ($data->fields as $field) {
             $entityField = new Field();
@@ -46,7 +46,7 @@ final readonly class CreateCommunityProcessor implements ProcessorInterface
             $entityField->source = $field->source;
             $entityField->explanation = $field->explanation;
             $entityField->agent = $repo->find("01928276-75e8-7afc-832c-6b8101951a13");
-            $entityField->community = $community;
+            $entityField->place = $place;
 
             // Valider l'entité Field
             $violations = $this->validator->validate($entityField);
@@ -60,6 +60,6 @@ final readonly class CreateCommunityProcessor implements ProcessorInterface
 
         $this->em->flush();
 
-        return new CommunityResource($community->id);
+        return new PlaceResource($place->id);
     }
 }

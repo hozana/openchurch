@@ -7,22 +7,22 @@ namespace App\ApiResource;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Post;
-use App\ApiResource\Community\CreateCommunityInput;
-use App\Processor\CreateCommunityProcessor;
+use App\ApiResource\Place\CreatePlaceInput;
+use App\Processor\CreatePlaceProcessor;
 use Symfony\Component\Uid\UuidV7;
 
 #[ApiResource(
-    shortName: 'Community',
+    shortName: 'Place',
     operations: [
         new Post(
-            '/communities',
+            '/places',
             status: 202,
-            input: CreateCommunityInput::class,
-            processor: CreateCommunityProcessor::class,
+            input: CreatePlaceInput::class,
+            processor: CreatePlaceProcessor::class,
         ),
     ],
 )]
-final class CommunityResource
+final class PlaceResource
 {
     public function __construct(
         #[ApiProperty(identifier: true, readable: true, writable: false)]

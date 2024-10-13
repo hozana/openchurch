@@ -20,7 +20,6 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Webmozart\Assert\Assert;
 
 class FieldController extends AbstractController
 {

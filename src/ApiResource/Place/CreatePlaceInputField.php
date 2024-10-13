@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\ApiResource\Community;
+namespace App\ApiResource\Place;
 
-final readonly class CreateCommunityInputField
+final readonly class CreatePlaceInputField
 {
     public function __construct(
         public string $source,
