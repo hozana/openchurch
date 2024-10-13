@@ -32,6 +32,7 @@ enum CommunityFieldName: string
         self::CONTACT_ADDRESS->value => Types::STRING,
         self::CONTACT_ZIPCODE->value => Types::STRING,
         self::CONTACT_CITY->value => Types::STRING,
+        self::CONTACT_COUNTRY_CODE->value => Types::STRING,
         self::MESSESINFO_ID->value => Types::STRING,
         self::WIKIDATA_ID->value => Types::INTEGER,
         self::PARENT_COMMUNITY_ID->value => 'Community',
@@ -48,6 +49,7 @@ enum CommunityFieldName: string
     case CONTACT_ADDRESS = 'contactAddress';
     case CONTACT_ZIPCODE = 'contactZipcode';
     case CONTACT_CITY = 'contactCity';
+    case CONTACT_COUNTRY_CODE = 'contactCountryCode';
     case MESSESINFO_ID = 'messesInfoId';
     case WIKIDATA_ID = 'wikidataId';
     case PARENT_COMMUNITY_ID = 'parentCommunityId';
