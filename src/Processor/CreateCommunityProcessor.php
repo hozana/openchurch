@@ -50,7 +50,6 @@ final readonly class CreateCommunityProcessor implements ProcessorInterface
 
             $violations = $this->validator->validate($entityField);
             if (count($violations) > 0) {
-                // Gérer les violations, par exemple en lançant une exception
                 throw new ValidationException($violations);
             }
 

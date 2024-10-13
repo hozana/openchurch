@@ -4,7 +4,7 @@ namespace App\Domain\Community\Enum;
 
 use App\Helper\Doctrine\EnumType;
 
-class CommunityEnumType extends EnumType
+enum CommunityEnumType
 {
     public const PARISH = 'parish';
     public const PARISH_GROUP = 'parishGroup';
