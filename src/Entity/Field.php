@@ -18,7 +18,6 @@ use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
-#[ApiResource]
 #[ORM\Entity(repositoryClass: FieldRepository::class)]
 #[ORM\Table]
 #[ORM\UniqueConstraint(
