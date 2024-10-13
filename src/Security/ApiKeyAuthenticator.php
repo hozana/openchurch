@@ -9,7 +9,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
-use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Authenticator\AbstractAuthenticator;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
@@ -20,8 +19,7 @@ class ApiKeyAuthenticator extends AbstractAuthenticator
 {
     public function __construct(
         private readonly AgentRepository $agentRepo,
-    )
-    {
+    ) {
     }
 
     /**
@@ -52,12 +50,7 @@ class ApiKeyAuthenticator extends AbstractAuthenticator
             throw new CustomUserMessageAuthenticationException('Invalid API key provided');
         }
 
-        return new SelfValidatingPassport(
-            new UserBadge(
-                $userIdentifier,
-                fn(string $userIdentifier): ?UserInterface => $this->agentRepo->findOneBy(['name' => $userIdentifier])
-            )
-        );
+        return new SelfValidatingPassport(new UserBadge($userIdentifier));
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
