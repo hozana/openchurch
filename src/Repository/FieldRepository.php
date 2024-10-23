@@ -24,7 +24,7 @@ class FieldRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('field');
 
-        return $qb
+        $row = $qb
             ->select('COALESCE(IDENTITY(field.community), IDENTITY(field.place)) as attachedToId')
             ->where($this->whereFieldEquals(
                 $qb,
@@ -33,7 +33,9 @@ class FieldRepository extends ServiceEntityRepository
             ))
             ->setMaxResults(1)
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getOneOrNullResult();
+
+        return $row['attachedToId'] ?? null;
     }
 
     public function whereFieldEquals(QueryBuilder $qb, PlaceFieldName|CommunityFieldName $fieldName, mixed $fieldValue, string $alias = 'field'): Comparison
