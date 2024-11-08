@@ -3,14 +3,14 @@
 namespace App\Controller\Api;
 
 use ApiPlatform\Validator\Exception\ValidationException;
-use App\Entity\Agent;
-use App\Entity\Community;
-use App\Entity\CommunityFieldName;
-use App\Entity\Field;
-use App\Entity\Place;
-use App\Entity\PlaceFieldName;
+use App\Agent\Domain\Model\Agent;
+use App\Community\Domain\Model\Community;
+use App\Field\Domain\Enum\FieldCommunity;
+use App\Field\Domain\Enum\FieldPlace;
+use App\Field\Domain\Model\Field;
+use App\Field\Infrastructure\Doctrine\DoctrineFieldRepository;
 use App\Model\Request\FieldMutations;
-use App\Repository\FieldRepository;
+use App\Place\Domain\Model\Place;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -28,7 +28,7 @@ class FieldController extends AbstractController
 {
     public function __construct(
         private readonly EntityManagerInterface $em,
-        private readonly FieldRepository $fieldRepo,
+        private readonly DoctrineFieldRepository $fieldRepo,
         private readonly LockFactory $lockFactory,
         private readonly SerializerInterface $serializer,
         private readonly ValidatorInterface $validator,
@@ -66,7 +66,8 @@ class FieldController extends AbstractController
         $lock = $this->lockFactory->createLock("$entityClass/$id");
         $lock->acquire(true);
 
-        $agent = $this->getUser();
+        $repo = $this->em->getRepository(Agent::class);
+        $agent = $repo->find("01928276-75e8-7afc-832c-6b8101951a13");
         assert($agent instanceof Agent);
 
         try {
@@ -79,8 +80,8 @@ class FieldController extends AbstractController
             foreach ($body->fields as $mutation) {
                 $name = $mutation->name;
                 $nameEnum = match($entityClass) {
-                    Place::class => PlaceFieldName::tryFrom($name),
-                    Community::class => CommunityFieldName::tryFrom($name),
+                    Place::class => FieldPlace::tryFrom($name),
+                    Community::class => FieldCommunity::tryFrom($name),
                 };
                 if ($nameEnum === null) {
                     throw new BadRequestHttpException("Field $name: invalid field name");
@@ -95,7 +96,6 @@ class FieldController extends AbstractController
 
                 // Transform uuid into Community|Place and uuid[] into Community[]|Place[]
                 $value = $this->maybeTransformEntities($nameEnum, $mutation->value);
-
                 if ($entityClass === Community::class) {
                     $field->community = $entity;
                 } else {
@@ -139,11 +139,11 @@ class FieldController extends AbstractController
     }
 
     /**
-     * @param CommunityFieldName|PlaceFieldName $field
+     * @param FieldCommunity|FieldPlace $field
      * @param string|array $value
      * @return Community|Community[]|Place|Place[]
      */
-    private function maybeTransformEntities(CommunityFieldName|PlaceFieldName $nameEnum, mixed $value): mixed
+    private function maybeTransformEntities(FieldCommunity|FieldPlace $nameEnum, mixed $value): mixed
     {
         $type = $nameEnum->getType();
         if (!in_array($type, [

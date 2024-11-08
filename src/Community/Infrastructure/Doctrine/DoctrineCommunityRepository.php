@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Community\Infrastructure\Doctrine;
 
+use App\Community\Domain\Model\Community;
 use App\Community\Domain\Repository\CommunityRepositoryInterface;
-use App\Entity\Community;
 use App\Shared\Infrastructure\Doctrine\DoctrineRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
@@ -17,28 +17,38 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
 {
     private const ENTITY_CLASS = Community::class;
     private const ALIAS = 'community';
-    private bool $hasJoined = false;
 
     public function __construct(EntityManagerInterface $em)
     {
         parent::__construct($em, self::ENTITY_CLASS, self::ALIAS);
+        $this->join("fields", "fields");
     }
 
-    private function joinField() {
-        if (!$this->hasJoined) {
-            $this->query()->join('community.fields', 'fields');
-            $this->hasJoined = true;
-        }
-    }
-
-    public function withType(string $value): static
+    public function withType(?string $value): static
     {
+        if (!$value) return $this;
         return 
             $this->filter(static function (QueryBuilder $qb) use ($value): void {
-                $qb->join('community.fields', 'fields')
-                    ->andWhere('fields.name = :type AND fields.stringVal = :value')
-                    ->setParameter("type", 'type')
-                    ->setParameter("value", $value);
+                $qb->andWhere("
+                        EXISTS (SELECT 1 FROM App\Field\Domain\Model\Field f_type
+                        WHERE f_type.community = community
+                        AND f_type.name = 'type' AND f_type.stringVal = :valueType)
+                    ")
+                    ->setParameter("valueType", $value);
+        });
+    }
+
+    public function withWikidataId(?int $value): static
+    {
+        if (!$value) return $this;
+        return 
+            $this->filter(static function (QueryBuilder $qb) use ($value): void {
+                $qb->andWhere("
+                        EXISTS (SELECT 1 FROM App\Field\Domain\Model\Field f_wikidata
+                        WHERE f_wikidata.community = community
+                        AND f_wikidata.name = 'wikidataId' AND f_wikidata.intVal = :valueWikidata)
+                    ")
+                    ->setParameter("valueWikidata", $value);
         });
     }
 }

@@ -2,9 +2,9 @@
 
 namespace App\Command;
 
-use App\Entity\Agent;
-use App\Entity\Community;
-use App\Entity\Place;
+use App\Agent\Domain\Model\Agent;
+use App\Community\Domain\Model\Community;
+use App\Place\Domain\Model\Place;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;

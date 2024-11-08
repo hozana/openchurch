@@ -12,7 +12,7 @@ use ApiPlatform\State\Pagination\PaginatorInterface;
  * @implements PaginatorInterface<T>
  * @implements \IteratorAggregate<T>
  */
-final readonly class Paginator implements PaginatorInterface, \IteratorAggregate
+final class Paginator implements PaginatorInterface, \IteratorAggregate
 {
     /**
      * @param \Traversable<T> $items

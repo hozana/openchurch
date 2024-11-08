@@ -2,7 +2,7 @@
 
 namespace App\Security;
 
-use App\Repository\AgentRepository;
+use App\Agent\Infrastructure\Doctrine\DoctrineAgentRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +18,7 @@ use function Symfony\Component\String\s;
 class ApiKeyAuthenticator extends AbstractAuthenticator
 {
     public function __construct(
-        private readonly AgentRepository $agentRepo,
+        private readonly DoctrineAgentRepository $agentRepo,
     ) {
     }
 

@@ -2,8 +2,6 @@
 
 namespace App\Community\Domain\Enum;
 
-use App\Helper\Doctrine\EnumType;
-
 enum CommunityEnumType
 {
     public const PARISH = 'parish';

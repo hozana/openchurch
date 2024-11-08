@@ -12,7 +12,7 @@ use Doctrine\ORM\Tools\Pagination\Paginator;
  *
  * @implements PaginatorInterface<T>
  */
-final readonly class DoctrinePaginator implements PaginatorInterface
+final class DoctrinePaginator implements PaginatorInterface
 {
     private int $firstResult;
     private int $maxResults;
