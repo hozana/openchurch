@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Field\Infrastructure\ApiPlatform\Filter;
 
 use ApiPlatform\Metadata\FilterInterface;
+use App\Field\Domain\Enum\FieldCommunity;
 use Symfony\Component\PropertyInfo\Type;
 
 final class FieldTypeFilter implements FilterInterface
@@ -13,7 +14,7 @@ final class FieldTypeFilter implements FilterInterface
     {
         return [
             'type' => [
-                'property' => 'type',
+                'property' => FieldCommunity::TYPE->value,
                 'type' => Type::BUILTIN_TYPE_STRING,
                 'required' => false,
             ],

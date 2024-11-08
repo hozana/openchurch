@@ -38,8 +38,8 @@ services:
     environment:
       SERVER_NAME: localhost api.openchurch.local admin.openchurch.local
       APP_ENV: dev
-      DATABASE_URL: mysql://openchurch:openchurch@db:3306/openchurch?serverVersion=11.5.2-MariaDB&charset=utf8mb4
-      HOST_API: api.openchurch.local
+      DATABASE_URL: mysql://root:openchurch@db:3306/openchurch?serverVersion=11.5.2-MariaDB&charset=utf8mb4
+      HOST_API: api.openchurch.local/api
       HOST_ADMIN: admin.openchurch.local
     ports:
       - 443:443

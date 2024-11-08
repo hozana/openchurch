@@ -9,6 +9,7 @@ use ApiPlatform\State\Pagination\Pagination;
 use ApiPlatform\State\ProviderInterface;
 use App\Community\Infrastructure\ApiPlatform\Resource\CommunityResource;
 use App\Community\Infrastructure\Doctrine\DoctrineCommunityRepository;
+use App\Field\Domain\Enum\FieldCommunity;
 use App\Shared\Infrastructure\ApiPlatform\State\Paginator;
 
 final class CommunityCollectionProvider implements ProviderInterface
@@ -25,8 +26,8 @@ final class CommunityCollectionProvider implements ProviderInterface
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): Paginator|array
     {
         /** @var string|null $type */
-        $type = $context['filters']['type'] ?? null;
-        $wikidataId = $context['filters']['wikidataId'] ?? null;
+        $type = $context['filters'][FieldCommunity::TYPE->value] ?? null;
+        $wikidataId = $context['filters'][FieldCommunity::WIKIDATA_ID->value] ?? null;
         $page = $itemsPerPage = null;
 
         if ($this->pagination->isEnabled($operation, $context)) {
@@ -36,7 +37,7 @@ final class CommunityCollectionProvider implements ProviderInterface
 
         $models = $this->communityRepo
             ->withType($type)
-            ->withWikidataId($wikidataId)
+            ->withWikidataId((int) $wikidataId)
             ->withPagination($page, $itemsPerPage);
 
         $resources = [];
