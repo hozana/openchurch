@@ -1,11 +1,8 @@
 <?php
 
-use Symfony\Component\Dotenv\Dotenv;
 use Symfony\Component\Process\Process;
 
 require dirname(__DIR__).'/vendor/autoload.php';
-
-(new Dotenv())->bootEnv(dirname(__DIR__).'/.env', 'test');
 
 $dbExists = false;
 
