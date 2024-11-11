@@ -35,15 +35,6 @@ services:
     volumes:
       - .:/var/www/html
       - ./usr/local/bin/docker-php-entrypoint:/usr/local/bin/docker-php-entrypoint
-    environment:
-      SERVER_NAME: localhost api.openchurch.local admin.openchurch.local
-      APP_ENV: dev
-      DATABASE_URL: mysql://root:openchurch@db:3306/openchurch?serverVersion=11.5.2-MariaDB&charset=utf8mb4
-      HOST_API: api.openchurch.local/api
-      HOST_ADMIN: admin.openchurch.local
-      MESSENGER_TRANSPORT_DSN: doctrine://default?auto_setup=0
-      LOCK_DSN: flock
-      CORS_ALLOW_ORIGIN: '^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$'
     ports:
       - 443:443
       - 2019:2019
@@ -52,6 +43,9 @@ services:
     user: root
     networks:
       - app-network
+    environment:
+      SERVER_NAME: localhost api.openchurch.local admin.openchurch.local
+      DATABASE_URL: mysql://root:openchurch@db:3306/openchurch?serverVersion=11.5.2-MariaDB&charset=utf8mb4
 
 volumes:
   openchurch_db_data: {}

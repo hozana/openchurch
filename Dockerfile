@@ -72,6 +72,8 @@ COPY composer.lock /var/www/html/
 COPY symfony.lock /var/www/html/
 COPY usr/local/bin/docker-php-entrypoint /usr/local/bin/
 COPY .env /var/www/html/
+COPY .env.test /var/www/html/
+
 # The following line is needed only for load tests
 COPY tests/ /var/www/html/tests/
 COPY etc/caddy/Caddyfile /etc/caddy/Caddyfile
