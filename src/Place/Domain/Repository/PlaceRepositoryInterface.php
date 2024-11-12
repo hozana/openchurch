@@ -14,5 +14,5 @@ interface PlaceRepositoryInterface extends RepositoryInterface
 {
     public function ofId(string $placeid): ?Place;
 
-    public function add(Place $community): void;
+    public function add(Place $place): void;
 }

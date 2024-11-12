@@ -49,7 +49,7 @@ final class FieldService
 
             $field = $this->getOrCreate(
                 $entity, 
-                FieldCommunity::tryFrom($fieldPayload->name),
+                $enumValue,
                 $this->security->getUser()
             );
             $value = $this->maybeTransformEntities($enumValue, $fieldPayload->value);

@@ -62,7 +62,7 @@ class Field
      * @see PlaceFieldName
      */
     #[ORM\Column]
-    #[Groups(['communities'])]
+    #[Groups(['communities', 'places'])]
     public string $name;
 
     /**
@@ -105,7 +105,7 @@ class Field
 
     #[ORM\ManyToOne(targetEntity: Agent::class, inversedBy: 'fields')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['communities'])]
+    #[Groups(['communities', 'places'])]
     public Agent $agent;
 
     /**
@@ -113,7 +113,7 @@ class Field
      */
     #[Assert\Choice(callback: [FieldReliability::class, 'values'])]
     #[ORM\Column(type: 'enum_reliability_type')]
-    #[Groups(['communities'])]
+    #[Groups(['communities', 'places'])]
     public string $reliability;
 
     /**
@@ -121,21 +121,21 @@ class Field
      */
     #[Assert\Choice(callback: [FieldEngine::class, 'values'])]
     #[ORM\Column(type: 'enum_engine_type')]
-    #[Groups(['communities'])]
+    #[Groups(['communities', 'places'])]
     public string $engine;
 
     /**
      * Where the data comes from (openstreetmap, for instance)
      */
     #[ORM\Column(type: 'text', nullable: true)]
-    #[Groups(['communities'])]
+    #[Groups(['communities', 'places'])]
     public ?string $source;
 
     /**
      * Explanation of the source (its URL)
      */
     #[ORM\Column(type: 'text', nullable: true)]
-    #[Groups(['communities'])]
+    #[Groups(['communities', 'places'])]
     public ?string $explanation;
 
     public function __construct()
@@ -145,7 +145,7 @@ class Field
         $this->placesVal = new ArrayCollection();
     }
 
-    #[Groups(['communities'])]
+    #[Groups(['communities', 'places'])]
     #[SerializedName('value')]
     public function getValue(): mixed
     {

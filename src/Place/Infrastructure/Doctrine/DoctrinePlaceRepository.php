@@ -20,7 +20,7 @@ final class DoctrinePlaceRepository extends DoctrineRepository implements PlaceR
     public function __construct(EntityManagerInterface $em)
     {
         parent::__construct($em, self::ENTITY_CLASS, self::ALIAS);
-        $this->join("fields", "fields");
+        $this->join(self::ALIAS, "fields", "fields");
     }
 
     public function ofId(string $placeId): ?Place

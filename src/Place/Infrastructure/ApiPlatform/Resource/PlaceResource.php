@@ -21,6 +21,7 @@ use Symfony\Component\Uid\UuidV7;
             status: 202,
             input: CreatePlacePayload::class,
             processor: CreatePlaceProcessor::class,
+            normalizationContext: ['groups' => ['places']]
         ),
     ],
 )]
@@ -28,10 +29,11 @@ final class PlaceResource
 {
     public function __construct(
         #[ApiProperty(identifier: true, readable: true, writable: false)]
+        #[Groups(['places'])]
         public UuidV7 $id,
 
         /** @var Collection|Field[] $fields */
-        #[Groups(['communities'])]
+        #[Groups(['places'])]
         public Collection $fields,
     ) {}
 }

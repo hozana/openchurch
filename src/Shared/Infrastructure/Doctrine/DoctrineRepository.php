@@ -33,8 +33,8 @@ abstract class DoctrineRepository implements RepositoryInterface
             ->from($entityClass, $alias);
     }
 
-    public function join(string $to, string $alias) {
-        $this->queryBuilder->leftJoin("community.$to", $alias);
+    public function join(string $from, string $to, string $alias) {
+        $this->queryBuilder->leftJoin("$from.$to", $alias);
     }
 
     public function getIterator(): \Iterator

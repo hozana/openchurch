@@ -11,4 +11,9 @@ enum CommunityType: string
     case RELIGIOUS_COMMUNITY = 'religiousCommunity';
     case CONGREGATION = 'congregation';
     case DIOCESE = 'diocese';
+
+    public function getName(): string
+    {
+        return 'enum_community_type';
+    }
 }

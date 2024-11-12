@@ -2,33 +2,34 @@
 
 namespace App\Tests\Acceptance;
 
-use App\Community\Domain\Enum\CommunityType;
-use App\Community\Domain\Repository\CommunityRepositoryInterface;
-use App\Field\Domain\Enum\FieldCommunity;
+use App\Place\Domain\Enum\PlaceEnumType;
+use App\Place\Domain\Repository\PlaceRepositoryInterface;
+use App\Field\Domain\Enum\FieldPlace;
 use App\Field\Domain\Enum\FieldEngine;
 use App\Field\Domain\Enum\FieldReliability;
+use App\Place\Domain\Enum\PlaceType;
 use App\Tests\Factory\Model\AgentFactory;
 use App\Tests\Helper\AcceptanceTestHelper;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Zenstruck\Foundry\Test\Factories;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
-class CreateCommunityProcessorTest extends AcceptanceTestHelper
+class CreatePlaceProcessorTest extends AcceptanceTestHelper
 {
     use ResetDatabase, Factories;
 
     public function testShouldPassWithGoodData(): void
     {
-        /** @var CommunityRepositoryInterface $communityRepository */
-        $communityRepository = static::getContainer()->get(CommunityRepositoryInterface::class);
+        /** @var PlaceRepositoryInterface $placeRepository */
+        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
 
-        self::assertEmpty($communityRepository);
+        self::assertEmpty($placeRepository);
         $agent = AgentFactory::createOne();
         
-        $response = self::assertResponse($this->post('/communities', $agent->apiKey, body: [
+        $response = self::assertResponse($this->post('/places', $agent->apiKey, body: [
             'fields' => [
                 [
-                    'name' => FieldCommunity::WIKIDATA_ID,
+                    'name' => FieldPlace::WIKIDATA_ID,
                     'value' => 484848151,
                     'reliability' => FieldReliability::HIGH,
                     'source' => 'custom_source',
@@ -36,8 +37,8 @@ class CreateCommunityProcessorTest extends AcceptanceTestHelper
                     'engine' => FieldEngine::AI,
                 ],
                 [
-                    'name' => FieldCommunity::TYPE,
-                    'value' => CommunityType::PARISH,
+                    'name' => FieldPlace::TYPE,
+                    'value' => PlaceType::CHAPEL,
                     'reliability' => FieldReliability::HIGH,
                     'source' => 'custom_source',
                     'explanation' => 'yolo',
@@ -46,7 +47,7 @@ class CreateCommunityProcessorTest extends AcceptanceTestHelper
             ]
         ]), HttpFoundationResponse::HTTP_ACCEPTED);
 
-        self::assertCount(1, $communityRepository);
+        self::assertCount(1, $placeRepository);
         self::assertCount(2, $response['fields']);
         self::assertEquals($agent->id, $response['fields'][0]['agent']['id']);
         self::assertEquals($agent->id, $response['fields'][1]['agent']['id']);
@@ -54,17 +55,17 @@ class CreateCommunityProcessorTest extends AcceptanceTestHelper
 
     public function testShouldThrowIfFieldNameNotValid(): void
     {
-        /** @var CommunityRepositoryInterface $communityRepository */
-        $communityRepository = static::getContainer()->get(CommunityRepositoryInterface::class);
+        /** @var PlaceRepositoryInterface $placeRepository */
+        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
 
-        self::assertEmpty($communityRepository);
+        self::assertEmpty($placeRepository);
         $agent = AgentFactory::createOne();
         
-        self::assertResponse($this->post('/communities', $agent->apiKey, body: [
+        self::assertResponse($this->post('/places', $agent->apiKey, body: [
             'fields' => [
                 [
                     'name' => 'toto',
-                    'value' => CommunityType::PARISH,
+                    'value' => PlaceType::CHAPEL,
                     'reliability' => FieldReliability::HIGH,
                     'source' => 'custom_source',
                     'explanation' => 'yolo',
@@ -73,21 +74,21 @@ class CreateCommunityProcessorTest extends AcceptanceTestHelper
             ]
         ]), HttpFoundationResponse::HTTP_BAD_REQUEST);
 
-        self::assertCount(0, $communityRepository);
+        self::assertCount(0, $placeRepository);
     }
 
     public function testShouldThrowIfFieldValueNotValid(): void
     {
-        /** @var CommunityRepositoryInterface $communityRepository */
-        $communityRepository = static::getContainer()->get(CommunityRepositoryInterface::class);
+        /** @var PlaceRepositoryInterface $placeRepository */
+        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
 
-        self::assertEmpty($communityRepository);
+        self::assertEmpty($placeRepository);
         $agent = AgentFactory::createOne();
         
-        self::assertResponse($this->post('/communities', $agent->apiKey, body: [
+        self::assertResponse($this->post('/places', $agent->apiKey, body: [
             'fields' => [
                 [
-                    'name' => FieldCommunity::TYPE,
+                    'name' => FieldPlace::TYPE,
                     'value' => 123456,
                     'reliability' => FieldReliability::HIGH,
                     'source' => 'custom_source',
@@ -97,21 +98,21 @@ class CreateCommunityProcessorTest extends AcceptanceTestHelper
             ]
         ]), HttpFoundationResponse::HTTP_UNPROCESSABLE_ENTITY);
 
-        self::assertCount(0, $communityRepository);
+        self::assertCount(0, $placeRepository);
     }
 
     public function testShouldThrowIfWikidataIdAlreadyExists(): void
     {
-        /** @var CommunityRepositoryInterface $communityRepository */
-        $communityRepository = static::getContainer()->get(CommunityRepositoryInterface::class);
+        /** @var PlaceRepositoryInterface $placeRepository */
+        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
 
-        self::assertEmpty($communityRepository);
+        self::assertEmpty($placeRepository);
         $agent = AgentFactory::createOne();
         
-        self::assertResponse($this->post('/communities', $agent->apiKey, body: [
+        self::assertResponse($this->post('/places', $agent->apiKey, body: [
             'fields' => [
                 [
-                    'name' => FieldCommunity::WIKIDATA_ID,
+                    'name' => FieldPlace::WIKIDATA_ID,
                     'value' => 123456,
                     'reliability' => FieldReliability::HIGH,
                     'source' => 'custom_source',
@@ -121,12 +122,12 @@ class CreateCommunityProcessorTest extends AcceptanceTestHelper
             ]
         ]), HttpFoundationResponse::HTTP_ACCEPTED);
 
-        self::assertCount(1, $communityRepository);
+        self::assertCount(1, $placeRepository);
 
-        self::assertResponse($this->post('/communities', $agent->apiKey, body: [
+        self::assertResponse($this->post('/places', $agent->apiKey, body: [
             'fields' => [
                 [
-                    'name' => FieldCommunity::WIKIDATA_ID,
+                    'name' => FieldPlace::WIKIDATA_ID,
                     'value' => 123456,
                     'reliability' => FieldReliability::HIGH,
                     'source' => 'custom_source',
@@ -139,16 +140,16 @@ class CreateCommunityProcessorTest extends AcceptanceTestHelper
 
     public function testShouldThrowIfMesseInfoIdAlreadyExists(): void
     {
-        /** @var CommunityRepositoryInterface $communityRepository */
-        $communityRepository = static::getContainer()->get(CommunityRepositoryInterface::class);
+        /** @var PlaceRepositoryInterface $placeRepository */
+        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
 
-        self::assertEmpty($communityRepository);
+        self::assertEmpty($placeRepository);
         $agent = AgentFactory::createOne();
         
-        self::assertResponse($this->post('/communities', $agent->apiKey, body: [
+        self::assertResponse($this->post('/places', $agent->apiKey, body: [
             'fields' => [
                 [
-                    'name' => FieldCommunity::MESSESINFO_ID,
+                    'name' => FieldPlace::MESSESINFO_ID,
                     'value' => "aze123456",
                     'reliability' => FieldReliability::HIGH,
                     'source' => 'custom_source',
@@ -158,12 +159,12 @@ class CreateCommunityProcessorTest extends AcceptanceTestHelper
             ]
         ]), HttpFoundationResponse::HTTP_ACCEPTED);
 
-        self::assertCount(1, $communityRepository);
+        self::assertCount(1, $placeRepository);
 
-        self::assertResponse($this->post('/communities', $agent->apiKey, body: [
+        self::assertResponse($this->post('/places', $agent->apiKey, body: [
             'fields' => [
                 [
-                    'name' => FieldCommunity::MESSESINFO_ID,
+                    'name' => FieldPlace::MESSESINFO_ID,
                     'value' => "aze123456",
                     'reliability' => FieldReliability::HIGH,
                     'source' => 'custom_source',

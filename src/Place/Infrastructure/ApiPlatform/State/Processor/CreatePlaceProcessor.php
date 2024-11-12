@@ -34,12 +34,13 @@ final class CreatePlaceProcessor implements ProcessorInterface
         return $this->transactionManager->transactional(function () use ($data) {
             Assert::isInstanceOf($data, CreatePlacePayload::class);
 
-            $community = new Place();
-            $this->placeRepo->add($community);
+            $place = new Place();
+            $this->placeRepo->add($place);
 
-            $fields = $this->fieldService->upsertFields($community, $data->fields);
+            $fields = $this->fieldService->upsertFields($place, $data->fields);
+
             return new PlaceResource(
-                $community->id,
+                $place->id,
                 $fields
             );
         });
