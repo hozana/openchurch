@@ -6,60 +6,42 @@ namespace App\Place\Infrastructure\ApiPlatform\State\Processor;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
-use ApiPlatform\Validator\Exception\ValidationException;
-use App\Agent\Domain\Model\Agent;
-use App\ApiResource\Place\CreatePlaceInput;
-use App\Field\Domain\Model\Field;
+use App\Field\Application\FieldService;
 use App\Place\Domain\Model\Place;
+use App\Place\Domain\Repository\PlaceRepositoryInterface;
 use App\Place\Infrastructure\ApiPlatform\Payload\CreatePlacePayload;
 use App\Place\Infrastructure\ApiPlatform\Resource\PlaceResource;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
+use App\Shared\Domain\Manager\TransactionManagerInterface;
 use Webmozart\Assert\Assert;
 
 /**
- * @implements ProcessorInterface<null>
+ * @implements ProcessorInterface<CreatePlacePayload, PlaceResource>
  */
 final class CreatePlaceProcessor implements ProcessorInterface
 {
     public function __construct(
-        private EntityManagerInterface $em,
-        private ValidatorInterface $validator
+        private PlaceRepositoryInterface $placeRepo,
+        private TransactionManagerInterface $transactionManager,
+        private FieldService $fieldService,
     ) {
     }
 
     /**
-     * @param CreatePlaceInput $data
+     * @param CreatePlacePayload $data
      */
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): PlaceResource
     {
-        Assert::isInstanceOf($data, CreatePlacePayload::class);
+        return $this->transactionManager->transactional(function () use ($data) {
+            Assert::isInstanceOf($data, CreatePlacePayload::class);
 
-        $repo = $this->em->getRepository(Agent::class);
-        $place = new Place();
-        $this->em->persist($place);
+            $community = new Place();
+            $this->placeRepo->add($community);
 
-        foreach ($data->fields as $field) {
-            $entityField = new Field();
-            $entityField->name = $field->name;
-            $entityField->value = $field->value;
-            $entityField->reliability = $field->reliability;
-            $entityField->source = $field->source;
-            $entityField->explanation = $field->explanation;
-            $entityField->agent = $repo->find("01928276-75e8-7afc-832c-6b8101951a13");
-            $entityField->place = $place;
-
-            $violations = $this->validator->validate($entityField);
-            if (count($violations) > 0) {
-                // Gérer les violations, par exemple en lançant une exception
-                throw new ValidationException($violations);
-            }
-
-            $this->em->persist($entityField);
-        }
-
-        $this->em->flush();
-
-        return new PlaceResource($place->id);
+            $fields = $this->fieldService->upsertFields($community, $data->fields);
+            return new PlaceResource(
+                $community->id,
+                $fields
+            );
+        });
     }
 }

@@ -2,15 +2,15 @@
 
 namespace App\Agent\Domain\Model;
 
-use App\Agent\Infrastructure\Doctrine\DoctrineAgentRepository;
 use App\Field\Domain\Model\Field;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
 
-#[ORM\Entity(repositoryClass: DoctrineAgentRepository::class)]
+#[ORM\Entity]
 #[ORM\Table]
 class Agent implements UserInterface
 {
@@ -18,9 +18,11 @@ class Agent implements UserInterface
     #[ORM\Column(type: 'uuid', unique: true)]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
+    #[Groups(['communities'])]
     public ?Uuid $id = null;
 
     #[ORM\Column(unique: true)]
+    #[Groups(['communities'])]
     public string $name;
 
     #[ORM\Column(unique: true)]

@@ -51,7 +51,6 @@ class Field
     public ?Community $community = null;
 
     #[ORM\ManyToOne(targetEntity: Place::class, inversedBy: 'fields')]
-    #[Groups(['communities'])]
     public ?Place $place = null;
 
     /**
@@ -96,7 +95,6 @@ class Field
     public Collection $communitiesVal;
 
     #[ORM\ManyToOne(targetEntity: Place::class, inversedBy: 'fieldsAsPlaceVal')]
-    #[Groups(['communities'])]
     public ?Place $placeVal = null;
 
     /**

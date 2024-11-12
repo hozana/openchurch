@@ -22,10 +22,11 @@ use Symfony\Component\Uid\UuidV7;
     shortName: 'Community',
     operations: [
         new Post(
-            '/communities',
+            uriTemplate: '/communities',
             status: 202,
             input: CreateCommunityPayload::class,
             processor: CreateCommunityProcessor::class,
+            normalizationContext: ['groups' => ['communities']]
         ),
         new GetCollection(
             filters: [

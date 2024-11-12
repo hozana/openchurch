@@ -3,20 +3,30 @@
 namespace App\Agent\Infrastructure\Doctrine;
 
 use App\Agent\Domain\Model\Agent;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use App\Agent\Domain\Repository\AgentRepositoryInterface;
+use App\Shared\Infrastructure\Doctrine\DoctrineRepository;
+use Doctrine\ORM\EntityManagerInterface;
 
-class DoctrineAgentRepository extends ServiceEntityRepository
+class DoctrineAgentRepository extends DoctrineRepository implements AgentRepositoryInterface
 {
-    public function __construct(ManagerRegistry $registry)
+    private const ENTITY_CLASS = Agent::class;
+    private const ALIAS = 'agent';
+
+    public function __construct(EntityManagerInterface $em)
     {
-        parent::__construct($registry, Agent::class);
+        parent::__construct($em, self::ENTITY_CLASS, self::ALIAS);
+    }
+
+    public function ofId(string $id): ?Agent
+    {
+        return $this->em->find(self::ENTITY_CLASS, $id);
     }
 
     public function findAgentNameByApiKey(string $apiKey): ?string
     {
-        $row = $this->createQueryBuilder('agent')
-            ->select('agent.name')
+        $qb = $this->query();
+
+        $row = $qb->select('agent.name')
             ->where('agent.apiKey = :apiKey')
             ->setParameter('apiKey', $apiKey)
             ->getQuery()

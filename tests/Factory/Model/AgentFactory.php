@@ -32,8 +32,8 @@ final class AgentFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         return [
-            'apiKey' => self::faker()->text(),
-            'name' => self::faker()->text(),
+            'apiKey' => self::faker()->uuid(),
+            'name' => self::faker()->name(),
         ];
     }
 

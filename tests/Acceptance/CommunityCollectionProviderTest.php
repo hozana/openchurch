@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Tests\Application\Doctrine;
+namespace App\Tests\Acceptance;
 
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Model\Field;
 use App\Tests\Factory\Model\CommunityFactory;
 use App\Tests\Factory\Model\FieldFactory;
-use App\Tests\Helper\ApplicationTestHelper;
+use App\Tests\Helper\AcceptanceTestHelper;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Zenstruck\Foundry\Test\Factories;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
-class CommunityCollectionProviderTest extends ApplicationTestHelper
+class CommunityCollectionProviderTest extends AcceptanceTestHelper
 {
     use ResetDatabase, Factories;
 

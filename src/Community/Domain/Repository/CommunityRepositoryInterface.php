@@ -12,6 +12,11 @@ use App\Shared\Domain\Repository\RepositoryInterface;
  */
 interface CommunityRepositoryInterface extends RepositoryInterface
 {
+    public function ofId(string $communityid): ?Community;
+
+    public function add(Community $community): void;
+
     public function withType(string $type): static;
 
+    public function withWikidataId(int $wikidataId): static;
 }

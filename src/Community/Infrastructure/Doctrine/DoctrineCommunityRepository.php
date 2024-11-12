@@ -6,7 +6,9 @@ namespace App\Community\Infrastructure\Doctrine;
 
 use App\Community\Domain\Model\Community;
 use App\Community\Domain\Repository\CommunityRepositoryInterface;
+use App\Field\Domain\Enum\FieldCommunity;
 use App\Shared\Infrastructure\Doctrine\DoctrineRepository;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 
@@ -22,6 +24,16 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
     {
         parent::__construct($em, self::ENTITY_CLASS, self::ALIAS);
         $this->join("fields", "fields");
+    }
+
+    public function ofId(string $communityId): ?Community
+    {
+        return $this->em->find(self::ENTITY_CLASS, $communityId);
+    }
+
+    public function add(Community $community): void
+    {
+        $this->em->persist($community);
     }
 
     public function withType(?string $value): static
@@ -50,5 +62,21 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
                     ")
                     ->setParameter("valueWikidata", $value);
         });
+    }
+
+    /**
+     * @return Collection|Field[]
+     */
+    public function getFieldsByName(FieldCommunity $name): Collection
+    {
+        return $this->fields
+            ->filter(fn (Field $field) => $field->name === $name->value);
+    }
+
+    public function getFieldByNameAndAgent(FieldCommunity $name, Agent $agent): ?Field
+    {
+        return $this->getFieldsByName($name)
+            ->filter(fn (Field $field) => $field->agent === $agent)
+            ->first() ?: null;
     }
 }

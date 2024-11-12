@@ -28,3 +28,20 @@ services:
       [{ name: kernel.event_listener, event: kernel.exception, priority: 255 }]
     arguments:
       $env: "%kernel.environment%"
+
+  # Manager
+  App\Shared\Domain\Manager\TransactionManagerInterface:
+    class: App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager
+
+  # Repositories
+  App\Place\Domain\Repository\PlaceRepositoryInterface:
+    class: App\Place\Infrastructure\Doctrine\DoctrinePlaceRepository
+
+  App\Community\Domain\Repository\CommunityRepositoryInterface:
+    class: App\Community\Infrastructure\Doctrine\DoctrineCommunityRepository
+
+  App\Field\Domain\Repository\FieldRepositoryInterface:
+    class: App\Field\Infrastructure\Doctrine\DoctrineFieldRepository
+
+  App\Agent\Domain\Repository\AgentRepositoryInterface:
+    class: App\Agent\Infrastructure\Doctrine\DoctrineAgentRepository

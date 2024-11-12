@@ -9,6 +9,8 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Post;
 use App\Place\Infrastructure\ApiPlatform\Payload\CreatePlacePayload;
 use App\Place\Infrastructure\ApiPlatform\State\Processor\CreatePlaceProcessor;
+use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\UuidV7;
 
 #[ApiResource(
@@ -27,5 +29,9 @@ final class PlaceResource
     public function __construct(
         #[ApiProperty(identifier: true, readable: true, writable: false)]
         public UuidV7 $id,
+
+        /** @var Collection|Field[] $fields */
+        #[Groups(['communities'])]
+        public Collection $fields,
     ) {}
 }

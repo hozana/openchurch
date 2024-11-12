@@ -5,16 +5,25 @@ namespace App\Field\Infrastructure\Doctrine;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Enum\FieldPlace;
 use App\Field\Domain\Model\Field;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Field\Domain\Repository\FieldRepositoryInterface;
+use App\Shared\Infrastructure\Doctrine\DoctrineRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\Expr\Comparison;
 use Doctrine\ORM\QueryBuilder;
-use Doctrine\Persistence\ManagerRegistry;
 
-class DoctrineFieldRepository extends ServiceEntityRepository
+class DoctrineFieldRepository extends DoctrineRepository implements FieldRepositoryInterface
 {
-    public function __construct(ManagerRegistry $registry)
+    private const ENTITY_CLASS = Field::class;
+    private const ALIAS = 'field';
+
+    public function __construct(EntityManagerInterface $em)
     {
-        parent::__construct($registry, Field::class);
+        parent::__construct($em, self::ENTITY_CLASS, self::ALIAS);
+    }
+
+    public function add(Field $field): void
+    {
+        $this->em->persist($field);
     }
 
     /**
@@ -22,8 +31,7 @@ class DoctrineFieldRepository extends ServiceEntityRepository
      */
     public function exists(FieldPlace|FieldCommunity $fieldName, mixed $fieldValue): string|null
     {
-        $qb = $this->createQueryBuilder('field');
-
+        $qb = $this->query();
         $row = $qb
             ->select('COALESCE(IDENTITY(field.community), IDENTITY(field.place)) as attachedToId')
             ->where($this->whereFieldEquals(
@@ -38,11 +46,11 @@ class DoctrineFieldRepository extends ServiceEntityRepository
         return $row['attachedToId'] ?? null;
     }
 
-    public function whereFieldEquals(QueryBuilder $qb, FieldPlace|FieldCommunity $fieldName, mixed $fieldValue, string $alias = 'field'): Comparison
+    private function whereFieldEquals(QueryBuilder $qb, FieldPlace|FieldCommunity $fieldName, mixed $fieldValue, string $alias = 'field'): Comparison
     {
         $propertyName = Field::getPropertyName($fieldName);
-
         $parameterName = "{$alias}_value";
+
         $qb->setParameter($parameterName, $fieldValue);
         return $qb->expr()->eq("$alias.$propertyName", ":$parameterName");
     }

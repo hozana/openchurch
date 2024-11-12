@@ -12,7 +12,7 @@ use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-abstract class ApplicationTestHelper extends ApiTestCase
+abstract class AcceptanceTestHelper extends ApiTestCase
 {
     protected Client $client;
     protected EntityManagerInterface $em;
@@ -36,22 +36,22 @@ abstract class ApplicationTestHelper extends ApiTestCase
         parent::tearDown();
     }
 
-    protected function post(string $endpoint, ?string $token = null, array $body = null, array $headers = []): Response
+    protected function post(string $endpoint, ?string $apikey = null, array $body = null, array $headers = []): Response
     {
-        return $this->request(Request::METHOD_POST, $endpoint, $token, $body, $headers);
+        return $this->request(Request::METHOD_POST, $endpoint, $apikey, $body, $headers);
     }
 
-    protected function put(string $endpoint, ?string $token = null, array $body = null, array $headers = []): Response
+    protected function put(string $endpoint, ?string $apikey = null, array $body = null, array $headers = []): Response
     {
-        return $this->request(Request::METHOD_PUT, $endpoint, $token, $body, $headers);
+        return $this->request(Request::METHOD_PUT, $endpoint, $apikey, $body, $headers);
     }
 
-    protected function patch(string $endpoint, ?string $token = null, array $body = null, array $headers = []): Response
+    protected function patch(string $endpoint, ?string $apikey = null, array $body = null, array $headers = []): Response
     {
-        return $this->request(Request::METHOD_PATCH, $endpoint, $token, $body, $headers);
+        return $this->request(Request::METHOD_PATCH, $endpoint, $apikey, $body, $headers);
     }
 
-    protected function get(string $endpoint, ?string $token = null, array $headers = [], array $querystring = []): Response
+    protected function get(string $endpoint, ?string $apikey = null, array $headers = [], array $querystring = []): Response
     {
         if (count($querystring)) {
             if (str_contains($endpoint, '?')) {
@@ -60,15 +60,15 @@ abstract class ApplicationTestHelper extends ApiTestCase
             $endpoint .= '?'.http_build_query($querystring);
         }
 
-        return $this->request(Request::METHOD_GET, $endpoint, $token, null, $headers);
+        return $this->request(Request::METHOD_GET, $endpoint, $apikey, null, $headers);
     }
 
-    protected function delete(string $endpoint, ?string $token = null, $body = null, array $headers = []): Response
+    protected function delete(string $endpoint, ?string $apikey = null, $body = null, array $headers = []): Response
     {
-        return $this->request(Request::METHOD_DELETE, $endpoint, $token, $body, $headers);
+        return $this->request(Request::METHOD_DELETE, $endpoint, $apikey, $body, $headers);
     }
 
-    private function request(string $method, string $endpoint, ?string $token, ?array $body, array $headers = []): Response
+    private function request(string $method, string $endpoint, ?string $apikey, ?array $body, array $headers = []): Response
     {
         $apiHost = $this->getParameter('host_api');
         $endpoint = ltrim($endpoint, '/');
@@ -78,8 +78,8 @@ abstract class ApplicationTestHelper extends ApiTestCase
         $server = [
             'CONTENT_TYPE' => 'application/json',
         ];
-        if ($token !== null) {
-            $headers['Authorization'] = "Bearer $token";
+        if ($apikey !== null) {
+            $headers['Authorization'] = "Bearer $apikey";
         }
         foreach ($headers as $key => $value) {
             $server["HTTP_$key"] = $value;
