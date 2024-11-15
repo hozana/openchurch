@@ -37,7 +37,6 @@ final class FieldService
     public function upsertFields(Place|Community $entity, array $fieldPayloads): Collection {
         $insertedFields = new ArrayCollection();
 
-
         foreach ($fieldPayloads as $fieldPayload) {
             $enumValue = match($entity::class) {
                 Place::class => FieldPlace::tryFrom($fieldPayload->name),
@@ -70,10 +69,10 @@ final class FieldService
             // Unique constraints validation (TODO use custom Assert instead)
             if ($field->value !== null
                 && in_array($field->name, Field::UNIQUE_CONSTRAINTS, true)
-                && (null !== $attachedToId = $this->fieldRepo->exists($enumValue, $field->value))
+                && (null !== $attachedToId = $this->fieldRepo->exists($entity->id, $enumValue, $field->value))
                 && $attachedToId !== $entity->id
             ) {
-                throw new BadRequestHttpException("Found duplicate for field $field->name with value $field->value on entity ".$entity::class);
+                throw new BadRequestHttpException("Found duplicate for field $field->name with value $field->value");
             }
 
             $violations = $this->validator->validate($field);

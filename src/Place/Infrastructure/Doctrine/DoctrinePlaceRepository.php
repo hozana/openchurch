@@ -8,6 +8,7 @@ use App\Place\Domain\Model\Place;
 use App\Place\Domain\Repository\PlaceRepositoryInterface;
 use App\Shared\Infrastructure\Doctrine\DoctrineRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Uid\Uuid;
 
 /**
  * @extends DoctrineRepository<Place>
@@ -23,7 +24,7 @@ final class DoctrinePlaceRepository extends DoctrineRepository implements PlaceR
         $this->join(self::ALIAS, "fields", "fields");
     }
 
-    public function ofId(string $placeId): ?Place
+    public function ofId(Uuid $placeId): ?Place
     {
         return $this->em->find(self::ENTITY_CLASS, $placeId);
     }

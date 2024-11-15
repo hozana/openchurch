@@ -2,7 +2,6 @@
 
 namespace App\Tests\Acceptance;
 
-use App\Place\Domain\Enum\PlaceEnumType;
 use App\Place\Domain\Repository\PlaceRepositoryInterface;
 use App\Field\Domain\Enum\FieldPlace;
 use App\Field\Domain\Enum\FieldEngine;

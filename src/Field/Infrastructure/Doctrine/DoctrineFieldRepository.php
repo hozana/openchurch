@@ -10,6 +10,7 @@ use App\Shared\Infrastructure\Doctrine\DoctrineRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\Expr\Comparison;
 use Doctrine\ORM\QueryBuilder;
+use Symfony\Component\Uid\Uuid;
 
 class DoctrineFieldRepository extends DoctrineRepository implements FieldRepositoryInterface
 {
@@ -29,17 +30,22 @@ class DoctrineFieldRepository extends DoctrineRepository implements FieldReposit
     /**
      * Checks if the specific field exists across the database. If it is, will return the UUID
      */
-    public function exists(FieldPlace|FieldCommunity $fieldName, mixed $fieldValue): string|null
+    public function exists(Uuid $id, FieldPlace|FieldCommunity $fieldName, mixed $fieldValue): string|null
     {
         $qb = $this->query();
-        $row = $qb
-            ->select('COALESCE(IDENTITY(field.community), IDENTITY(field.place)) as attachedToId')
+        $row = $qb->select('COALESCE(IDENTITY(field.community), IDENTITY(field.place)) as attachedToId')
             ->where($this->whereFieldEquals(
                 $qb,
                 $fieldName,
                 $fieldValue,
             ))
-            ->setMaxResults(1)
+            ->andWhere($qb->expr()->eq('field.name', ':fieldName'))
+            ->setParameter('fieldName', $fieldName)
+            ->andWhere($qb->expr()->orX(
+                $fieldName instanceof FieldCommunity ? $qb->expr()->neq('field.community', ':id') : $qb->expr()->neq('field.place', ':id'),
+                $fieldName instanceof FieldCommunity ? $qb->expr()->isNull('field.community') : $qb->expr()->isNull('field.place'),
+            ))
+            ->setParameter('id', $id->toBinary())
             ->getQuery()
             ->getOneOrNullResult();
 

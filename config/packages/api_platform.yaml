@@ -6,10 +6,15 @@ api_platform:
     pagination_client_items_per_page: true
     cache_headers:
       vary: ["Content-Type", "Authorization", "Origin"]
-  "mapping":
+  mapping:
     paths:
       - "%kernel.project_dir%/src/Community/Infrastructure/ApiPlatform/Resource/"
       - "%kernel.project_dir%/src/Place/Infrastructure/ApiPlatform/Resource/"
+      - "%kernel.project_dir%/src/Place/Domain/Exception/"
+  exception_to_status:
+    App\Place\Domain\Exception\PlaceNotFoundException: 404 # Here is the handler for our custom exception
   formats:
     json: ["application/json"]
     jsonld: ["application/ld+json"]
+  patch_formats:
+    json: ["application/json"]

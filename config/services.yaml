@@ -45,3 +45,9 @@ services:
 
   App\Agent\Domain\Repository\AgentRepositoryInterface:
     class: App\Agent\Infrastructure\Doctrine\DoctrineAgentRepository
+
+  api_platform.state.error_provider:
+    class: 'App\Shared\Infrastructure\ApiPlatform\Provider\ErrorProvider'
+    tags:
+      - key: "api_platform.state.error_provider"
+        name: "api_platform.state_provider"

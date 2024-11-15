@@ -50,9 +50,6 @@ class Field
     #[ORM\ManyToOne(targetEntity: Community::class, inversedBy: 'fields')]
     public ?Community $community = null;
 
-    #[ORM\ManyToOne(targetEntity: Place::class, inversedBy: 'fields')]
-    public ?Place $place = null;
-
     /**
      * Field name: not registered as enum
      *  - so that we can add more easily without a costly database migration ;
@@ -137,6 +134,9 @@ class Field
     #[ORM\Column(type: 'text', nullable: true)]
     #[Groups(['communities', 'places'])]
     public ?string $explanation;
+
+    #[ORM\ManyToOne(inversedBy: 'fields', cascade: ['persist'])]
+    public ?Place $place = null;
 
     public function __construct()
     {

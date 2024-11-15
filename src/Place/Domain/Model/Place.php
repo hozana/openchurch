@@ -30,13 +30,7 @@ class Place
     /**
      * @var ArrayCollection|Field[]
      */
-    #[ORM\OneToMany(targetEntity: Field::class, mappedBy: 'place')]
-    public Collection $fields;
-
-    /**
-     * @var ArrayCollection|Field[]
-     */
-    #[ORM\OneToMany(targetEntity: Field::class, mappedBy: 'placeVal')]
+    #[ORM\OneToMany(targetEntity: Field::class, mappedBy: 'placeVal', cascade: ['persist'])]
     public Collection $fieldsAsPlaceVal;
 
     /**
@@ -45,12 +39,18 @@ class Place
     #[ORM\ManyToMany(targetEntity: Field::class, mappedBy: 'placesVal')]
     public Collection $fieldsAsPlacesVal;
 
+    /**
+     * @var Collection<int, Field>
+     */
+    #[ORM\OneToMany(targetEntity: Field::class, mappedBy: 'place')]
+    public Collection $fields;
+
     public function __construct()
     {
         $this->createdAt = new DateTimeImmutable();
-        $this->fields = new ArrayCollection();
         $this->fieldsAsPlaceVal = new ArrayCollection();
         $this->fieldsAsPlacesVal = new ArrayCollection();
+        $this->fields = new ArrayCollection();
     }
 
     #[Assert\Callback()]
@@ -93,8 +93,25 @@ class Place
             ->first() ?: null;
     }
 
-    public function __toString(): string
+    public function addField(Field $field): static
     {
-        return $this->id;
+        if (!$this->fields->contains($field)) {
+            $this->fields->add($field);
+            $field->place = $this;
+        }
+
+        return $this;
+    }
+
+    public function removeField(Field $field): static
+    {
+        if ($this->fields->removeElement($field)) {
+            // set the owning side to null (unless already changed)
+            if ($field->place === $this) {
+                $field->place = null;
+            }
+        }
+
+        return $this;
     }
 }
