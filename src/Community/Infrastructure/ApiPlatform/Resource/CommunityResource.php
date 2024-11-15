@@ -27,6 +27,7 @@ use Symfony\Component\Uid\UuidV7;
     shortName: 'Community',
     operations: [
         new Post(
+            security: 'is_granted("ROLE_AGENT")',
             uriTemplate: '/communities',
             status: 202,
             input: CreateCommunityPayload::class,
@@ -34,6 +35,7 @@ use Symfony\Component\Uid\UuidV7;
             normalizationContext: ['groups' => ['communities']]
         ),
         new Patch(
+            securityPostDenormalize: 'is_granted("ROLE_AGENT")',
             uriTemplate: '/communities',
             status: 200,
             input: UpdateCommunityPayload::class,
