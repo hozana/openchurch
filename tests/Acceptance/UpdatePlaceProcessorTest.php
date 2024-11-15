@@ -8,6 +8,7 @@ use App\Field\Domain\Enum\FieldEngine;
 use App\Field\Domain\Enum\FieldReliability;
 use App\Field\Domain\Model\Field;
 use App\Place\Domain\Enum\PlaceType;
+use App\Place\Domain\Exception\PlaceNotFoundException;
 use App\Place\Domain\Model\Place;
 use App\Tests\Factory\Model\AgentFactory;
 use App\Tests\Factory\Model\PlaceFactory;
@@ -145,15 +146,16 @@ class UpdatePlaceProcessorTest extends AcceptanceTestHelper
             ]
         ]), HttpFoundationResponse::HTTP_BAD_REQUEST);
 
-        self::assertEquals("Found duplicate for field wikidataId with value 123457", $response['message']);
+        self::assertEquals("Found duplicate for field wikidataId with value 123457", $response['detail']);
     }
 
     public function testShouldThrowIfPlaceNotFound(): void
     {
         $agent = AgentFactory::createOne();
+        $id = UuidV7::v7();
 
-        self::assertResponse($this->patch('/places/', $agent->apiKey, body: [
-            'id' => UuidV7::v7()->toString(),
+        self::assertErrorResponse($this->patch('/places', $agent->apiKey, body: [
+            'id' => $id->toString(),
             'fields' => [
                 [
                     'name' => FieldPlace::CAPACITY,
@@ -164,6 +166,9 @@ class UpdatePlaceProcessorTest extends AcceptanceTestHelper
                     "engine" => "human"
                 ]
             ]
-        ]), HttpFoundationResponse::HTTP_NOT_FOUND);
+            ]),
+            404,
+            (new PlaceNotFoundException($id))->getDetail(),
+        );
     }
 }

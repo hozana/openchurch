@@ -23,11 +23,6 @@ services:
 
   # add more service definitions when explicit configuration is needed
   # please note that last definitions always *replace* previous ones
-  App\EventListener\Response\ExceptionListener:
-    tags:
-      [{ name: kernel.event_listener, event: kernel.exception, priority: 255 }]
-    arguments:
-      $env: "%kernel.environment%"
 
   # Manager
   App\Shared\Domain\Manager\TransactionManagerInterface:
@@ -45,9 +40,3 @@ services:
 
   App\Agent\Domain\Repository\AgentRepositoryInterface:
     class: App\Agent\Infrastructure\Doctrine\DoctrineAgentRepository
-
-  api_platform.state.error_provider:
-    class: 'App\Shared\Infrastructure\ApiPlatform\Provider\ErrorProvider'
-    tags:
-      - key: "api_platform.state.error_provider"
-        name: "api_platform.state_provider"

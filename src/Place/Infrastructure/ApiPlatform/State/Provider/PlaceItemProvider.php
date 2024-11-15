@@ -6,11 +6,9 @@ namespace App\Place\Infrastructure\ApiPlatform\State\Provider;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use App\Place\Domain\Exception\MyDomainException;
 use App\Place\Domain\Exception\PlaceNotFoundException;
 use App\Place\Domain\Repository\PlaceRepositoryInterface;
 use App\Place\Infrastructure\ApiPlatform\Resource\PlaceResource;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Uid\Uuid;
 
 /**
@@ -31,7 +29,7 @@ final class PlaceItemProvider implements ProviderInterface
         $place = $this->placeRepo->ofId($id);
 
         if (null === $place) {
-            throw new HttpException(404, 'Place.not-found');
+            throw new PlaceNotFoundException($id);
         }
 
         return PlaceResource::fromModel($place);

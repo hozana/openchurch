@@ -10,7 +10,6 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Patch;
-use App\Community\Domain\Exception\CommunityNotFoundException;
 use App\Community\Domain\Model\Community;
 use App\Community\Infrastructure\ApiPlatform\Payload\CreateCommunityPayload;
 use App\Community\Infrastructure\ApiPlatform\Payload\UpdateCommunityPayload;
@@ -26,9 +25,6 @@ use Symfony\Component\Uid\UuidV7;
 
 #[ApiResource(
     shortName: 'Community',
-    exceptionToStatus: [
-        CommunityNotFoundException::class => 404,
-    ],
     operations: [
         new Post(
             uriTemplate: '/communities',

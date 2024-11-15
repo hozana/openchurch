@@ -43,7 +43,7 @@ class Agent implements UserInterface
 
     public function getRoles(): array
     {
-        return ['ROLE_USER'];
+        return ['ROLE_AGENT'];
     }
 
     public function eraseCredentials(): void

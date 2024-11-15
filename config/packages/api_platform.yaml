@@ -1,5 +1,5 @@
 api_platform:
-  title: Hello API Platform
+  title: openchurchv2
   version: 1.0.0
   defaults:
     stateless: true
@@ -11,6 +11,7 @@ api_platform:
       - "%kernel.project_dir%/src/Community/Infrastructure/ApiPlatform/Resource/"
       - "%kernel.project_dir%/src/Place/Infrastructure/ApiPlatform/Resource/"
       - "%kernel.project_dir%/src/Place/Domain/Exception/"
+      - "%kernel.project_dir%/src/Community/Domain/Exception/"
   formats:
     json: ["application/json"]
     jsonld: ["application/ld+json"]

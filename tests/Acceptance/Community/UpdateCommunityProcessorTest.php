@@ -4,6 +4,7 @@ namespace App\Tests\Acceptance\Community;
 
 use App\Agent\Domain\Model\Agent;
 use App\Community\Domain\Enum\CommunityType;
+use App\Community\Domain\Exception\CommunityNotFoundException;
 use App\Community\Domain\Model\Community;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Enum\FieldEngine;
@@ -136,15 +137,16 @@ class UpdateCommunityProcessorTest extends AcceptanceTestHelper
             ]
         ]), HttpFoundationResponse::HTTP_BAD_REQUEST);
 
-        self::assertEquals("Found duplicate for field wikidataId with value 123457", $response['message']);
+        self::assertEquals("Found duplicate for field wikidataId with value 123457", $response['detail']);
     }
 
     public function testShouldThrowIfCommunityNotFound(): void
     {
         $agent = AgentFactory::createOne();
+        $id = UuidV7::v7();
 
-        self::assertResponse($this->patch('/communities/', $agent->apiKey, body: [
-            'id' => UuidV7::v7()->toString(),
+        self::assertErrorResponse($this->patch('/communities', $agent->apiKey, body: [
+            'id' => $id->toString(),
             'fields' => [
                 [
                     'name' => FieldCommunity::CONTACT_CITY,
@@ -155,6 +157,9 @@ class UpdateCommunityProcessorTest extends AcceptanceTestHelper
                     "engine" => "human"
                 ]
             ]
-        ]), HttpFoundationResponse::HTTP_NOT_FOUND);
+            ]),
+            HttpFoundationResponse::HTTP_NOT_FOUND,
+            (new CommunityNotFoundException($id))->getDetail(),
+        );
     }
 }

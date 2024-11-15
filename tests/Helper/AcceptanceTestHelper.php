@@ -131,7 +131,7 @@ abstract class AcceptanceTestHelper extends ApiTestCase
     {
         $decodedResponse = self::assertResponse($response, $expectedStatusCode, false);
 
-        self::assertSame($expectedError, $decodedResponse['error']);
+        self::assertSame($expectedError, $decodedResponse['detail']);
 
         return $decodedResponse;
     }

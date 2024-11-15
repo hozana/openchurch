@@ -6,6 +6,7 @@ namespace App\Community\Infrastructure\ApiPlatform\State\Provider;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
+use App\Community\Domain\Exception\CommunityNotFoundException;
 use App\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\Community\Infrastructure\ApiPlatform\Resource\CommunityResource;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -29,7 +30,7 @@ final class CommunityItemProvider implements ProviderInterface
         $community = $this->communityRepo->ofId($id);
 
         if (null === $community) {
-            throw new HttpException(404, 'community.not-found');
+            throw new CommunityNotFoundException($id);
         }
 
         return CommunityResource::fromModel($community);
