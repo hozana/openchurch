@@ -6,13 +6,14 @@ namespace App\Community\Domain\Repository;
 
 use App\Community\Domain\Model\Community;
 use App\Shared\Domain\Repository\RepositoryInterface;
+use Symfony\Component\Uid\Uuid;
 
 /**
  * @extends RepositoryInterface<Community>
  */
 interface CommunityRepositoryInterface extends RepositoryInterface
 {
-    public function ofId(string $communityid): ?Community;
+    public function ofId(Uuid $communityid): ?Community;
 
     public function add(Community $community): void;
 

@@ -9,6 +9,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Get;
+use App\Place\Domain\Exception\PlaceNotFoundException;
 use App\Place\Domain\Model\Place;
 use App\Place\Infrastructure\ApiPlatform\Payload\CreatePlacePayload;
 use App\Place\Infrastructure\ApiPlatform\Payload\UpdatePlacePayload;
@@ -21,16 +22,19 @@ use Symfony\Component\Uid\UuidV7;
 
 #[ApiResource(
     shortName: 'Place',
+    exceptionToStatus: [
+        PlaceNotFoundException::class => 404,
+    ],
     operations: [
         new Post(
-            '/places',
+            uriTemplate: '/places',
             status: 202,
             input: CreatePlacePayload::class,
             processor: CreatePlaceProcessor::class,
             normalizationContext: ['groups' => ['places']]
         ),
         new Patch(
-            '/places',
+            uriTemplate: '/places',
             status: 200,
             input: UpdatePlacePayload::class,
             provider: PlaceItemProvider::class,

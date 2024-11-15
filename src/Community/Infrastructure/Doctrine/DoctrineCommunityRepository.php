@@ -9,6 +9,7 @@ use App\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\Shared\Infrastructure\Doctrine\DoctrineRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
+use Symfony\Component\Uid\Uuid;
 
 /**
  * @extends DoctrineRepository<Community>
@@ -24,7 +25,7 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
         $this->join(self::ALIAS, "fields", "fields");
     }
 
-    public function ofId(string $communityId): ?Community
+    public function ofId(Uuid $communityId): ?Community
     {
         return $this->em->find(self::ENTITY_CLASS, $communityId);
     }

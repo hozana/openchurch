@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Place\Domain\Exception;
+namespace App\Community\Domain\Exception;
 
 use ApiPlatform\Metadata\Exception\HttpExceptionInterface;
 
-class PlaceNotFoundException implements HttpExceptionInterface
+class CommunityNotFoundException implements HttpExceptionInterface
 {
     public function getStatusCode(): int
     {

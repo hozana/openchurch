@@ -97,4 +97,26 @@ class Community
             ->filter(fn (Field $field) => $field->agent === $agent)
             ->first() ?: null;
     }
+
+    public function addField(Field $field): static
+    {
+        if (!$this->fields->contains($field)) {
+            $this->fields->add($field);
+            $field->community = $this;
+        }
+
+        return $this;
+    }
+
+    public function removeField(Field $field): static
+    {
+        if ($this->fields->removeElement($field)) {
+            // set the owning side to null (unless already changed)
+            if ($field->community === $this) {
+                $field->community = null;
+            }
+        }
+
+        return $this;
+    }
 }
