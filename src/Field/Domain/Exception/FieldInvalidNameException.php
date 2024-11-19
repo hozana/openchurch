@@ -9,24 +9,23 @@ use ApiPlatform\Metadata\Exception\ProblemExceptionInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ErrorResource]
-class FieldUnicityViolationException extends \Exception implements ProblemExceptionInterface
+class FieldInvalidNameException extends \Exception implements ProblemExceptionInterface
 {
     public function __construct(
         private readonly string $name,
-        private readonly mixed $value,
     )
     {}
 
     #[Groups(['communities', 'places'])]
     public function getType(): string
     {
-        return 'FieldUnicityViolationException';
+        return 'FieldInvalidNameException';
     }
 
     #[Groups(['communities', 'places'])]
     public function getTitle(): ?string
     {
-        return "field unicity violation";
+        return "invalid field name";
     }
 
     #[Groups(['communities', 'places'])]
@@ -38,7 +37,7 @@ class FieldUnicityViolationException extends \Exception implements ProblemExcept
     #[Groups(['communities', 'places'])]
     public function getDetail(): ?string
     {
-        return sprintf('Found duplicate for field %s with value %s', $this->name, $this->value);
+        return sprintf('Field %s: invalid field name', $this->name);
     }
 
     public function getInstance(): ?string

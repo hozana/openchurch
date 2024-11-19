@@ -27,8 +27,7 @@ class UpdateCommunityProcessorTest extends AcceptanceTestHelper
         $agent = AgentFactory::createOne();
         $community = CommunityFactory::createOne();
         
-        $response = self::assertResponse($this->patch('/communities', $agent->apiKey, body: [
-            'id' => $community->id,
+        $response = self::assertResponse($this->patch("/communities/$community->id", $agent->apiKey, body: [
             'fields' => [
                 [
                     'name' => FieldCommunity::WIKIDATA_ID,
@@ -53,8 +52,7 @@ class UpdateCommunityProcessorTest extends AcceptanceTestHelper
         $agent = AgentFactory::createOne();
         $community = CommunityFactory::createOne();
 
-        self::assertResponse($this->patch('/communities', $agent->apiKey, body: [
-            'id' => $community->id,
+        self::assertResponse($this->patch("/communities/$community->id", $agent->apiKey, body: [
             'fields' => [
                 [
                     'name' => 'toto',
@@ -74,8 +72,7 @@ class UpdateCommunityProcessorTest extends AcceptanceTestHelper
         $agent = AgentFactory::createOne();
         $community = CommunityFactory::createOne();
 
-        self::assertResponse($this->patch('/communities', $agent->apiKey, body: [
-            'id' => $community->id,
+        self::assertResponse($this->patch("/communities/$community->id", $agent->apiKey, body: [
             'fields' => [
                 [
                     'name' => FieldCommunity::TYPE,
@@ -123,8 +120,7 @@ class UpdateCommunityProcessorTest extends AcceptanceTestHelper
 
         $this->em->flush();
 
-        $response = self::assertResponse($this->patch('/communities', $agent->apiKey, body: [
-            'id' => $community->id,
+        $response = self::assertResponse($this->patch("/communities/$community->id", $agent->apiKey, body: [
             'fields' => [
                 [
                     'name' => FieldCommunity::WIKIDATA_ID,
@@ -145,8 +141,7 @@ class UpdateCommunityProcessorTest extends AcceptanceTestHelper
         $agent = AgentFactory::createOne();
         $id = UuidV7::v7();
 
-        self::assertErrorResponse($this->patch('/communities', $agent->apiKey, body: [
-            'id' => $id->toString(),
+        self::assertErrorResponse($this->patch("/communities/$id", $agent->apiKey, body: [
             'fields' => [
                 [
                     'name' => FieldCommunity::CONTACT_CITY,

@@ -9,13 +9,12 @@ use ApiPlatform\State\ProcessorInterface;
 use App\Field\Application\FieldService;
 use App\Place\Domain\Model\Place;
 use App\Place\Domain\Repository\PlaceRepositoryInterface;
-use App\Place\Infrastructure\ApiPlatform\Payload\CreatePlacePayload;
 use App\Place\Infrastructure\ApiPlatform\Resource\PlaceResource;
 use App\Shared\Domain\Manager\TransactionManagerInterface;
 use Webmozart\Assert\Assert;
 
 /**
- * @implements ProcessorInterface<CreatePlacePayload, PlaceResource>
+ * @implements ProcessorInterface<PlaceResource>
  */
 final class CreatePlaceProcessor implements ProcessorInterface
 {
@@ -27,21 +26,20 @@ final class CreatePlaceProcessor implements ProcessorInterface
     }
 
     /**
-     * @param CreatePlacePayload $data
+     * @param PlaceResource $data
      */
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): PlaceResource
     {
         return $this->transactionManager->transactional(function () use ($data) {
-            Assert::isInstanceOf($data, CreatePlacePayload::class);
+            Assert::isInstanceOf($data, PlaceResource::class);
 
             $place = new Place();
             $this->placeRepo->add($place);
 
-            $fields = $this->fieldService->upsertFields($place, $data->fields);
+            $place->fields = $this->fieldService->upsertFields($place, $data->fields);
 
-            return new PlaceResource(
-                $place->id,
-                $fields
+            return PlaceResource::fromModel(
+                $place,
             );
         });
     }

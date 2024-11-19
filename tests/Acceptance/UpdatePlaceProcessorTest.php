@@ -6,6 +6,8 @@ use App\Agent\Domain\Model\Agent;
 use App\Field\Domain\Enum\FieldPlace;
 use App\Field\Domain\Enum\FieldEngine;
 use App\Field\Domain\Enum\FieldReliability;
+use App\Field\Domain\Exception\FieldInvalidNameException;
+use App\Field\Domain\Exception\FieldUnicityViolationException;
 use App\Field\Domain\Model\Field;
 use App\Place\Domain\Enum\PlaceType;
 use App\Place\Domain\Exception\PlaceNotFoundException;
@@ -27,8 +29,7 @@ class UpdatePlaceProcessorTest extends AcceptanceTestHelper
         $agent = AgentFactory::createOne();
         $place = PlaceFactory::createOne();
         
-        $response = self::assertResponse($this->patch('/places', $agent->apiKey, body: [
-            'id' => $place->id,
+        $response = self::assertResponse($this->patch('/places/'.$place->id->toString(), $agent->apiKey, body: [
             'fields' => [
                 [
                     'name' => FieldPlace::WIKIDATA_ID,
@@ -40,6 +41,7 @@ class UpdatePlaceProcessorTest extends AcceptanceTestHelper
                 ],
             ]
         ]), HttpFoundationResponse::HTTP_OK);
+
 
         self::assertCount(1, $response['fields']);
         self::assertEquals($place->id->toString(), $response['id']);
@@ -53,19 +55,22 @@ class UpdatePlaceProcessorTest extends AcceptanceTestHelper
         $agent = AgentFactory::createOne();
         $place = PlaceFactory::createOne();
 
-        self::assertResponse($this->patch('/places', $agent->apiKey, body: [
-            'id' => $place->id,
-            'fields' => [
-                [
-                    'name' => 'toto',
-                    'value' => PlaceType::CHAPEL,
-                    'reliability' => FieldReliability::HIGH,
-                    'source' => 'custom_source',
-                    'explanation' => 'yolo',
-                    'engine' => FieldEngine::AI,
+        self::assertErrorResponse(
+            $this->patch('/places/'.$place->id->toString(), $agent->apiKey, body: [
+                'fields' => [
+                    [
+                        'name' => 'toto',
+                        'value' => PlaceType::CHAPEL,
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                    ]
                 ]
-            ]
-        ]), HttpFoundationResponse::HTTP_BAD_REQUEST);
+            ]), 
+            (new FieldInvalidNameException('toto'))->getStatus(),
+            (new FieldInvalidNameException('toto'))->getDetail()
+        );
 
     }
 
@@ -74,8 +79,7 @@ class UpdatePlaceProcessorTest extends AcceptanceTestHelper
         $agent = AgentFactory::createOne();
         $place = PlaceFactory::createOne();
 
-        self::assertResponse($this->patch('/places', $agent->apiKey, body: [
-            'id' => $place->id,
+        self::assertResponse($this->patch('/places/'.$place->id->toString(), $agent->apiKey, body: [
             'fields' => [
                 [
                     'name' => FieldPlace::TYPE,
@@ -132,21 +136,22 @@ class UpdatePlaceProcessorTest extends AcceptanceTestHelper
 
         $this->em->flush();
 
-        $response = self::assertResponse($this->patch('/places', $agent->apiKey, body: [
-            'id' => $place->id,
-            'fields' => [
-                [
-                    'name' => FieldPlace::WIKIDATA_ID,
-                    'value' => 123457,
-                    'reliability' => FieldReliability::HIGH,
-                    'source' => 'custom_source',
-                    'explanation' => 'yolo',
-                    'engine' => FieldEngine::AI,
+        $response = self::assertErrorResponse(
+            $this->patch('/places/'.$place->id->toString(), $agent->apiKey, body: [
+                'fields' => [
+                    [
+                        'name' => FieldPlace::WIKIDATA_ID,
+                        'value' => 123457,
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                    ]
                 ]
-            ]
-        ]), HttpFoundationResponse::HTTP_BAD_REQUEST);
-
-        self::assertEquals("Found duplicate for field wikidataId with value 123457", $response['detail']);
+            ]),
+            (new FieldUnicityViolationException(FieldPlace::WIKIDATA_ID->value, 123457))->getStatus(),
+            (new FieldUnicityViolationException(FieldPlace::WIKIDATA_ID->value, 123457))->getDetail(),
+        );
     }
 
     public function testShouldThrowIfPlaceNotFound(): void
@@ -154,8 +159,7 @@ class UpdatePlaceProcessorTest extends AcceptanceTestHelper
         $agent = AgentFactory::createOne();
         $id = UuidV7::v7();
 
-        self::assertErrorResponse($this->patch('/places', $agent->apiKey, body: [
-            'id' => $id->toString(),
+        self::assertErrorResponse($this->patch("/places/$id", $agent->apiKey, body: [
             'fields' => [
                 [
                     'name' => FieldPlace::CAPACITY,

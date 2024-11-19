@@ -1,6 +1,6 @@
 api_platform:
-  title: openchurchv2
-  version: 1.0.0
+  title: openchurch
+  version: 2.0.0
   defaults:
     stateless: true
     pagination_client_items_per_page: true
@@ -12,6 +12,7 @@ api_platform:
       - "%kernel.project_dir%/src/Place/Infrastructure/ApiPlatform/Resource/"
       - "%kernel.project_dir%/src/Place/Domain/Exception/"
       - "%kernel.project_dir%/src/Community/Domain/Exception/"
+      - "%kernel.project_dir%/src/Field/Domain/Exception/"
   formats:
     json: ["application/json"]
     jsonld: ["application/ld+json"]

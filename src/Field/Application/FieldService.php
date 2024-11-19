@@ -8,6 +8,9 @@ use App\Community\Domain\Model\Community;
 use App\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Enum\FieldPlace;
+use App\Field\Domain\Exception\FieldEntityNotFoundException;
+use App\Field\Domain\Exception\FieldInvalidNameException;
+use App\Field\Domain\Exception\FieldUnicityViolationException;
 use App\Field\Domain\Model\Field;
 use App\Field\Domain\Repository\FieldRepositoryInterface;
 use App\Place\Domain\Model\Place;
@@ -16,6 +19,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 use function Symfony\Component\String\s;
@@ -43,7 +47,7 @@ final class FieldService
                 Community::class => FieldCommunity::tryFrom($fieldPayload->name),
             };
             if ($enumValue === null) {
-                throw new BadRequestHttpException("Field {$fieldPayload->name}: invalid field name");
+                throw new FieldInvalidNameException($fieldPayload->name);
             }
 
             $field = $this->getOrCreate(
@@ -72,7 +76,7 @@ final class FieldService
                 && (null !== $attachedToId = $this->fieldRepo->exists($entity->id, $enumValue, $field->value))
                 && $attachedToId !== $entity->id
             ) {
-                throw new BadRequestHttpException("Found duplicate for field $field->name with value $field->value");
+                throw new FieldUnicityViolationException($field->name, $field->value);
             }
 
             $violations = $this->validator->validate($field);
@@ -141,21 +145,21 @@ final class FieldService
             assert(is_array($value));
 
             //$instances = $repo->findBy(['id' => $value]);: does not work
-            $instances = array_map(fn (string $id) => $repo->ofId($id), $value);
+            $instances = array_map(fn (string $id) => $repo->ofId(Uuid::fromString($id)), $value);
             $instances = array_filter($instances);
 
             if (count($instances) !== count($value)) {
-                throw new BadRequestHttpException($nameEnum->value.": Could not find some values from provided IDs");
+                throw new FieldEntityNotFoundException($value);
             }
 
             return $instances;
         } else {
             // That's an object
             assert(is_string($value));
-            $instance = $repo->ofId($value);
+            $instance = $repo->ofId(Uuid::fromString($value));
 
             if (!$instance) {
-                throw new BadRequestHttpException($nameEnum->value.": Could not find value from provided ID");
+                throw new FieldEntityNotFoundException($value);
             }
 
             return $instance;

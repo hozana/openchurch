@@ -44,7 +44,7 @@ class CreatePlaceProcessorTest extends AcceptanceTestHelper
                     'engine' => FieldEngine::AI,
                 ],
             ]
-        ]), HttpFoundationResponse::HTTP_ACCEPTED);
+        ]), HttpFoundationResponse::HTTP_OK);
 
         self::assertCount(1, $placeRepository);
         self::assertCount(2, $response['fields']);
@@ -119,7 +119,7 @@ class CreatePlaceProcessorTest extends AcceptanceTestHelper
                     'engine' => FieldEngine::AI,
                 ]
             ]
-        ]), HttpFoundationResponse::HTTP_ACCEPTED);
+        ]), HttpFoundationResponse::HTTP_OK);
 
         self::assertCount(1, $placeRepository);
 
@@ -156,7 +156,7 @@ class CreatePlaceProcessorTest extends AcceptanceTestHelper
                     'engine' => FieldEngine::AI,
                 ]
             ]
-        ]), HttpFoundationResponse::HTTP_ACCEPTED);
+        ]), HttpFoundationResponse::HTTP_OK);
 
         self::assertCount(1, $placeRepository);
 

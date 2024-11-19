@@ -6,12 +6,10 @@ namespace App\Community\Domain\Exception;
 
 use ApiPlatform\Metadata\ErrorResource;
 use ApiPlatform\Metadata\Exception\ProblemExceptionInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
 
-#[ErrorResource(
-    normalizationContext: ['groups' => null],
-    status: 404,
-)]
+#[ErrorResource]
 class CommunityNotFoundException extends \Exception implements ProblemExceptionInterface
 {
     public function __construct(
@@ -19,14 +17,16 @@ class CommunityNotFoundException extends \Exception implements ProblemExceptionI
     )
     {}
 
+    #[Groups(['communities'])]
     public function getType(): string
     {
-        return 'PlaceNotFoundException';
+        return 'CommunityNotFoundException';
     }
 
+    #[Groups(['communities'])]
     public function getTitle(): ?string
     {
-        return "place not found";
+        return "community not found";
     }
 
     public function getStatus(): ?int
@@ -34,6 +34,7 @@ class CommunityNotFoundException extends \Exception implements ProblemExceptionI
         return 404;
     }
 
+    #[Groups(['communities'])]
     public function getDetail(): ?string
     {
         return sprintf('Community with id %s not found', $this->communityId);

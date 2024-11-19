@@ -9,15 +9,13 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Get;
+use App\Field\Domain\Model\Field;
 use App\Place\Domain\Model\Place;
-use App\Place\Infrastructure\ApiPlatform\Payload\CreatePlacePayload;
-use App\Place\Infrastructure\ApiPlatform\Payload\UpdatePlacePayload;
 use App\Place\Infrastructure\ApiPlatform\State\Processor\CreatePlaceProcessor;
 use App\Place\Infrastructure\ApiPlatform\State\Processor\UpdatePlaceProcessor;
 use App\Place\Infrastructure\ApiPlatform\State\Provider\PlaceItemProvider;
-use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Serializer\Annotation\Groups;
-use Symfony\Component\Uid\UuidV7;
+use Symfony\Component\Uid\Uuid;
 
 #[ApiResource(
     shortName: 'Place',
@@ -25,18 +23,17 @@ use Symfony\Component\Uid\UuidV7;
         new Post(
             security: 'is_granted("ROLE_AGENT")',
             uriTemplate: '/places',
-            status: 202,
-            input: CreatePlacePayload::class,
+            status: 200,
             processor: CreatePlaceProcessor::class,
             normalizationContext: ['groups' => ['places']]
         ),
         new Patch(
             securityPostDenormalize: 'is_granted("ROLE_AGENT")',
-            uriTemplate: '/places',
+            uriTemplate: '/places/{id}',
             status: 200,
-            input: UpdatePlacePayload::class,
             provider: PlaceItemProvider::class,
             processor: UpdatePlaceProcessor::class,
+            output: Field::class,
             normalizationContext: ['groups' => ['places']],
         ),
         new Get(
@@ -47,19 +44,19 @@ use Symfony\Component\Uid\UuidV7;
 final class PlaceResource
 {
     public function __construct(
+        #[Groups(['places'])]
         #[ApiProperty(identifier: true, readable: true, writable: false)]
-        #[Groups(['places'])]
-        public UuidV7 $id,
+        public ?Uuid $id = null,
 
-        /** @var Collection|Field[] $fields */
         #[Groups(['places'])]
-        public Collection $fields,
+        /** @var Field[] $fields */
+        public array $fields = [],
     ) {}
 
     public static function fromModel(Place $place) {
         return new self(
             $place->id,
-            $place->fields,
+            $place->fields->toArray(),
         );
     }
 }

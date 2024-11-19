@@ -7,9 +7,12 @@ use App\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Enum\FieldEngine;
 use App\Field\Domain\Enum\FieldReliability;
+use App\Field\Domain\Exception\FieldEntityNotFoundException;
 use App\Tests\Factory\Model\AgentFactory;
+use App\Tests\Factory\Model\CommunityFactory;
 use App\Tests\Helper\AcceptanceTestHelper;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
+use Symfony\Component\Uid\Uuid;
 use Zenstruck\Foundry\Test\Factories;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
@@ -44,7 +47,7 @@ class CreateCommunityProcessorTest extends AcceptanceTestHelper
                     'engine' => FieldEngine::AI,
                 ],
             ]
-        ]), HttpFoundationResponse::HTTP_ACCEPTED);
+        ]), HttpFoundationResponse::HTTP_OK);
 
         self::assertCount(1, $communityRepository);
         self::assertCount(2, $response['fields']);
@@ -119,7 +122,7 @@ class CreateCommunityProcessorTest extends AcceptanceTestHelper
                     'engine' => FieldEngine::AI,
                 ]
             ]
-        ]), HttpFoundationResponse::HTTP_ACCEPTED);
+        ]), HttpFoundationResponse::HTTP_OK);
 
         self::assertCount(1, $communityRepository);
 
@@ -156,7 +159,7 @@ class CreateCommunityProcessorTest extends AcceptanceTestHelper
                     'engine' => FieldEngine::AI,
                 ]
             ]
-        ]), HttpFoundationResponse::HTTP_ACCEPTED);
+        ]), HttpFoundationResponse::HTTP_OK);
 
         self::assertCount(1, $communityRepository);
 
@@ -172,5 +175,51 @@ class CreateCommunityProcessorTest extends AcceptanceTestHelper
                 ]
             ]
         ]), HttpFoundationResponse::HTTP_BAD_REQUEST);
+    }
+
+    public function testShouldThrowIfProvidedEntityNotFound(): void
+    {
+        $agent = AgentFactory::createOne();
+        $id = Uuid::v7();
+
+        self::assertErrorResponse(
+            $this->post('/communities', $agent->apiKey, body: [
+                'fields' => [
+                    [
+                        'name' => FieldCommunity::PARENT_COMMUNITY_ID,
+                        'value' => $id,
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                    ]
+                ]
+            ]), 
+            (new FieldEntityNotFoundException($id))->getStatus(),
+            (new FieldEntityNotFoundException($id))->getDetail(),
+        );
+    }
+
+    public function testShouldThrowIfProvidedEntitiesNotFound(): void
+    {
+        $agent = AgentFactory::createOne();
+        $ids = [Uuid::v7(), Uuid::v7()];
+
+        self::assertErrorResponse(
+            $this->post('/communities', $agent->apiKey, body: [
+                'fields' => [
+                    [
+                        'name' => FieldCommunity::REPLACES,
+                        'value' => $ids,
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                    ]
+                ]
+            ]), 
+            (new FieldEntityNotFoundException($ids))->getStatus(),
+            (new FieldEntityNotFoundException($ids))->getDetail(),
+        );
     }
 }

@@ -9,10 +9,9 @@ use ApiPlatform\Metadata\Exception\ProblemExceptionInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ErrorResource]
-class FieldUnicityViolationException extends \Exception implements ProblemExceptionInterface
+class FieldEntityNotFoundException extends \Exception implements ProblemExceptionInterface
 {
     public function __construct(
-        private readonly string $name,
         private readonly mixed $value,
     )
     {}
@@ -20,13 +19,13 @@ class FieldUnicityViolationException extends \Exception implements ProblemExcept
     #[Groups(['communities', 'places'])]
     public function getType(): string
     {
-        return 'FieldUnicityViolationException';
+        return 'FieldEntityNotFoundException';
     }
 
     #[Groups(['communities', 'places'])]
     public function getTitle(): ?string
     {
-        return "field unicity violation";
+        return "entity not found from provided id(s)";
     }
 
     #[Groups(['communities', 'places'])]
@@ -38,7 +37,14 @@ class FieldUnicityViolationException extends \Exception implements ProblemExcept
     #[Groups(['communities', 'places'])]
     public function getDetail(): ?string
     {
-        return sprintf('Found duplicate for field %s with value %s', $this->name, $this->value);
+        return sprintf('%s": Could not find some values from provided ID(s)', rtrim(
+            array_reduce(
+                (array) $this->value,
+                fn ($value, $prev) => "$prev, $value",
+                ''
+            ), 
+            ','
+        ));
     }
 
     public function getInstance(): ?string

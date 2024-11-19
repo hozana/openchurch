@@ -9,14 +9,13 @@ use ApiPlatform\State\ProcessorInterface;
 use App\Field\Application\FieldService;
 use App\Place\Domain\Exception\PlaceNotFoundException;
 use App\Place\Domain\Repository\PlaceRepositoryInterface;
-use App\Place\Infrastructure\ApiPlatform\Payload\UpdatePlacePayload;
 use App\Place\Infrastructure\ApiPlatform\Resource\PlaceResource;
 use App\Shared\Domain\Manager\TransactionManagerInterface;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Bundle\SecurityBundle\Security;
 use Webmozart\Assert\Assert;
 
 /**
- * @implements ProcessorInterface<UpdatePlacePayload, PlaceResource>
+ * @implements ProcessorInterface<PlaceResource>
  */
 final class UpdatePlaceProcessor implements ProcessorInterface
 {
@@ -24,28 +23,26 @@ final class UpdatePlaceProcessor implements ProcessorInterface
         private PlaceRepositoryInterface $placeRepo,
         private TransactionManagerInterface $transactionManager,
         private FieldService $fieldService,
+        private Security $security,
     ) {
     }
 
     /**
-     * @param UpdatePlacePayload $data
      * @return PlaceResource
      */
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): PlaceResource
     {
         return $this->transactionManager->transactional(function () use ($data) {
-            Assert::isInstanceOf($data, UpdatePlacePayload::class);
+            Assert::isInstanceOf($data, PlaceResource::class);
 
-            $place = $this->placeRepo->ofId(Uuid::fromString(($data->id)));
+            $place = $this->placeRepo->ofId($data->id);
             if (!$place) {
                 throw new PlaceNotFoundException($data->id);
             }
-            $fields = $this->fieldService->upsertFields($place, $data->fields);
+            
+            $place->fields = $this->fieldService->upsertFields($place, $data->fields);
 
-            return new PlaceResource(
-                $place->id,
-                $fields
-            );
+            return PlaceResource::fromModel($place);
         });
     }
 }
