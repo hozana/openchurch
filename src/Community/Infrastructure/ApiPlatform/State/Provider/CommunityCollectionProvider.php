@@ -9,8 +9,8 @@ use ApiPlatform\State\Pagination\Pagination;
 use ApiPlatform\State\ProviderInterface;
 use App\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\Community\Infrastructure\ApiPlatform\Resource\CommunityResource;
+use App\Core\Domain\ElasticSearch\ElasticSearchServiceInterface;
 use App\Field\Domain\Enum\FieldCommunity;
-use App\Core\Infrastructure\ElasticSearch\OfficialElasticSearchService;
 use App\Shared\Infrastructure\ApiPlatform\State\Paginator;
 
 final class CommunityCollectionProvider implements ProviderInterface
@@ -18,7 +18,7 @@ final class CommunityCollectionProvider implements ProviderInterface
     public function __construct(
         private Pagination $pagination,
         private CommunityRepositoryInterface $communityRepo,
-        private OfficialElasticSearchService $elasticService,
+        private ElasticSearchServiceInterface $elasticService,
     ) {
     }
 
