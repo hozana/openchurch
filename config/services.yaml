@@ -41,6 +41,6 @@ services:
   App\Agent\Domain\Repository\AgentRepositoryInterface:
     class: App\Agent\Infrastructure\Doctrine\DoctrineAgentRepository
 
-  App\Infrastructure\ElasticSearch\OfficialElasticSearchService:
+  App\Core\Infrastructure\ElasticSearch\OfficialElasticSearchService:
     arguments:
       $elasticsearchHost: "%env(ELASTICSEARCH_HOST)%"

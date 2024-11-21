@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Symfony\Command;
+namespace App\Core\Infrastructure\Symfony\Command;
 
 use App\Community\Domain\Enum\CommunityIndex;
 use App\Community\Domain\Enum\CommunityType;
 use App\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\Field\Domain\Enum\FieldCommunity;
-use App\Infrastructure\ElasticSearch\OfficialElasticSearchService;
+use App\Core\Infrastructure\ElasticSearch\OfficialElasticSearchService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
@@ -64,7 +64,7 @@ class PopulateElasticIndexCommand extends Command
             }
 
             $this->elasticService->bulkIndex(
-                CommunityIndex::PARISH->value, $idsToIndex, $parishesToIndex
+                CommunityIndex::PARISH, $idsToIndex, $parishesToIndex
             );
             $output->writeln("BULKED $i");
 

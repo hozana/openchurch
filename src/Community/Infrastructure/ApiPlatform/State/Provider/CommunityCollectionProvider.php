@@ -10,7 +10,7 @@ use ApiPlatform\State\ProviderInterface;
 use App\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\Community\Infrastructure\ApiPlatform\Resource\CommunityResource;
 use App\Field\Domain\Enum\FieldCommunity;
-use App\Infrastructure\ElasticSearch\OfficialElasticSearchService;
+use App\Core\Infrastructure\ElasticSearch\OfficialElasticSearchService;
 use App\Shared\Infrastructure\ApiPlatform\State\Paginator;
 
 final class CommunityCollectionProvider implements ProviderInterface

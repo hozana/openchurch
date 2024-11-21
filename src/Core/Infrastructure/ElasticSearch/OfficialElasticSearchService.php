@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Infrastructure\ElasticSearch;
+namespace App\Core\Infrastructure\ElasticSearch;
 
 use App\Community\Domain\Enum\CommunityIndex;
+use App\Core\Domain\ElasticSearch\ElasticSearchServiceInterface;
 use Elastic\Elasticsearch\Client;
 use Elastic\Elasticsearch\ClientBuilder;
 use Elastic\Elasticsearch\Response\Elasticsearch;
 use Http\Promise\Promise;
 use InvalidArgumentException;
-use Symfony\Component\Uid\Uuid;
 
-class OfficialElasticSearchService
+class OfficialElasticSearchService implements ElasticSearchServiceInterface
 {
     private Client $elasticsearchClient;
 
@@ -67,7 +67,7 @@ class OfficialElasticSearchService
         ];
     }
 
-    public function bulkIndex(string $index, array $ids, array $bodies): void
+    public function bulkIndex(CommunityIndex $index, array $ids, array $bodies): void
     {
         if (count($ids) !== count($bodies)) {
             throw new InvalidArgumentException('ids and bodies should be of same size');
@@ -78,7 +78,7 @@ class OfficialElasticSearchService
         for ($i = 0; $i < count($ids); ++$i) {
             $params['body'][] = [
                 'index' => [
-                    '_index' => $index,
+                    '_index' => $index->value,
                     '_id' => $ids[$i],
                 ],
             ];
@@ -124,7 +124,7 @@ class OfficialElasticSearchService
         return $this->elasticsearchClient->search($params)->asArray();
     }
 
-    public function existIndex(CommunityIndex $index): bool
+    private function existIndex(CommunityIndex $index): bool
     {
         $params = [
             'index' => [$index->value],
