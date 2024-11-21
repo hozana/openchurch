@@ -15,6 +15,9 @@ interface CommunityRepositoryInterface extends RepositoryInterface
 {
     public function ofId(Uuid $communityid): ?Community;
 
+    /** @param string[] $communityid */
+    public function ofIds(array $ids): static;
+
     public function add(Community $community): void;
 
     public function withType(string $type): static;

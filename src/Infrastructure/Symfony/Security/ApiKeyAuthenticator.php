@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Security;
+namespace App\Infrastructure\Symfony\Security;
 
 use App\Agent\Infrastructure\Doctrine\DoctrineAgentRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;

@@ -115,4 +115,9 @@ abstract class DoctrineRepository implements RepositoryInterface
     {
         $this->queryBuilder = clone $this->queryBuilder;
     }
+
+    public function clear(): void
+    {
+        $this->em->clear();
+    }
 }

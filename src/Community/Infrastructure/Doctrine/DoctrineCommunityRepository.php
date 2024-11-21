@@ -6,10 +6,13 @@ namespace App\Community\Infrastructure\Doctrine;
 
 use App\Community\Domain\Model\Community;
 use App\Community\Domain\Repository\CommunityRepositoryInterface;
+use App\Field\Domain\Enum\FieldReliability;
 use App\Shared\Infrastructure\Doctrine\DoctrineRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\Uid\Uuid;
+
+use function PHPUnit\Framework\isEmpty;
 
 /**
  * @extends DoctrineRepository<Community>
@@ -33,6 +36,18 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
     public function add(Community $community): void
     {
         $this->em->persist($community);
+    }
+
+    /** @param string[] $communityid */
+    public function ofIds(array $ids): static
+    {
+        if (!$ids) return $this;
+
+        return 
+            $this->filter(static function (QueryBuilder $qb) use ($ids): void {
+                $qb->andWhere("community.id IN (:ids)")
+                    ->setParameter("ids", array_map(fn (string $id) => Uuid::fromString($id)->toBinary(), $ids));
+        });
     }
 
     public function withType(?string $value): static

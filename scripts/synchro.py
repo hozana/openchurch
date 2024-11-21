@@ -596,7 +596,7 @@ class OpenChurchClient(object):
 
     def push_parishes(self):
         session = self.create_session()
-        parishes = DB.con.execute('''SELECT parishes.wikidata_id, parishes.name, parishes.messesinfo_id, parishes.zip_code, parishes.website, iso_code, parishes.openchurch_id, dioceses.openchurch_id
+        parishes = DB.con.execute('''SELECT parishes.wikidata_id, parishes.name, parishes.messesinfo_id, parishes.zip_code, parishes.website, iso_code, parishes.openchurch_id, dioceses.openchurch_id as diocese_openchurch_id
             FROM parishes
             LEFT JOIN places ON parishes.country_id = places.wikidata_id
             LEFT JOIN dioceses ON parishes.diocese_id = dioceses.wikidata_id
@@ -634,7 +634,7 @@ class OpenChurchClient(object):
     def push_churches(self):
         session = self.create_session()
         churches = DB.con.execute('''SELECT churches.wikidata_id, churches.name, churches.messesinfo_id, churches.zip_code, churches.website, churches.latitude, churches.longitude,
-                iso_code, churches.openchurch_id, parishes.openchurch_id
+                iso_code, churches.openchurch_id, parishes.openchurch_id as parish_openchurch_id
             FROM churches
             LEFT JOIN places ON churches.country_id = places.wikidata_id
             LEFT JOIN parishes ON churches.parish_id = parishes.wikidata_id

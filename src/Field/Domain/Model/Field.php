@@ -24,7 +24,6 @@ use Symfony\Component\Serializer\Annotation\SerializedName;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
-use ApiPlatform\Metadata\ApiResource;
 
 #[ORM\Entity(repositoryClass: DoctrineFieldRepository::class)]
 #[ORM\Table]

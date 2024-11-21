@@ -32,4 +32,6 @@ interface RepositoryInterface extends \IteratorAggregate, \Countable
      * @return static<T>
      */
     public function withoutPagination(): static;
+
+    public function clear(): void;
 }

@@ -26,6 +26,37 @@ services:
       timeout: 5s
       retries: 55
 
+  elasticsearch:
+    image: elasticsearch:8.16.0
+    container_name: openchurch_elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enrollment.enabled=true
+      - bootstrap.memory_lock=true
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m # 512mo HEAP
+      - ELASTIC_PASSWORD=admin
+    networks:
+      - app-network
+    ports:
+      - 9200:9200
+    volumes:
+      - ./elastic/data:/usr/share/elasticsearch/elastic/data
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.16.0
+    container_name: openchurch_kibana
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      XPACK_MONITORING_ENABLED: true
+      XPACK_MONITORING_COLLECTION_ENABLED: true
+      XPACK_SECURITY_ENABLED: true
+    depends_on:
+      - elasticsearch
+    networks:
+      - app-network
+    ports:
+      - 5601:5601
+
   backend:
     extra_hosts: *default-extra_hosts
     container_name: openchurch_backend
@@ -40,6 +71,7 @@ services:
       - 2019:2019
     depends_on:
       - db
+      - elasticsearch
     user: root
     networks:
       - app-network

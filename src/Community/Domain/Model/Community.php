@@ -4,11 +4,14 @@ namespace App\Community\Domain\Model;
 
 use App\Agent\Domain\Model\Agent;
 use App\Field\Domain\Enum\FieldCommunity;
+use App\Field\Domain\Enum\FieldReliability;
 use App\Field\Domain\Model\Field;
 use App\Shared\Infrastructure\Doctrine\Trait\DoctrineTimestampableTrait;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
+use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Intl\Countries;
 use Symfony\Component\Uid\Uuid;
@@ -96,6 +99,20 @@ class Community
         return $this->getFieldsByName($name)
             ->filter(fn (Field $field) => $field->agent === $agent)
             ->first() ?: null;
+    }
+
+    public function getMostTrustableFieldByName(FieldCommunity $name): ?Field
+    {      
+        $result = $this->getFieldsByName($name)->toArray();
+        if (count($result) === 0) {
+            return null;
+        }
+
+        usort($result, function (Field $a, Field $b) {
+            return FieldReliability::compare($a->reliability, $b->reliability);
+        });
+
+        return $result[0];
     }
 
     public function addField(Field $field): static

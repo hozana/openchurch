@@ -18,7 +18,7 @@ security:
       provider: api_key_agent_user_provider
 
       custom_authenticators:
-        - App\Security\ApiKeyAuthenticator
+        - App\Infrastructure\Symfony\Security\ApiKeyAuthenticator
 
       # activate different ways to authenticate
       # https://symfony.com/doc/current/security.html#the-firewall

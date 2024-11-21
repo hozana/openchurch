@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Place\Infrastructure\ApiPlatform\Resource;
 
+use ApiPlatform\Elasticsearch\State\Options;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Post;
@@ -19,6 +20,7 @@ use Symfony\Component\Uid\Uuid;
 
 #[ApiResource(
     shortName: 'Place',
+    stateOptions: new Options(index: 'place'),
     operations: [
         new Post(
             security: 'is_granted("ROLE_AGENT")',
@@ -33,7 +35,6 @@ use Symfony\Component\Uid\Uuid;
             status: 200,
             provider: PlaceItemProvider::class,
             processor: UpdatePlaceProcessor::class,
-            output: Field::class,
             normalizationContext: ['groups' => ['places']],
         ),
         new Get(

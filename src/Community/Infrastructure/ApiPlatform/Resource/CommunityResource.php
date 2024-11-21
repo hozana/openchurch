@@ -20,9 +20,12 @@ use App\Field\Infrastructure\ApiPlatform\Filter\FieldTypeFilter;
 use App\Field\Infrastructure\ApiPlatform\Filter\FieldWikidataIdFilter;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
+use ApiPlatform\Elasticsearch\State\Options;
+use App\Field\Infrastructure\ApiPlatform\Filter\FieldNameFilter;
 
 #[ApiResource(
     shortName: 'Community',
+    stateOptions: new Options(index: 'community'),
     operations: [
         new Post(
             security: 'is_granted("ROLE_AGENT")',
@@ -43,6 +46,15 @@ use Symfony\Component\Uid\Uuid;
             filters: [
                 FieldTypeFilter::class,
                 FieldWikidataIdFilter::class,
+                FieldNameFilter::class,
+            ],
+            provider: CommunityCollectionProvider::class,
+            normalizationContext: ['groups' => ['communities']],
+        ),
+        new GetCollection(
+            uriTemplate: '/parishes/',
+            filters: [
+                FieldNameFilter::class,
             ],
             provider: CommunityCollectionProvider::class,
             normalizationContext: ['groups' => ['communities']],

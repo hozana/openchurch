@@ -7,16 +7,18 @@ namespace App\Community\Infrastructure\ApiPlatform\State\Provider;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\Pagination\Pagination;
 use ApiPlatform\State\ProviderInterface;
+use App\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\Community\Infrastructure\ApiPlatform\Resource\CommunityResource;
-use App\Community\Infrastructure\Doctrine\DoctrineCommunityRepository;
 use App\Field\Domain\Enum\FieldCommunity;
+use App\Infrastructure\ElasticSearch\OfficialElasticSearchService;
 use App\Shared\Infrastructure\ApiPlatform\State\Paginator;
 
 final class CommunityCollectionProvider implements ProviderInterface
 {
     public function __construct(
         private Pagination $pagination,
-        private DoctrineCommunityRepository $communityRepo,
+        private CommunityRepositoryInterface $communityRepo,
+        private OfficialElasticSearchService $elasticService,
     ) {
     }
 
@@ -28,6 +30,7 @@ final class CommunityCollectionProvider implements ProviderInterface
         /** @var string|null $type */
         $type = $context['filters'][FieldCommunity::TYPE->value] ?? null;
         $wikidataId = $context['filters'][FieldCommunity::WIKIDATA_ID->value] ?? null;
+        $name = $context['filters'][FieldCommunity::NAME->value] ?? null;
         $page = $itemsPerPage = null;
 
         if ($this->pagination->isEnabled($operation, $context)) {
@@ -35,7 +38,13 @@ final class CommunityCollectionProvider implements ProviderInterface
             $itemsPerPage = $this->pagination->getLimit($operation, $context);
         }
 
+        // name is provided. We search through elastic
+        if ($name) {
+            $parishIds = $this->elasticService->searchParishIds($name, $itemsPerPage, $page);
+        }
+
         $models = $this->communityRepo
+            ->ofIds($parishIds ?? [])
             ->withType($type)
             ->withWikidataId((int) $wikidataId)
             ->withPagination($page, $itemsPerPage);
