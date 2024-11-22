@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Core\Infrastructure\ElasticSearch;
+namespace App\Core\Infrastructure\Helper;
 
-use App\Community\Domain\Enum\CommunityIndex;
-use App\Core\Domain\ElasticSearch\ElasticSearchServiceInterface;
+use App\Core\Domain\Helper\ElasticSearchHelperInterface;
+use App\Shared\Domain\Enum\SearchIndex;
 use Elastic\Elasticsearch\Client;
 use Elastic\Elasticsearch\ClientBuilder;
 use Elastic\Elasticsearch\Response\Elasticsearch;
 use Http\Promise\Promise;
 use InvalidArgumentException;
 
-class OfficialElasticSearchService implements ElasticSearchServiceInterface
+class OfficialElasticSearchHelper implements ElasticSearchHelperInterface
 {
     private Client $elasticsearchClient;
 
@@ -36,13 +36,30 @@ class OfficialElasticSearchService implements ElasticSearchServiceInterface
                             "type" => "stop",
                             "stopwords" =>  "_french_" ,
                         ],
+                        "custom_stop" => [
+                            "type" => "stop",
+                            "stopwords" => [
+                                "paroisse",
+                                "diocèse",
+                                "sainte",
+                                "saint",
+                            ],
+                        ],
+                        'french_elision' => [
+                            'type' => 'elision',
+                            'articles_case' => true,
+                            'articles' => ['l', 'm', 't', 'qu', 'n', 's', 'j', 'd', 'c',
+                                'jusqu', 'quoiqu', 'lorsqu', 'puisqu', ],
+                        ],
                     ],
                     'analyzer' => [
                         'default' => [
                             'tokenizer' => 'standard',
                             'filter' => [
                                 'french_stemmer',
-                                "french_stop",
+                                'french_stop',
+                                'french_elision',
+                                'custom_stop',
                             ],
                         ],
                     ],
@@ -67,7 +84,21 @@ class OfficialElasticSearchService implements ElasticSearchServiceInterface
         ];
     }
 
-    public function bulkIndex(CommunityIndex $index, array $ids, array $bodies): void
+    private function getDioceseMapping() {
+        return [
+            'dynamic' => 'strict', // We do not allow other fields than the following
+            'properties' => [
+                'id' => [
+                    'type' => 'keyword',
+                ],
+                'dioceseName' => [
+                    'type' => 'text',
+                ],
+            ]
+        ];
+    }
+
+    public function bulkIndex(SearchIndex $index, array $ids, array $bodies): void
     {
         if (count($ids) !== count($bodies)) {
             throw new InvalidArgumentException('ids and bodies should be of same size');
@@ -94,7 +125,7 @@ class OfficialElasticSearchService implements ElasticSearchServiceInterface
         }
     }
 
-    public function createIndex(CommunityIndex $index): Elasticsearch|Promise
+    public function createIndex(SearchIndex $index): Elasticsearch|Promise
     {
         $settings = $this->getSettings();
 
@@ -114,7 +145,7 @@ class OfficialElasticSearchService implements ElasticSearchServiceInterface
         return $this->elasticsearchClient->indices()->create($params);
     }   
 
-    public function search(CommunityIndex $index, array $body = []): array
+    public function search(SearchIndex $index, array $body = []): array
     {
         $params = [
             'index' => $index->value,
@@ -124,7 +155,7 @@ class OfficialElasticSearchService implements ElasticSearchServiceInterface
         return $this->elasticsearchClient->search($params)->asArray();
     }
 
-    private function existIndex(CommunityIndex $index): bool
+    private function existIndex(SearchIndex $index): bool
     {
         $params = [
             'index' => [$index->value],
@@ -133,7 +164,7 @@ class OfficialElasticSearchService implements ElasticSearchServiceInterface
         return $this->elasticsearchClient->indices()->exists($params)->asBool();
     }
 
-    public function deleteIndex(CommunityIndex $index): array
+    public function deleteIndex(SearchIndex $index): array
     {
         if (!$this->existIndex($index)) {
             return [];
@@ -146,69 +177,20 @@ class OfficialElasticSearchService implements ElasticSearchServiceInterface
         return $this->elasticsearchClient->indices()->delete($params)->asArray();
     }
 
-    public function putMapping(CommunityIndex $index): array
+    public function putMapping(SearchIndex $index): array
     {
         $params = [
             'index' => $index->value,
             'body' => match ($index) {
-                CommunityIndex::PARISH => $this->getParishMapping(),
+                SearchIndex::PARISH => $this->getParishMapping(),
+                SearchIndex::DIOCESE => $this->getDioceseMapping(),
             },
         ];
 
         return $this->elasticsearchClient->indices()->putMapping($params)->asArray();
     }
 
-    /** @return string[] */
-    public function searchParishIds(string $text, int $limit, int $offset): array
-    {
-        $body = $this->buildQueryForCommunities(
-            $text,
-            $limit,
-            $offset,
-        );
-        $results = $this->search(CommunityIndex::PARISH, $body);
-        // $parishes = $this->extractEntities($results['hits']['hits'], Community::class);
-        $globalCount = $results['hits']['total']['value'];
-
-        $entityIds = array_map(static fn (array $hit): string => $hit['_id'], $results['hits']['hits']);
-        return $entityIds;
-    }
-
-    private function buildQueryForCommunities(string $text, int $limit, int $offset): array
-    {
-        return [
-            'query' => [
-                'function_score' => [
-                    'query' => [
-                        'bool' => [
-                            'should' => [
-                                [
-                                    'match' => [
-                                        'parishName' => [
-                                            'query' => $text,
-                                            'boost' => 20, // First we search in parish name
-                                            'fuzziness' => 'AUTO',
-                                        ],
-                                    ],
-                                ],
-                                [
-                                    'match' => [
-                                        'dioceseName' => [
-                                            'query' => $text,
-                                            'boost' => 10, // Then, in diocese name
-                                            'fuzziness' => 'AUTO',
-                                        ],
-                                    ],
-                                ],
-                            ],
-                            'minimum_should_match' => 1, // At least one of the above rules should contain search text
-                        ],
-                    ],
-                ],
-            ],
-            'size' => $limit,
-            'from' => $offset,
-            '_source' => false, // We don't want the source, the _id will be enough
-        ];
+    public function refresh(SearchIndex $index): void {
+        $this->elasticsearchClient->indices()->refresh(['index' => [$index->value]]);
     }
 }

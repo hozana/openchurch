@@ -30,7 +30,7 @@ class Place
     /**
      * @var ArrayCollection|Field[]
      */
-    #[ORM\OneToMany(targetEntity: Field::class, mappedBy: 'placeVal', cascade: ['persist'])]
+    #[ORM\OneToMany(targetEntity: Field::class, mappedBy: 'placeVal')]
     public Collection $fieldsAsPlaceVal;
 
     /**

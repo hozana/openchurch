@@ -18,6 +18,8 @@ interface CommunityRepositoryInterface extends RepositoryInterface
     /** @param string[] $communityid */
     public function ofIds(array $ids): static;
 
+    public function addSelectField(): static;
+
     public function add(Community $community): void;
 
     public function withType(string $type): static;

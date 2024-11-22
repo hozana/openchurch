@@ -25,7 +25,6 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
     public function __construct(EntityManagerInterface $em)
     {
         parent::__construct($em, self::ENTITY_CLASS, self::ALIAS);
-        $this->join(self::ALIAS, "fields", "fields");
     }
 
     public function ofId(Uuid $communityId): ?Community
@@ -36,6 +35,12 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
     public function add(Community $community): void
     {
         $this->em->persist($community);
+    }
+
+    public function addSelectField(): static
+    {
+        return $this->join(self::ALIAS, 'fields', 'fields')
+            ->addSelect('fields');
     }
 
     /** @param string[] $communityid */

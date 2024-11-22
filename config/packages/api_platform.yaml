@@ -1,6 +1,3 @@
-parameters:
-  env(ELASTICSEARCH_HOST): "elasticsearch"
-
 api_platform:
   title: openchurch
   version: 2.0.0
@@ -16,8 +13,6 @@ api_platform:
       - "%kernel.project_dir%/src/Place/Domain/Exception/"
       - "%kernel.project_dir%/src/Community/Domain/Exception/"
       - "%kernel.project_dir%/src/Field/Domain/Exception/"
-  elasticsearch:
-    hosts: ["%env(ELASTICSEARCH_HOST)%"]
   formats:
     json: ["application/json"]
     jsonld: ["application/ld+json"]

@@ -6,6 +6,8 @@ namespace App\Shared\Infrastructure\Doctrine;
 
 use App\Shared\Domain\Repository\PaginatorInterface;
 use App\Shared\Domain\Repository\RepositoryInterface;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Tools\Pagination\Paginator;
@@ -34,7 +36,17 @@ abstract class DoctrineRepository implements RepositoryInterface
     }
 
     public function join(string $from, string $to, string $alias) {
-        $this->queryBuilder->leftJoin("$from.$to", $alias);
+        $cloned = clone $this;
+        $cloned->queryBuilder->leftJoin("$from.$to", $alias);
+
+        return $cloned;
+    }
+
+    public function addSelect(string $alias) {
+        $cloned = clone $this;
+        $cloned->queryBuilder->addSelect($alias);
+        
+        return $cloned;
     }
 
     public function getIterator(): \Iterator
@@ -119,5 +131,13 @@ abstract class DoctrineRepository implements RepositoryInterface
     public function clear(): void
     {
         $this->em->clear();
+    }
+
+    public function asArray(): array {
+        return $this->queryBuilder->getQuery()->getArrayResult();
+    }
+
+    public function asCollection(): Collection {
+        return new ArrayCollection($this->queryBuilder->getQuery()->getResult());
     }
 }

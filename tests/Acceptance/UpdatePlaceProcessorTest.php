@@ -102,7 +102,7 @@ class UpdatePlaceProcessorTest extends AcceptanceTestHelper
         //         'value' => '123456'
         //     ])
         //     ->create()
-        //     ;
+        //     ->_real();
 
         // TODO change me when https://github.com/zenstruck/foundry/issues/710 is fixed
         $agent = new Agent();

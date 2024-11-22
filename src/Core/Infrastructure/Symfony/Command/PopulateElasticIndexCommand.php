@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Core\Infrastructure\Symfony\Command;
 
-use App\Community\Domain\Enum\CommunityIndex;
 use App\Community\Domain\Enum\CommunityType;
+use App\Community\Domain\Model\Community;
 use App\Community\Domain\Repository\CommunityRepositoryInterface;
+use App\Core\Domain\Helper\ElasticSearchHelperInterface;
 use App\Field\Domain\Enum\FieldCommunity;
-use App\Core\Infrastructure\ElasticSearch\OfficialElasticSearchService;
+use App\Shared\Domain\Enum\SearchIndex;
+use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
@@ -20,7 +22,7 @@ class PopulateElasticIndexCommand extends Command
     private const BULK_SIZE = 1000;
 
     public function __construct(
-        private OfficialElasticSearchService $elasticService,
+        private ElasticSearchHelperInterface $elasticHelper,
         private CommunityRepositoryInterface $communityRepo,
     )
     {
@@ -29,25 +31,61 @@ class PopulateElasticIndexCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $output->writeln(sprintf('Deleting %s index...', CommunityIndex::PARISH->value));
-        $this->elasticService->deleteIndex(CommunityIndex::PARISH);
+        $output->writeln(sprintf('Deleting %s, %s index...', SearchIndex::PARISH->value, SearchIndex::DIOCESE->value));
+        $this->elasticHelper->deleteIndex(SearchIndex::PARISH);
+        $this->elasticHelper->deleteIndex(SearchIndex::DIOCESE);
 
-        $output->writeln(sprintf('Creating %s index...', CommunityIndex::PARISH->value));
-        $this->elasticService->createIndex(CommunityIndex::PARISH);
-        $this->elasticService->putMapping(CommunityIndex::PARISH);
-        $this->indexParishes($output);
+        $output->writeln(sprintf('Creating %s, %s index...', SearchIndex::PARISH->value, SearchIndex::DIOCESE->value));
+        $this->elasticHelper->createIndex(SearchIndex::PARISH);
+        $this->elasticHelper->createIndex(SearchIndex::DIOCESE);
+        $this->elasticHelper->putMapping(SearchIndex::PARISH);
+        $this->elasticHelper->putMapping(SearchIndex::DIOCESE);
+
+        // We get all dioceses)
+        $dioceses = $this->communityRepo
+            ->addSelectField()
+            ->withType(CommunityType::DIOCESE->value)
+            ->asCollection();
+
+        $output->writeln(sprintf('Indexing dioceses...'));
+        $this->createDioceseIndexes($dioceses);
+        $output->writeln(sprintf('Indexing parishes...'));
+        $this->createParishIndexes($dioceses, $output);
 
         return COMMAND::SUCCESS;
     }
 
-    private function indexParishes(OutputInterface $output): void
+    private function createDioceseIndexes(Collection $dioceses): void
+    {
+        $idsToIndex = [];
+        $diocesesToIndex = [];
+        foreach ($dioceses as $diocese) {
+
+            $idsToIndex[] = $diocese->id->toString();
+            $dioceseName = $diocese->getMostTrustableFieldByName(FieldCommunity::NAME)->getValue();
+
+            $diocesesToIndex[] = [
+                'dioceseName' => $dioceseName,
+            ];     
+        }
+
+        $this->elasticHelper->bulkIndex(
+            SearchIndex::DIOCESE, $idsToIndex, $diocesesToIndex
+        );
+    }
+
+
+    /**
+     * @param Community[]|Collection $dioceses
+     */
+    private function createParishIndexes(Collection $dioceses, OutputInterface $output): void
     {
         $i = 1;
-        $start_memory = memory_get_usage();
-        
+
         while (true) {
             $output->writeln(sprintf('iteration %s', $i));
             $parishes = $this->communityRepo
+                ->addSelectField()
                 ->withType(CommunityType::PARISH->value)
                 ->withPagination($i, self::BULK_SIZE);
 
@@ -55,27 +93,38 @@ class PopulateElasticIndexCommand extends Command
             $parishesToIndex = [];
 
             foreach ($parishes as $parish) {
+                $dioceseName = null;
                 $parishName = $parish->getMostTrustableFieldByName(FieldCommunity::NAME)->getValue();
+                $parentId = $parish->getMostTrustableFieldByName(FieldCommunity::PARENT_COMMUNITY_ID)?->getValue()?->id?->toString();
+                
+                if ($parentId) {
+                    $parentDiocese = $dioceses->first(function (Community $diocese) use ($parentId) {
+                        return $diocese->id->toString() === $parentId;
+                    });
+
+                    if ($parentDiocese) {
+                        $dioceseName = $parentDiocese->getMostTrustableFieldByName(FieldCommunity::NAME)->getValue();
+                    }
+                }
+                
                 $idsToIndex[] = $parish->id;
                 $parishesToIndex[] = [
                     'parishName' => $parishName,
-                    'dioceseName' => null, //TODO : add diocese name
-                ];
+                    'dioceseName' => $dioceseName,
+                ];       
+                
             }
 
-            $this->elasticService->bulkIndex(
-                CommunityIndex::PARISH, $idsToIndex, $parishesToIndex
+            $this->elasticHelper->bulkIndex(
+                SearchIndex::PARISH, $idsToIndex, $parishesToIndex
             );
             $output->writeln("BULKED $i");
-
 
             if (count($idsToIndex) < self::BULK_SIZE) {
                 break; // we stop the loop once we reach the last bulk
             }
 
             $parishes->clear();
-            $output->writeln(memory_get_usage()." After clear - ".$start_memory);
-
             $i++;
         }
     }

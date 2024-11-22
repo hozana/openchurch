@@ -7,18 +7,23 @@ namespace App\Community\Infrastructure\ApiPlatform\State\Provider;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\Pagination\Pagination;
 use ApiPlatform\State\ProviderInterface;
+use App\Community\Domain\Enum\CommunityType;
 use App\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\Community\Infrastructure\ApiPlatform\Resource\CommunityResource;
 use App\Core\Domain\ElasticSearch\ElasticSearchServiceInterface;
+use App\Core\Domain\Service\SearchServiceInterface;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Shared\Infrastructure\ApiPlatform\State\Paginator;
+use InvalidArgumentException;
+
+use function PHPUnit\Framework\assertNotNull;
 
 final class CommunityCollectionProvider implements ProviderInterface
 {
     public function __construct(
         private Pagination $pagination,
         private CommunityRepositoryInterface $communityRepo,
-        private ElasticSearchServiceInterface $elasticService,
+        private SearchServiceInterface $searchService,
     ) {
     }
 
@@ -40,11 +45,16 @@ final class CommunityCollectionProvider implements ProviderInterface
 
         // name is provided. We search through elastic
         if ($name) {
-            $parishIds = $this->elasticService->searchParishIds($name, $itemsPerPage, $page);
+            assertNotNull($type);
+            $entityIds = match ($type) {
+                CommunityType::PARISH->value => $this->searchService->searchParishIds($name, $itemsPerPage, $page),
+                CommunityType::DIOCESE->value => $this->searchService->searchDioceseIds($name, $itemsPerPage, $page),
+                default => throw new InvalidArgumentException(sprintf('Invalid type %s', $type)),
+            };
         }
 
         $models = $this->communityRepo
-            ->ofIds($parishIds ?? [])
+            ->ofIds($entityIds ?? [])
             ->withType($type)
             ->withWikidataId((int) $wikidataId)
             ->withPagination($page, $itemsPerPage);

@@ -68,7 +68,7 @@ abstract class AcceptanceTestHelper extends ApiTestCase
         return $this->request(Request::METHOD_DELETE, $endpoint, $apikey, $body, $headers);
     }
 
-    private function request(string $method, string $endpoint, ?string $apikey, ?array $body, array $headers = []): Response
+    public function request(string $method, string $endpoint, ?string $apikey, ?array $body, array $headers = []): Response
     {
         $apiHost = $this->getParameter('host_api');
         $endpoint = ltrim($endpoint, '/');

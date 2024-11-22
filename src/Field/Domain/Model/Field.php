@@ -135,7 +135,7 @@ class Field
     #[Groups(['communities', 'places'])]
     public ?string $explanation;
 
-    #[ORM\ManyToOne(inversedBy: 'fields', cascade: ['persist'])]
+    #[ORM\ManyToOne(inversedBy: 'fields')]
     public ?Place $place = null;
 
     public function __construct()

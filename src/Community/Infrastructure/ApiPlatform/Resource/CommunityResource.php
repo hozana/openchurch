@@ -51,14 +51,6 @@ use App\Field\Infrastructure\ApiPlatform\Filter\FieldNameFilter;
             provider: CommunityCollectionProvider::class,
             normalizationContext: ['groups' => ['communities']],
         ),
-        new GetCollection(
-            uriTemplate: '/parishes/',
-            filters: [
-                FieldNameFilter::class,
-            ],
-            provider: CommunityCollectionProvider::class,
-            normalizationContext: ['groups' => ['communities']],
-        ),
         new Get(
             provider: CommunityItemProvider::class,
         ),

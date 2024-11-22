@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Shared\Domain\Repository;
 
+use Doctrine\Common\Collections\Collection;
+
 /**
  * @template T of object
  *
@@ -34,4 +36,8 @@ interface RepositoryInterface extends \IteratorAggregate, \Countable
     public function withoutPagination(): static;
 
     public function clear(): void;
+
+    public function asArray(): array;
+
+    public function asCollection(): Collection;
 }
