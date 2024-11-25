@@ -118,7 +118,6 @@ class PopulateElasticIndexCommand extends Command
             $this->elasticHelper->bulkIndex(
                 SearchIndex::PARISH, $idsToIndex, $parishesToIndex
             );
-            $output->writeln("BULKED $i");
 
             if (count($idsToIndex) < self::BULK_SIZE) {
                 break; // we stop the loop once we reach the last bulk

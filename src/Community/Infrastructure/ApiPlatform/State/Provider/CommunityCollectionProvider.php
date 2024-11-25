@@ -47,10 +47,14 @@ final class CommunityCollectionProvider implements ProviderInterface
         if ($name) {
             assertNotNull($type);
             $entityIds = match ($type) {
-                CommunityType::PARISH->value => $this->searchService->searchParishIds($name, $itemsPerPage, $page),
-                CommunityType::DIOCESE->value => $this->searchService->searchDioceseIds($name, $itemsPerPage, $page),
+                CommunityType::PARISH->value => $this->searchService->searchParishIds($name, $itemsPerPage, $page - 1),
+                CommunityType::DIOCESE->value => $this->searchService->searchDioceseIds($name, $itemsPerPage, $page - 1),
                 default => throw new InvalidArgumentException(sprintf('Invalid type %s', $type)),
             };
+
+            if (count($entityIds) === 0) {
+                return [];
+            }
         }
 
         $models = $this->communityRepo

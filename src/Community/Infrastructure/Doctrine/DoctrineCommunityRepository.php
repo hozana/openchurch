@@ -46,7 +46,7 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
     /** @param string[] $communityid */
     public function ofIds(array $ids): static
     {
-        if (!$ids) return $this;
+        if (!$ids || count($ids) === 0) return $this;
 
         return 
             $this->filter(static function (QueryBuilder $qb) use ($ids): void {

@@ -74,7 +74,7 @@ class OfficialElasticSearchHelper implements ElasticSearchHelperInterface
             'dynamic' => 'strict', // We do not allow other fields than the following
             'properties' => [
                 'id' => [
-                    'type' => 'text',
+                    'type' => 'keyword',
                 ],
                 'parishName' => [
                     'type' => 'text',
