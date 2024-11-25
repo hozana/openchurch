@@ -40,7 +40,7 @@ class OfficialElasticSearchHelper implements ElasticSearchHelperInterface
                             "type" => "stop",
                             "stopwords" => [
                                 "paroisse",
-                                "diocèse",
+                                "diocese",
                                 "sainte",
                                 "saint",
                             ],
@@ -56,10 +56,12 @@ class OfficialElasticSearchHelper implements ElasticSearchHelperInterface
                         'default' => [
                             'tokenizer' => 'standard',
                             'filter' => [
+                                'asciifolding',
+                                'lowercase',
+                                'custom_stop',
                                 'french_stemmer',
                                 'french_stop',
                                 'french_elision',
-                                'custom_stop',
                             ],
                         ],
                     ],

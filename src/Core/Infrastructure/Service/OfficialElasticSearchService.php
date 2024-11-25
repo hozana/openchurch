@@ -75,7 +75,6 @@ class OfficialElasticSearchService implements SearchServiceInterface
                         'match' => [
                             'dioceseName' => [
                                 'query' => $text,
-                                'boost' => 20,
                                 'fuzziness' => 'AUTO',
                             ]
                         ]
