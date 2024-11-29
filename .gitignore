@@ -26,3 +26,5 @@
 ###< symfony/asset-mapper ###
 
 .DS_Store
+
+coverage/

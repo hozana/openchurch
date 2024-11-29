@@ -7,7 +7,7 @@ namespace App\Core\Infrastructure\Symfony\Command;
 use App\Community\Domain\Enum\CommunityType;
 use App\Community\Domain\Model\Community;
 use App\Community\Domain\Repository\CommunityRepositoryInterface;
-use App\Core\Domain\Helper\ElasticSearchHelperInterface;
+use App\Core\Domain\Search\Helper\SearchHelperInterface;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Shared\Domain\Enum\SearchIndex;
 use Doctrine\Common\Collections\Collection;
@@ -22,7 +22,7 @@ class PopulateElasticIndexCommand extends Command
     private const BULK_SIZE = 1000;
 
     public function __construct(
-        private ElasticSearchHelperInterface $elasticHelper,
+        private SearchHelperInterface $elasticHelper,
         private CommunityRepositoryInterface $communityRepo,
     )
     {

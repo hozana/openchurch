@@ -6,13 +6,10 @@ namespace App\Community\Infrastructure\Doctrine;
 
 use App\Community\Domain\Model\Community;
 use App\Community\Domain\Repository\CommunityRepositoryInterface;
-use App\Field\Domain\Enum\FieldReliability;
 use App\Shared\Infrastructure\Doctrine\DoctrineRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\Uid\Uuid;
-
-use function PHPUnit\Framework\isEmpty;
 
 /**
  * @extends DoctrineRepository<Community>

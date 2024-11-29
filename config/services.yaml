@@ -42,13 +42,13 @@ services:
     class: App\Agent\Infrastructure\Doctrine\DoctrineAgentRepository
 
   # Services
-  App\Core\Domain\Helper\ElasticSearchHelperInterface:
-    class: App\Core\Infrastructure\Helper\OfficialElasticSearchHelper
+  App\Core\Domain\Search\Helper\SearchHelperInterface:
+    class: App\Core\Infrastructure\ElasticSearch\Helper\OfficialElasticSearchHelper
     arguments:
       $elasticsearchHost: "%env(ELASTICSEARCH_IRI)%"
-  App\Core\Domain\Service\SearchServiceInterface:
+  App\Core\Domain\Service\Search\SearchServiceInterface:
     class: App\Core\Infrastructure\Service\OfficialElasticSearchService
 
-  App\Core\Infrastructure\Helper\OfficialElasticSearchHelper:
+  App\Core\Infrastructure\ElasticSearch\Helper\OfficialElasticSearchHelper:
     arguments:
       $elasticsearchHost: "%env(ELASTICSEARCH_IRI)%"

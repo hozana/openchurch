@@ -10,8 +10,6 @@ use App\Shared\Infrastructure\Doctrine\Trait\DoctrineTimestampableTrait;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\Common\Collections\Criteria;
-use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Intl\Countries;
 use Symfony\Component\Uid\Uuid;
@@ -54,11 +52,6 @@ class Community
         $this->fields = new ArrayCollection();
         $this->fieldsAsCommunityVal = new ArrayCollection();
         $this->fieldsAsCommunitiesVal = new ArrayCollection();
-    }
-
-    public function __toString(): string
-    {
-        return $this->id;
     }
 
     #[Assert\Callback()]

@@ -1,0 +1,198 @@
+<?php
+
+namespace App\Core\Infrastructure\ElasticSearch\Helper;
+
+use App\Core\Domain\Search\Helper\SearchHelperInterface;
+use App\Shared\Domain\Enum\SearchIndex;
+use Elastic\Elasticsearch\Client;
+use Elastic\Elasticsearch\ClientBuilder;
+use Elastic\Elasticsearch\Response\Elasticsearch;
+use Http\Promise\Promise;
+use InvalidArgumentException;
+
+class OfficialElasticSearchHelper implements SearchHelperInterface
+{
+    private Client $elasticsearchClient;
+
+    public function __construct(string $elasticsearchHost)
+    {
+        $this->elasticsearchClient = ClientBuilder::create()
+            ->setHosts([$elasticsearchHost])
+            ->setSSLVerification(false)
+            ->build();
+    }
+
+    private function getSettings() {
+        return [
+                'number_of_shards' => 1, // Only one shard per index, since we don't face performance issue yet
+                'number_of_replicas' => 0, // No replica of shard, since it's a mono-node cluster for the moment
+                'analysis' => [
+                    'filter' => [
+                        'french_stemmer' => [
+                            'type' => 'stemmer',
+                            'language' => 'light_french',
+                        ],
+                        'french_stop' => [ //The default stopwords can be overridden with the stopwords or stopwords_path parameters.
+                            "type" => "stop",
+                            "stopwords" =>  "_french_" ,
+                        ],
+                        "custom_stop" => [
+                            "type" => "stop",
+                            "stopwords" => [
+                                "paroisse",
+                                "diocese",
+                                "sainte",
+                                "saint",
+                            ],
+                        ],
+                        'french_elision' => [
+                            'type' => 'elision',
+                            'articles_case' => true,
+                            'articles' => ['l', 'm', 't', 'qu', 'n', 's', 'j', 'd', 'c',
+                                'jusqu', 'quoiqu', 'lorsqu', 'puisqu', ],
+                        ],
+                    ],
+                    'analyzer' => [
+                        'default' => [
+                            'tokenizer' => 'standard',
+                            'filter' => [
+                                'asciifolding',
+                                'lowercase',
+                                'custom_stop',
+                                'french_stemmer',
+                                'french_stop',
+                                'french_elision',
+                            ],
+                        ],
+                    ],
+                ],
+        ];
+    }
+
+    private function getParishMapping() {
+        return [
+            'dynamic' => 'strict', // We do not allow other fields than the following
+            'properties' => [
+                'id' => [
+                    'type' => 'keyword',
+                ],
+                'parishName' => [
+                    'type' => 'text',
+                ],
+                'dioceseName' => [
+                    'type' => 'text',
+                ],
+            ]
+        ];
+    }
+
+    private function getDioceseMapping() {
+        return [
+            'dynamic' => 'strict', // We do not allow other fields than the following
+            'properties' => [
+                'id' => [
+                    'type' => 'keyword',
+                ],
+                'dioceseName' => [
+                    'type' => 'text',
+                ],
+            ]
+        ];
+    }
+
+    public function bulkIndex(SearchIndex $index, array $ids, array $bodies): void
+    {
+        if (count($ids) !== count($bodies)) {
+            throw new InvalidArgumentException('ids and bodies should be of same size');
+        }
+
+        $params = ['body' => []];
+
+        for ($i = 0; $i < count($ids); ++$i) {
+            $params['body'][] = [
+                'index' => [
+                    '_index' => $index->value,
+                    '_id' => $ids[$i],
+                ],
+            ];
+
+            $params['body'][] = $bodies[$i];
+
+            $this->elasticsearchClient->bulk($params);
+            $params = ['body' => []];
+        }
+
+        if (!empty($params['body'])) {
+            $this->elasticsearchClient->bulk($params);
+        }
+    }
+
+    public function createIndex(SearchIndex $index): Elasticsearch|Promise
+    {
+        $settings = $this->getSettings();
+
+        $body = [
+            'settings' => $settings,
+        ];
+
+        if ($settings == []) {
+            $body = [];
+        }
+
+        $params = [
+            'index' => $index->value,
+            'body' => $body,
+        ];
+
+        return $this->elasticsearchClient->indices()->create($params);
+    }   
+
+    public function search(SearchIndex $index, array $body = []): array
+    {
+        $params = [
+            'index' => $index->value,
+            'body' => $body,
+        ];
+
+        return $this->elasticsearchClient->search($params)->asArray();
+    }
+
+    private function existIndex(SearchIndex $index): bool
+    {
+        $params = [
+            'index' => [$index->value],
+        ];
+
+        return $this->elasticsearchClient->indices()->exists($params)->asBool();
+    }
+
+    public function deleteIndex(SearchIndex $index): array
+    {
+        if (!$this->existIndex($index)) {
+            return [];
+        }
+
+        $params = [
+            'index' => $index->value,
+        ];
+
+        return $this->elasticsearchClient->indices()->delete($params)->asArray();
+    }
+
+    public function putMapping(SearchIndex $index): array
+    {
+        $params = [
+            'index' => $index->value,
+            'body' => match ($index) {
+                SearchIndex::PARISH => $this->getParishMapping(),
+                SearchIndex::DIOCESE => $this->getDioceseMapping(),
+            },
+        ];
+
+        return $this->elasticsearchClient->indices()->putMapping($params)->asArray();
+    }
+
+    public function refresh(SearchIndex $index): void {
+        $this->elasticsearchClient->indices()->refresh(['index' => [$index->value]]);
+    }
+}

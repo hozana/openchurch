@@ -17,9 +17,9 @@ class FieldReliability extends DoctrineEnumType
 
     public static function compare($reliabilityA, $reliabilityB) {
         $reliabilityValues = [
-            self::HIGH => 3,
+            self::HIGH => 1,
             self::MEDIUM => 2,
-            self::LOW => 1
+            self::LOW => 3
         ];
 
         return $reliabilityValues[$reliabilityA] <=> $reliabilityValues[$reliabilityB];

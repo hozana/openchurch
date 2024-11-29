@@ -35,14 +35,14 @@ abstract class DoctrineRepository implements RepositoryInterface
             ->from($entityClass, $alias);
     }
 
-    public function join(string $from, string $to, string $alias) {
+    protected function join(string $from, string $to, string $alias) {
         $cloned = clone $this;
         $cloned->queryBuilder->leftJoin("$from.$to", $alias);
 
         return $cloned;
     }
 
-    public function addSelect(string $alias) {
+    protected function addSelect(string $alias) {
         $cloned = clone $this;
         $cloned->queryBuilder->addSelect($alias);
         
@@ -133,11 +133,11 @@ abstract class DoctrineRepository implements RepositoryInterface
         $this->em->clear();
     }
 
-    public function asArray(): array {
-        return $this->queryBuilder->getQuery()->getArrayResult();
-    }
-
     public function asCollection(): Collection {
         return new ArrayCollection($this->queryBuilder->getQuery()->getResult());
+    }
+
+    public function getDQL(): string {
+        return $this->queryBuilder->getDQL();
     }
 }

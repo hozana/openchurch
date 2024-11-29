@@ -25,22 +25,22 @@ doctrine:
       Community:
         type: attribute
         is_bundle: false
-        dir: "%kernel.project_dir%/src/Community/Domain"
+        dir: "%kernel.project_dir%/src/Community/Domain/Model"
         prefix: 'App\Community\Domain'
       Place:
         type: attribute
         is_bundle: false
-        dir: "%kernel.project_dir%/src/Place/Domain"
+        dir: "%kernel.project_dir%/src/Place/Domain/Model"
         prefix: 'App\Place\Domain'
       Field:
         type: attribute
         is_bundle: false
-        dir: "%kernel.project_dir%/src/Field/Domain"
+        dir: "%kernel.project_dir%/src/Field/Domain/Model"
         prefix: 'App\Field\Domain'
       Agent:
         type: attribute
         is_bundle: false
-        dir: "%kernel.project_dir%/src/Agent/Domain"
+        dir: "%kernel.project_dir%/src/Agent/Domain/Model"
         prefix: 'App\Agent\Domain'
     controller_resolver:
       auto_mapping: false

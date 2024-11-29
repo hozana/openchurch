@@ -37,7 +37,5 @@ interface RepositoryInterface extends \IteratorAggregate, \Countable
 
     public function clear(): void;
 
-    public function asArray(): array;
-
     public function asCollection(): Collection;
 }

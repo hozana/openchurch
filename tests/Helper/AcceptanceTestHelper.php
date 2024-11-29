@@ -36,17 +36,17 @@ abstract class AcceptanceTestHelper extends ApiTestCase
         parent::tearDown();
     }
 
-    protected function post(string $endpoint, ?string $apikey = null, array $body = null, array $headers = []): Response
+    protected function post(string $endpoint, ?string $apikey = null, ?array $body = null, array $headers = []): Response
     {
         return $this->request(Request::METHOD_POST, $endpoint, $apikey, $body, $headers);
     }
 
-    protected function put(string $endpoint, ?string $apikey = null, array $body = null, array $headers = []): Response
+    protected function put(string $endpoint, ?string $apikey = null, ?array $body = null, array $headers = []): Response
     {
         return $this->request(Request::METHOD_PUT, $endpoint, $apikey, $body, $headers);
     }
 
-    protected function patch(string $endpoint, ?string $apikey = null, array $body = null, array $headers = []): Response
+    protected function patch(string $endpoint, ?string $apikey = null, ?array $body = null, array $headers = []): Response
     {
         return $this->request(Request::METHOD_PATCH, $endpoint, $apikey, $body, $headers);
     }

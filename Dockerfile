@@ -56,8 +56,7 @@ RUN docker-php-ext-install \
 # add PECL extensions
 RUN pecl install redis && docker-php-ext-enable redis && \
     pecl install apcu && docker-php-ext-enable apcu && \
-    pecl install xdebug 
-    # && docker-php-ext-enable xdebug && \
+    pecl install xdebug && docker-php-ext-enable xdebug
     #pecl install amqp && docker-php-ext-enable amqp && \
 
 COPY src/ /var/www/html/src/
