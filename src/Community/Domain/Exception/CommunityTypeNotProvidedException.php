@@ -7,37 +7,31 @@ namespace App\Community\Domain\Exception;
 use ApiPlatform\Metadata\ErrorResource;
 use ApiPlatform\Metadata\Exception\ProblemExceptionInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
-use Symfony\Component\Uid\Uuid;
 
 #[ErrorResource]
-class CommunityNotFoundException extends \Exception implements ProblemExceptionInterface
+class CommunityTypeNotProvidedException extends \Exception implements ProblemExceptionInterface
 {
-    public function __construct(
-        private Uuid $communityId,
-    )
-    {}
-
     #[Groups(['communities'])]
     public function getType(): string
     {
-        return 'CommunityNotFoundException';
+        return 'CommunityTypeNotProvidedException';
     }
 
     #[Groups(['communities'])]
     public function getTitle(): ?string
     {
-        return "community not found";
+        return "community type not provided";
     }
 
     public function getStatus(): ?int
     {
-        return 404;
+        return 400;
     }
 
     #[Groups(['communities'])]
     public function getDetail(): ?string
     {
-        return sprintf('Community with id %s not found', $this->communityId);
+        return sprintf('You must provide a community type when filtering by name');
     }
 
     /**

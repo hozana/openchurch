@@ -9,6 +9,7 @@ use Elastic\Elasticsearch\ClientBuilder;
 use Elastic\Elasticsearch\Response\Elasticsearch;
 use Http\Promise\Promise;
 use InvalidArgumentException;
+use stdClass;
 
 class OfficialElasticSearchHelper implements SearchHelperInterface
 {
@@ -154,6 +155,22 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             'body' => $body,
         ];
 
+        return $this->elasticsearchClient->search($params)->asArray();
+    }
+
+    public function all(SearchIndex $index, int $offset, int $limit): array
+    {
+        $params = [
+            'index' => $index->value,
+            'body' => [
+                'query' => [
+                    'match_all' => new stdClass(),
+                ],
+            ],
+            'size' => 100,
+            'from' => 0
+        ];
+        
         return $this->elasticsearchClient->search($params)->asArray();
     }
 

@@ -5,3 +5,15 @@ services:
 
   App\Community\Infrastructure\Doctrine\DoctrineCommunityRepository:
     public: true
+
+  # Services
+  App\Core\Domain\Search\Helper\SearchHelperInterface:
+    class: App\Core\Infrastructure\ElasticSearch\Helper\OfficialElasticSearchHelper
+    arguments:
+      $elasticsearchHost: "%env(ELASTICSEARCH_IRI)%"
+  App\Core\Domain\Service\Search\SearchServiceInterface:
+    class: App\Core\Infrastructure\Service\OfficialElasticSearchService
+
+  App\Core\Infrastructure\ElasticSearch\Helper\OfficialElasticSearchHelper:
+    arguments:
+      $elasticsearchHost: "%env(ELASTICSEARCH_IRI)%"

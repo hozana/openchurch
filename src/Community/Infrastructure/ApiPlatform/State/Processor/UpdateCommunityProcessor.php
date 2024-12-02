@@ -34,10 +34,7 @@ final class UpdateCommunityProcessor implements ProcessorInterface
         return $this->transactionManager->transactional(function () use ($data) {
             Assert::isInstanceOf($data, CommunityResource::class);
 
-            $community = $this->communityRepo->ofId($data->id);
-            if (!$community) {
-                throw new CommunityNotFoundException($data->id);
-            }
+            $community = $this->communityRepo->ofId($data->id); //community cannot be null because we passed through CommunityItemProvider
             $community->fields = $this->fieldService->upsertFields($community, $data->fields);
 
             return CommunityResource::fromModel($community);

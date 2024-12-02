@@ -12,11 +12,10 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Zenstruck\Foundry\Test\Factories;
-use Zenstruck\Foundry\Test\ResetDatabase;
 
 class CommunityTest extends KernelTestCase
 {
-    use ResetDatabase, Factories;
+    use Factories;
 
     private Community $community;
     private ExecutionContextInterface $context;
@@ -112,5 +111,19 @@ class CommunityTest extends KernelTestCase
         foreach ($results as $result) {
             static::assertEquals(FieldCommunity::NAME->value, $result->name);
         }
+    }
+
+    public function testRemoveField() {
+        $field = DummyFieldFactory::createOne([
+            'name' => FieldCommunity::NAME->value, 'stringVal' => 'low reliability name',
+            'reliability' => FieldReliability::LOW,
+        ]);
+        $community = DummyCommunityFactory::createOne(['fields' => [$field]])->_real();
+
+        static::assertCount(1, $community->fields);
+        $community->removeField($field->_real());
+
+        static::assertCount(0, $community->fields);
+        static::assertNull($field->community);
     }
 }

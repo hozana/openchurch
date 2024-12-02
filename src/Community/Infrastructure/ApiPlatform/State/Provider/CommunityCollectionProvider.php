@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\Pagination\Pagination;
 use ApiPlatform\State\ProviderInterface;
 use App\Community\Domain\Enum\CommunityType;
+use App\Community\Domain\Exception\CommunityTypeNotProvidedException;
 use App\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\Community\Infrastructure\ApiPlatform\Resource\CommunityResource;
 use App\Core\Domain\Search\Service\SearchServiceInterface;
@@ -44,7 +45,7 @@ final class CommunityCollectionProvider implements ProviderInterface
 
         // name is provided. We search through elastic
         if ($name) {
-            assertNotNull($type);
+            if (!$type) throw new CommunityTypeNotProvidedException();
             $entityIds = match ($type) {
                 CommunityType::PARISH->value => $this->searchService->searchParishIds($name, $itemsPerPage, $page - 1),
                 CommunityType::DIOCESE->value => $this->searchService->searchDioceseIds($name, $itemsPerPage, $page - 1),

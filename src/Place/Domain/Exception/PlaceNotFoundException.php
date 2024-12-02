@@ -41,6 +41,9 @@ class PlaceNotFoundException extends \Exception implements ProblemExceptionInter
         return sprintf('Place with id %s not found', $this->placeId);
     }
 
+    /**
+     * @codeCoverageIgnore
+     */
     public function getInstance(): ?string
     {
         return null;

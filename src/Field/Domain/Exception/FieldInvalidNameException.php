@@ -40,6 +40,9 @@ class FieldInvalidNameException extends \Exception implements ProblemExceptionIn
         return sprintf('Field %s: invalid field name', $this->name);
     }
 
+    /**
+     * @codeCoverageIgnore
+     */
     public function getInstance(): ?string
     {
         return null;

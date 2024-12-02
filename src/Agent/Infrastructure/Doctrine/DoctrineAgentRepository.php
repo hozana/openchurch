@@ -6,6 +6,7 @@ use App\Agent\Domain\Model\Agent;
 use App\Agent\Domain\Repository\AgentRepositoryInterface;
 use App\Shared\Infrastructure\Doctrine\DoctrineRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Uid\Uuid;
 
 class DoctrineAgentRepository extends DoctrineRepository implements AgentRepositoryInterface
 {
@@ -15,11 +16,6 @@ class DoctrineAgentRepository extends DoctrineRepository implements AgentReposit
     public function __construct(EntityManagerInterface $em)
     {
         parent::__construct($em, self::ENTITY_CLASS, self::ALIAS);
-    }
-
-    public function ofId(string $id): ?Agent
-    {
-        return $this->em->find(self::ENTITY_CLASS, $id);
     }
 
     public function findAgentNameByApiKey(string $apiKey): ?string

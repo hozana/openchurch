@@ -16,8 +16,8 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-#[AsCommand('app:elastic:populate')]
-class PopulateElasticIndexCommand extends Command
+#[AsCommand('app:write:indexes')]
+class WriteIndexesCommand extends Command
 {
     private const BULK_SIZE = 1000;
 
@@ -41,7 +41,7 @@ class PopulateElasticIndexCommand extends Command
         $this->elasticHelper->putMapping(SearchIndex::PARISH);
         $this->elasticHelper->putMapping(SearchIndex::DIOCESE);
 
-        // We get all dioceses)
+        // We get all dioceses
         $dioceses = $this->communityRepo
             ->addSelectField()
             ->withType(CommunityType::DIOCESE->value)
@@ -60,7 +60,6 @@ class PopulateElasticIndexCommand extends Command
         $idsToIndex = [];
         $diocesesToIndex = [];
         foreach ($dioceses as $diocese) {
-
             $idsToIndex[] = $diocese->id->toString();
             $dioceseName = $diocese->getMostTrustableFieldByName(FieldCommunity::NAME)->getValue();
 
@@ -81,9 +80,10 @@ class PopulateElasticIndexCommand extends Command
     private function createParishIndexes(Collection $dioceses, OutputInterface $output): void
     {
         $i = 1;
+        $totalCount = $this->communityRepo->addSelectField()->withType(CommunityType::PARISH->value)->count();
 
         while (true) {
-            $output->writeln(sprintf('iteration %s', $i));
+            $output->writeln(sprintf('iteration %s/%s', $i, ceil($totalCount / self::BULK_SIZE)));
             $parishes = $this->communityRepo
                 ->addSelectField()
                 ->withType(CommunityType::PARISH->value)
@@ -98,15 +98,16 @@ class PopulateElasticIndexCommand extends Command
                 $parentId = $parish->getMostTrustableFieldByName(FieldCommunity::PARENT_COMMUNITY_ID)?->getValue()?->id?->toString();
                 
                 if ($parentId) {
-                    $parentDiocese = $dioceses->first(function (Community $diocese) use ($parentId) {
-                        return $diocese->id->toString() === $parentId;
-                    });
+                    $parentDiocese = 
+                        $dioceses->filter(function (Community $diocese) use ($parentId) {
+                            return $diocese->id->toString() === $parentId;
+                        })->first();
 
                     if ($parentDiocese) {
                         $dioceseName = $parentDiocese->getMostTrustableFieldByName(FieldCommunity::NAME)->getValue();
                     }
                 }
-                
+
                 $idsToIndex[] = $parish->id;
                 $parishesToIndex[] = [
                     'parishName' => $parishName,

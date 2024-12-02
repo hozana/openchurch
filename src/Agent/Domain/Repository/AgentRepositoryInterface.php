@@ -12,7 +12,5 @@ use App\Agent\Domain\Model\Agent;
  */
 interface AgentRepositoryInterface extends RepositoryInterface
 {
-    public function ofId(string $id): ?Agent;
-
     public function findAgentNameByApiKey(string $apiKey): ?string;
 }

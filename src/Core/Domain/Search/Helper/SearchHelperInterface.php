@@ -18,5 +18,7 @@ interface SearchHelperInterface
 
     public function search(SearchIndex $index, array $body = []): array;
 
+    public function all(SearchIndex $index, int $offset, int $limit): array;
+
     public function refresh(SearchIndex $index): void;
 }

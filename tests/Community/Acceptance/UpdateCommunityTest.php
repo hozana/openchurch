@@ -153,7 +153,7 @@ class UpdateCommunityTest extends AcceptanceTestHelper
                 ]
             ]
             ]),
-            HttpFoundationResponse::HTTP_NOT_FOUND,
+            (new CommunityNotFoundException($id))->getStatus(),
             (new CommunityNotFoundException($id))->getDetail(),
         );
     }

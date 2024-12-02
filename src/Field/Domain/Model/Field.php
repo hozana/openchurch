@@ -161,11 +161,6 @@ class Field
             ?? $this->placesVal;
     }
 
-    public function __toString(): string
-    {
-        return $this->id;
-    }
-
     #[Assert\Callback()]
     public function validate(ExecutionContextInterface $context, mixed $payload): void
     {
@@ -187,11 +182,8 @@ class Field
         // Ensure type is OK
         if ($this->value !== null && $enum !== null && $enum !== false) {
             $type = $enum->getType();
-
             // Handle enums
             if (is_string($type) && enum_exists($type)) {
-                // assert($type instanceof BackedEnum);
-
                 $type = array_column($type::cases(), 'value');
             }
 
@@ -239,6 +231,7 @@ class Field
         if (is_array($type) || (is_string($type) && enum_exists($type))) {
             $type = 'array';
         }
+
         return match ($type) {
             Types::STRING, 'array' => 'stringVal',
             Types::FLOAT => 'floatVal',

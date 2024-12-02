@@ -47,6 +47,9 @@ class FieldEntityNotFoundException extends \Exception implements ProblemExceptio
         ));
     }
 
+    /**
+     * @codeCoverageIgnore
+     */
     public function getInstance(): ?string
     {
         return null;

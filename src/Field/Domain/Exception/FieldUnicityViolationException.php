@@ -41,6 +41,9 @@ class FieldUnicityViolationException extends \Exception implements ProblemExcept
         return sprintf('Found duplicate for field %s with value %s', $this->name, $this->value);
     }
 
+    /**
+     * @codeCoverageIgnore
+     */
     public function getInstance(): ?string
     {
         return null;

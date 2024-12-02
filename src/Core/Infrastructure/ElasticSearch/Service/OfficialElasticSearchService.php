@@ -101,4 +101,22 @@ class OfficialElasticSearchService implements SearchServiceInterface
         $entityIds = array_map(static fn (array $hit): string => $hit['_id'], $results['hits']['hits']);
         return $entityIds;
     }
+
+    /** @return string[] */
+    public function allParishes(?int $limit = 100, ?int $offset = 0): array
+    {
+       $results = $this->elasticSearchHelper->all(SearchIndex::PARISH, $offset, $limit);
+
+       $entityIds = array_map(static fn (array $hit): string => $hit['_id'], $results['hits']['hits']);
+       return $entityIds;
+    }
+
+     /** @return string[] */
+     public function allDioceses(?int $limit = 100, ?int $offset = 0): array
+     {
+        $results = $this->elasticSearchHelper->all(SearchIndex::DIOCESE, $offset, $limit);
+ 
+        $entityIds = array_map(static fn (array $hit): string => $hit['_id'], $results['hits']['hits']);
+        return $entityIds;
+     }
 }
