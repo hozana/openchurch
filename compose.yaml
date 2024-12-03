@@ -34,12 +34,11 @@ services:
       - xpack.security.enrollment.enabled=true
       - bootstrap.memory_lock=true
       - ES_JAVA_OPTS=-Xms512m -Xmx512m # 512mo HEAP
+      - ELASTIC_PASSWORD=admin
     networks:
       - app-network
     ports:
       - 9200:9200
-    volumes:
-      - ./elastic/data:/usr/share/elasticsearch/elastic/data
 
   backend:
     extra_hosts: *default-extra_hosts
@@ -62,7 +61,6 @@ services:
     environment:
       SERVER_NAME: localhost api.openchurch.local admin.openchurch.local
       DATABASE_URL: mysql://root:openchurch@db:3306/openchurch?serverVersion=11.5.2-MariaDB&charset=utf8mb4
-
 volumes:
   openchurch_db_data: {}
 

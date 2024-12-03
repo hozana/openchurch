@@ -52,3 +52,10 @@ services:
   App\Core\Infrastructure\ElasticSearch\Helper\OfficialElasticSearchHelper:
     arguments:
       $elasticsearchHost: "%env(ELASTICSEARCH_IRI)%"
+
+  App\Core\Infrastructure\Doctrine\FixDoctrineMigrationTableSchema:
+    autoconfigure: false
+    arguments:
+      $dependencyFactory: "@doctrine.migrations.dependency_factory"
+    tags:
+      - { name: "doctrine.event_listener", event: "postGenerateSchema" }
