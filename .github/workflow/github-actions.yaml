@@ -1,0 +1,88 @@
+# https://github.com/shivammathur/setup-php
+name: Tests
+
+on: [push]
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    # Docs: https://docs.github.com/en/actions/using-containerized-services
+    services:
+      mysql:
+        image: mysql:latest
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: false
+          MYSQL_ROOT_PASSWORD: symfony
+          MYSQL_DATABASE: symfony
+        ports:
+          - 3306/tcp
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3 --name=mysql
+      elasticsearch:
+        image: elasticsearch:8.16.0
+        ports:
+          - 9200/tcp
+        env:
+          ELASTIC_PASSWORD: admin
+    steps:
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          tools: phpunit-bridge
+          extensions: mbstring, xml, ctype, intl, iconv, json, redis, mysql
+          ini-values: date.timezone=Europe/Paris
+      - uses: actions/checkout@v4
+      - name: Create .env.test.local
+        # TODO remove LOCK_DSN on Symfony update
+        run: echo -e "DB_NAME_SUFFIX=\\ELASTICSEARCH_IRI=https://elastic:admin@elasticsearch:${{ job.services.elasticsearch.ports['9200'] }}" > .env.test.local
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+      - name: Cache composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+      - name: Install Dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+      - name: Generate SSL Key for JWT
+        run: php bin/console lexik:jwt:generate-keypair
+      - name: Run migrations
+        run: |
+          php bin/console doctrine:migrations:migrate --no-interaction || echo "No migrations found or migration failed"
+        env:
+          DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/symfony
+      - name: Execute tests (Unit and Feature tests) via PHPUnit
+        run: vendor/bin/phpunit
+        env:
+          DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/symfony
+      - name: phpstan
+        if: always()
+        run: composer phpstan
+      - name: composer validate
+        if: always()
+        run: composer validate --strict
+      - name: lint:container
+        if: always()
+        run: php bin/console lint:container
+      - name: lint:twig
+      - name: lint:yaml
+        if: always()
+        run: php bin/console lint:yaml config src
+      - name: doctrine:schema:validate
+        if: always()
+        run: php bin/console doctrine:schema:validate
+        env:
+          DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/symfony
+      - name: Archive logs as artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs
+          path: |
+            var/log/test.log
+            .env.test.local
