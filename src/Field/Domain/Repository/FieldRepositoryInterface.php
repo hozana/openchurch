@@ -17,5 +17,5 @@ interface FieldRepositoryInterface extends RepositoryInterface
 {
     public function add(Field $field): void;
 
-    public function exists(Uuid $id, FieldPlace|FieldCommunity $fieldName, mixed $fieldValue): string|null;
+    public function exists(Uuid $id, FieldPlace|FieldCommunity $fieldName, mixed $fieldValue): ?string;
 }

@@ -8,8 +8,9 @@ use Doctrine\ORM\EntityManagerInterface;
 final class DoctrineTransactionManager implements TransactionManagerInterface
 {
     public function __construct(
-        private EntityManagerInterface $entityManager
-    ) {}
+        private EntityManagerInterface $entityManager,
+    ) {
+    }
 
     public function transactional(callable $operation): mixed
     {

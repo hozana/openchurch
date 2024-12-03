@@ -13,8 +13,8 @@ class FieldEntityNotFoundException extends \Exception implements ProblemExceptio
 {
     public function __construct(
         private readonly mixed $value,
-    )
-    {}
+    ) {
+    }
 
     #[Groups(['communities', 'places'])]
     public function getType(): string
@@ -25,7 +25,7 @@ class FieldEntityNotFoundException extends \Exception implements ProblemExceptio
     #[Groups(['communities', 'places'])]
     public function getTitle(): ?string
     {
-        return "entity not found from provided id(s)";
+        return 'entity not found from provided id(s)';
     }
 
     #[Groups(['communities', 'places'])]
@@ -42,7 +42,7 @@ class FieldEntityNotFoundException extends \Exception implements ProblemExceptio
                 (array) $this->value,
                 fn ($value, $prev) => "$prev, $value",
                 ''
-            ), 
+            ),
             ','
         ));
     }

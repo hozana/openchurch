@@ -11,8 +11,8 @@ use App\Core\Domain\Search\Helper\SearchHelperInterface;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Shared\Domain\Enum\SearchIndex;
 use Doctrine\Common\Collections\Collection;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -24,8 +24,7 @@ class WriteIndexesCommand extends Command
     public function __construct(
         private SearchHelperInterface $elasticHelper,
         private CommunityRepositoryInterface $communityRepo,
-    )
-    {
+    ) {
         parent::__construct();
     }
 
@@ -52,9 +51,12 @@ class WriteIndexesCommand extends Command
         $output->writeln(sprintf('Indexing parishes...'));
         $this->createParishIndexes($dioceses, $output);
 
-        return COMMAND::SUCCESS;
+        return Command::SUCCESS;
     }
 
+    /**
+     * @param Collection<int, Community> $dioceses
+     */
     private function createDioceseIndexes(Collection $dioceses): void
     {
         $idsToIndex = [];
@@ -65,7 +67,7 @@ class WriteIndexesCommand extends Command
 
             $diocesesToIndex[] = [
                 'dioceseName' => $dioceseName,
-            ];     
+            ];
         }
 
         $this->elasticHelper->bulkIndex(
@@ -73,9 +75,8 @@ class WriteIndexesCommand extends Command
         );
     }
 
-
     /**
-     * @param Community[]|Collection $dioceses
+     * @param Collection<int, Community> $dioceses
      */
     private function createParishIndexes(Collection $dioceses, OutputInterface $output): void
     {
@@ -96,9 +97,9 @@ class WriteIndexesCommand extends Command
                 $dioceseName = null;
                 $parishName = $parish->getMostTrustableFieldByName(FieldCommunity::NAME)->getValue();
                 $parentId = $parish->getMostTrustableFieldByName(FieldCommunity::PARENT_COMMUNITY_ID)?->getValue()?->id?->toString();
-                
+
                 if ($parentId) {
-                    $parentDiocese = 
+                    $parentDiocese =
                         $dioceses->filter(function (Community $diocese) use ($parentId) {
                             return $diocese->id->toString() === $parentId;
                         })->first();
@@ -112,8 +113,7 @@ class WriteIndexesCommand extends Command
                 $parishesToIndex[] = [
                     'parishName' => $parishName,
                     'dioceseName' => $dioceseName,
-                ];       
-                
+                ];
             }
 
             $this->elasticHelper->bulkIndex(
@@ -125,7 +125,7 @@ class WriteIndexesCommand extends Command
             }
 
             $parishes->clear();
-            $i++;
+            ++$i;
         }
     }
 }

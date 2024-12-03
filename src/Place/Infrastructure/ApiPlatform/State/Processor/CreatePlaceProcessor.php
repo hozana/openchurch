@@ -14,7 +14,7 @@ use App\Shared\Domain\Manager\TransactionManagerInterface;
 use Webmozart\Assert\Assert;
 
 /**
- * @implements ProcessorInterface<PlaceResource>
+ * @implements ProcessorInterface<PlaceResource, PlaceResource>
  */
 final class CreatePlaceProcessor implements ProcessorInterface
 {

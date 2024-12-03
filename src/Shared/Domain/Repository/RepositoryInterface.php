@@ -25,17 +25,14 @@ interface RepositoryInterface extends \IteratorAggregate, \Countable
      */
     public function paginator(): ?PaginatorInterface;
 
-    /**
-     * @return static<T>
-     */
     public function withPagination(int $page, int $itemsPerPage): static;
 
-    /**
-     * @return static<T>
-     */
     public function withoutPagination(): static;
 
     public function clear(): void;
 
+    /**
+     * @return Collection<int, T>
+     */
     public function asCollection(): Collection;
 }

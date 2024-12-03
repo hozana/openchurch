@@ -26,6 +26,9 @@ final class InMemoryPaginatorTest extends TestCase
         static::assertSame($lastPage, $paginator->getLastPage());
     }
 
+    /**
+     * @return iterable<array{int, int}>
+     */
     public static function getLastPageDataProvider(): iterable
     {
         yield [3, 1];
@@ -35,6 +38,8 @@ final class InMemoryPaginatorTest extends TestCase
 
     /**
      * @dataProvider iteratorDataProvider
+     *
+     * @param array<int, object> $page
      */
     public function testIterator(int $currentPage, int $itemsPerPage, array $page): void
     {
@@ -56,6 +61,9 @@ final class InMemoryPaginatorTest extends TestCase
         }
     }
 
+    /**
+     * @return iterable<array{int, int, array<int>}>
+     */
     public static function iteratorDataProvider(): iterable
     {
         yield [1, 3, [1, 2, 3]];

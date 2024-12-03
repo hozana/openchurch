@@ -9,7 +9,6 @@ use ApiPlatform\State\ProviderInterface;
 use App\Community\Domain\Exception\CommunityNotFoundException;
 use App\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\Community\Infrastructure\ApiPlatform\Resource\CommunityResource;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Uid\Uuid;
 
 /**

@@ -2,11 +2,11 @@
 
 namespace App\Tests\Place\Acceptance;
 
-use App\Place\Domain\Repository\PlaceRepositoryInterface;
-use App\Field\Domain\Enum\FieldPlace;
 use App\Field\Domain\Enum\FieldEngine;
+use App\Field\Domain\Enum\FieldPlace;
 use App\Field\Domain\Enum\FieldReliability;
 use App\Place\Domain\Enum\PlaceType;
+use App\Place\Domain\Repository\PlaceRepositoryInterface;
 use App\Tests\Agent\DummyFactory\DummyAgentFactory;
 use App\Tests\Helper\AcceptanceTestHelper;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
@@ -15,16 +15,17 @@ use Zenstruck\Foundry\Test\ResetDatabase;
 
 class CreatePlaceTest extends AcceptanceTestHelper
 {
-    use ResetDatabase, Factories;
+    use ResetDatabase;
+    use Factories;
 
     public function testShouldPassWithGoodData(): void
     {
         /** @var PlaceRepositoryInterface $placeRepository */
         $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
 
-        self::assertEmpty($placeRepository);
+        self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
-        
+
         $response = self::assertResponse($this->post('/places', $agent->apiKey, body: [
             'fields' => [
                 [
@@ -43,7 +44,7 @@ class CreatePlaceTest extends AcceptanceTestHelper
                     'explanation' => 'yolo',
                     'engine' => FieldEngine::AI,
                 ],
-            ]
+            ],
         ]), HttpFoundationResponse::HTTP_OK);
 
         self::assertCount(1, $placeRepository);
@@ -57,9 +58,9 @@ class CreatePlaceTest extends AcceptanceTestHelper
         /** @var PlaceRepositoryInterface $placeRepository */
         $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
 
-        self::assertEmpty($placeRepository);
+        self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
-        
+
         self::assertResponse($this->post('/places', $agent->apiKey, body: [
             'fields' => [
                 [
@@ -69,8 +70,8 @@ class CreatePlaceTest extends AcceptanceTestHelper
                     'source' => 'custom_source',
                     'explanation' => 'yolo',
                     'engine' => FieldEngine::AI,
-                ]
-            ]
+                ],
+            ],
         ]), HttpFoundationResponse::HTTP_BAD_REQUEST);
 
         self::assertCount(0, $placeRepository);
@@ -81,9 +82,9 @@ class CreatePlaceTest extends AcceptanceTestHelper
         /** @var PlaceRepositoryInterface $placeRepository */
         $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
 
-        self::assertEmpty($placeRepository);
+        self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
-        
+
         self::assertResponse($this->post('/places', $agent->apiKey, body: [
             'fields' => [
                 [
@@ -93,8 +94,8 @@ class CreatePlaceTest extends AcceptanceTestHelper
                     'source' => 'custom_source',
                     'explanation' => 'yolo',
                     'engine' => FieldEngine::AI,
-                ]
-            ]
+                ],
+            ],
         ]), HttpFoundationResponse::HTTP_UNPROCESSABLE_ENTITY);
 
         self::assertCount(0, $placeRepository);
@@ -105,9 +106,9 @@ class CreatePlaceTest extends AcceptanceTestHelper
         /** @var PlaceRepositoryInterface $placeRepository */
         $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
 
-        self::assertEmpty($placeRepository);
+        self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
-        
+
         self::assertResponse($this->post('/places', $agent->apiKey, body: [
             'fields' => [
                 [
@@ -117,8 +118,8 @@ class CreatePlaceTest extends AcceptanceTestHelper
                     'source' => 'custom_source',
                     'explanation' => 'yolo',
                     'engine' => FieldEngine::AI,
-                ]
-            ]
+                ],
+            ],
         ]), HttpFoundationResponse::HTTP_OK);
 
         self::assertCount(1, $placeRepository);
@@ -132,8 +133,8 @@ class CreatePlaceTest extends AcceptanceTestHelper
                     'source' => 'custom_source',
                     'explanation' => 'yolo',
                     'engine' => FieldEngine::AI,
-                ]
-            ]
+                ],
+            ],
         ]), HttpFoundationResponse::HTTP_BAD_REQUEST);
     }
 
@@ -142,20 +143,20 @@ class CreatePlaceTest extends AcceptanceTestHelper
         /** @var PlaceRepositoryInterface $placeRepository */
         $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
 
-        self::assertEmpty($placeRepository);
+        self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
-        
+
         self::assertResponse($this->post('/places', $agent->apiKey, body: [
             'fields' => [
                 [
                     'name' => FieldPlace::MESSESINFO_ID,
-                    'value' => "aze123456",
+                    'value' => 'aze123456',
                     'reliability' => FieldReliability::HIGH,
                     'source' => 'custom_source',
                     'explanation' => 'yolo',
                     'engine' => FieldEngine::AI,
-                ]
-            ]
+                ],
+            ],
         ]), HttpFoundationResponse::HTTP_OK);
 
         self::assertCount(1, $placeRepository);
@@ -164,13 +165,13 @@ class CreatePlaceTest extends AcceptanceTestHelper
             'fields' => [
                 [
                     'name' => FieldPlace::MESSESINFO_ID,
-                    'value' => "aze123456",
+                    'value' => 'aze123456',
                     'reliability' => FieldReliability::HIGH,
                     'source' => 'custom_source',
                     'explanation' => 'yolo',
                     'engine' => FieldEngine::AI,
-                ]
-            ]
+                ],
+            ],
         ]), HttpFoundationResponse::HTTP_BAD_REQUEST);
     }
 }

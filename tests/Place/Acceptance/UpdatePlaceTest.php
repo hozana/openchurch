@@ -3,8 +3,8 @@
 namespace App\Tests\Place\Acceptance;
 
 use App\Agent\Domain\Model\Agent;
-use App\Field\Domain\Enum\FieldPlace;
 use App\Field\Domain\Enum\FieldEngine;
+use App\Field\Domain\Enum\FieldPlace;
 use App\Field\Domain\Enum\FieldReliability;
 use App\Field\Domain\Exception\FieldInvalidNameException;
 use App\Field\Domain\Exception\FieldUnicityViolationException;
@@ -22,13 +22,14 @@ use Zenstruck\Foundry\Test\ResetDatabase;
 
 class UpdatePlaceTest extends AcceptanceTestHelper
 {
-    use ResetDatabase, Factories;
+    use ResetDatabase;
+    use Factories;
 
     public function testShouldPassWithGoodData(): void
     {
         $agent = DummyAgentFactory::createOne();
         $place = DummyPlaceFactory::createOne();
-        
+
         $response = self::assertResponse($this->patch('/places/'.$place->id->toString(), $agent->apiKey, body: [
             'fields' => [
                 [
@@ -39,9 +40,8 @@ class UpdatePlaceTest extends AcceptanceTestHelper
                     'explanation' => 'yolo',
                     'engine' => FieldEngine::AI,
                 ],
-            ]
+            ],
         ]), HttpFoundationResponse::HTTP_OK);
-
 
         self::assertCount(1, $response['fields']);
         self::assertEquals($place->id->toString(), $response['id']);
@@ -65,13 +65,12 @@ class UpdatePlaceTest extends AcceptanceTestHelper
                         'source' => 'custom_source',
                         'explanation' => 'yolo',
                         'engine' => FieldEngine::AI,
-                    ]
-                ]
-            ]), 
+                    ],
+                ],
+            ]),
             (new FieldInvalidNameException('toto'))->getStatus(),
             (new FieldInvalidNameException('toto'))->getDetail()
         );
-
     }
 
     public function testShouldThrowIfFieldValueNotValid(): void
@@ -88,8 +87,8 @@ class UpdatePlaceTest extends AcceptanceTestHelper
                     'source' => 'custom_source',
                     'explanation' => 'yolo',
                     'engine' => FieldEngine::AI,
-                ]
-            ]
+                ],
+            ],
         ]), HttpFoundationResponse::HTTP_UNPROCESSABLE_ENTITY);
     }
 
@@ -111,7 +110,7 @@ class UpdatePlaceTest extends AcceptanceTestHelper
         $this->em->persist($agent);
 
         $field = new Field();
-        $field->name =  FieldPlace::WIKIDATA_ID->value;
+        $field->name = FieldPlace::WIKIDATA_ID->value;
         $field->intVal = 123456;
         $field->reliability = FieldReliability::HIGH;
         $field->engine = FieldEngine::AI;
@@ -119,7 +118,7 @@ class UpdatePlaceTest extends AcceptanceTestHelper
         $this->em->persist($field);
 
         $fieldPlace2 = new Field();
-        $fieldPlace2->name =  FieldPlace::WIKIDATA_ID->value;
+        $fieldPlace2->name = FieldPlace::WIKIDATA_ID->value;
         $fieldPlace2->intVal = 123457;
         $fieldPlace2->reliability = FieldReliability::HIGH;
         $fieldPlace2->engine = FieldEngine::HUMAN;
@@ -146,8 +145,8 @@ class UpdatePlaceTest extends AcceptanceTestHelper
                         'source' => 'custom_source',
                         'explanation' => 'yolo',
                         'engine' => FieldEngine::AI,
-                    ]
-                ]
+                    ],
+                ],
             ]),
             (new FieldUnicityViolationException(FieldPlace::WIKIDATA_ID->value, 123457))->getStatus(),
             (new FieldUnicityViolationException(FieldPlace::WIKIDATA_ID->value, 123457))->getDetail(),
@@ -164,13 +163,13 @@ class UpdatePlaceTest extends AcceptanceTestHelper
                 [
                     'name' => FieldPlace::CAPACITY,
                     'value' => 10,
-                    "reliability" => "high",
-                    "source" => "human",
-                    "explanation" => "yolo",
-                    "engine" => "human"
-                ]
-            ]
-            ]),
+                    'reliability' => 'high',
+                    'source' => 'human',
+                    'explanation' => 'yolo',
+                    'engine' => 'human',
+                ],
+            ],
+        ]),
             404,
             (new PlaceNotFoundException($id))->getDetail(),
         );

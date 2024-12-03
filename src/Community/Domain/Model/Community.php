@@ -7,7 +7,6 @@ use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Enum\FieldReliability;
 use App\Field\Domain\Model\Field;
 use App\Shared\Infrastructure\Doctrine\Trait\DoctrineTimestampableTrait;
-use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -29,26 +28,26 @@ class Community
     public ?Uuid $id = null;
 
     /**
-     * @var ArrayCollection|Field[]
+     * @var Collection<int, Field>
      */
     #[ORM\OneToMany(targetEntity: Field::class, mappedBy: 'community')]
     public Collection $fields;
 
     /**
-     * @var ArrayCollection|Field[]
+     * @var Collection<int, Field>
      */
     #[ORM\OneToMany(targetEntity: Field::class, mappedBy: 'communityVal')]
     public Collection $fieldsAsCommunityVal;
 
     /**
-     * @var ArrayCollection|Field[]
+     * @var Collection<int, Field>
      */
     #[ORM\ManyToMany(targetEntity: Field::class, mappedBy: 'communitiesVal')]
     public Collection $fieldsAsCommunitiesVal;
 
     public function __construct()
     {
-        $this->createdAt = new DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable();
         $this->fields = new ArrayCollection();
         $this->fieldsAsCommunityVal = new ArrayCollection();
         $this->fieldsAsCommunitiesVal = new ArrayCollection();
@@ -61,7 +60,7 @@ class Community
         // Groups:
         // - deletion reason must be set if state is deleted
         foreach ($this->getFieldsByName(FieldCommunity::STATE) as $stateField) {
-            if ($stateField->getValue() === 'deleted' && !$this->getFieldByNameAndAgent(FieldCommunity::DELETION_REASON, $stateField->agent)) {
+            if ('deleted' === $stateField->getValue() && !$this->getFieldByNameAndAgent(FieldCommunity::DELETION_REASON, $stateField->agent)) {
                 $context->buildViolation('Deletion reason is mandatory when reporting a state=deleted state.')
                     ->atPath('fields')
                     ->addViolation();
@@ -79,7 +78,7 @@ class Community
     }
 
     /**
-     * @return Collection|Field[]
+     * @return Collection<int, Field>
      */
     public function getFieldsByName(FieldCommunity $name): Collection
     {
@@ -95,9 +94,9 @@ class Community
     }
 
     public function getMostTrustableFieldByName(FieldCommunity $name): ?Field
-    {      
+    {
         $result = $this->getFieldsByName($name)->toArray();
-        if (count($result) === 0) {
+        if (0 === count($result)) {
             return null;
         }
 

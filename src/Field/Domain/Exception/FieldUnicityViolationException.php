@@ -14,8 +14,8 @@ class FieldUnicityViolationException extends \Exception implements ProblemExcept
     public function __construct(
         private readonly string $name,
         private readonly mixed $value,
-    )
-    {}
+    ) {
+    }
 
     #[Groups(['communities', 'places'])]
     public function getType(): string
@@ -26,7 +26,7 @@ class FieldUnicityViolationException extends \Exception implements ProblemExcept
     #[Groups(['communities', 'places'])]
     public function getTitle(): ?string
     {
-        return "field unicity violation";
+        return 'field unicity violation';
     }
 
     #[Groups(['communities', 'places'])]

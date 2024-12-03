@@ -14,7 +14,7 @@ use App\Shared\Domain\Manager\TransactionManagerInterface;
 use Webmozart\Assert\Assert;
 
 /**
- * @implements ProcessorInterface<CommunityResource>
+ * @implements ProcessorInterface<CommunityResource, CommunityResource>
  */
 final class CreateCommunityProcessor implements ProcessorInterface
 {

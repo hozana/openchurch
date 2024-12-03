@@ -28,6 +28,7 @@ class Agent implements UserInterface
     #[ORM\Column(unique: true)]
     public string $apiKey;
 
+    /** @var Collection<int, Field> */
     #[ORM\OneToMany(targetEntity: Field::class, mappedBy: 'agent')]
     public Collection $fields;
 

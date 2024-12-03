@@ -14,10 +14,10 @@ use App\Community\Infrastructure\ApiPlatform\Resource\CommunityResource;
 use App\Core\Domain\Search\Service\SearchServiceInterface;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Shared\Infrastructure\ApiPlatform\State\Paginator;
-use InvalidArgumentException;
 
-use function PHPUnit\Framework\assertNotNull;
-
+/**
+ * @implements ProviderInterface<CommunityResource>
+ */
 final class CommunityCollectionProvider implements ProviderInterface
 {
     public function __construct(
@@ -28,7 +28,7 @@ final class CommunityCollectionProvider implements ProviderInterface
     }
 
     /**
-     * @return Paginator<BookResource>|list<BookResource>
+     * @return Paginator<CommunityResource>|list<CommunityResource>
      */
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): Paginator|array
     {
@@ -45,14 +45,16 @@ final class CommunityCollectionProvider implements ProviderInterface
 
         // name is provided. We search through elastic
         if ($name) {
-            if (!$type) throw new CommunityTypeNotProvidedException();
+            if (!$type) {
+                throw new CommunityTypeNotProvidedException();
+            }
             $entityIds = match ($type) {
                 CommunityType::PARISH->value => $this->searchService->searchParishIds($name, $itemsPerPage, $page - 1),
                 CommunityType::DIOCESE->value => $this->searchService->searchDioceseIds($name, $itemsPerPage, $page - 1),
-                default => throw new InvalidArgumentException(sprintf('Invalid type %s', $type)),
+                default => throw new \InvalidArgumentException(sprintf('Invalid type %s', $type)),
             };
 
-            if (count($entityIds) === 0) {
+            if (0 === count($entityIds)) {
                 return [];
             }
         }

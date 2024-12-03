@@ -7,9 +7,9 @@ namespace App\Place\Infrastructure\ApiPlatform\Resource;
 use ApiPlatform\Elasticsearch\State\Options;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Field\Domain\Model\Field;
 use App\Place\Domain\Model\Place;
 use App\Place\Infrastructure\ApiPlatform\State\Processor\CreatePlaceProcessor;
@@ -44,17 +44,21 @@ use Symfony\Component\Uid\Uuid;
 )]
 final class PlaceResource
 {
+    /**
+     * @param Field[] $fields
+     */
     public function __construct(
         #[Groups(['places'])]
         #[ApiProperty(identifier: true, readable: true, writable: false)]
         public ?Uuid $id = null,
 
         #[Groups(['places'])]
-        /** @var Field[] $fields */
         public array $fields = [],
-    ) {}
+    ) {
+    }
 
-    public static function fromModel(Place $place) {
+    public static function fromModel(Place $place): PlaceResource
+    {
         return new self(
             $place->id,
             $place->fields->toArray(),

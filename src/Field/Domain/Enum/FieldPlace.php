@@ -45,7 +45,7 @@ enum FieldPlace: string
     case REPLACES = 'replaces';
     case PARENT_COMMUNITIES = 'parentCommunities';
 
-    public function getType(): array|string
+    public function getType(): string
     {
         return self::TYPES[$this->value];
     }

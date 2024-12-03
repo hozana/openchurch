@@ -13,8 +13,8 @@ class FieldInvalidNameException extends \Exception implements ProblemExceptionIn
 {
     public function __construct(
         private readonly string $name,
-    )
-    {}
+    ) {
+    }
 
     #[Groups(['communities', 'places'])]
     public function getType(): string
@@ -25,7 +25,7 @@ class FieldInvalidNameException extends \Exception implements ProblemExceptionIn
     #[Groups(['communities', 'places'])]
     public function getTitle(): ?string
     {
-        return "invalid field name";
+        return 'invalid field name';
     }
 
     #[Groups(['communities', 'places'])]

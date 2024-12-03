@@ -32,7 +32,6 @@ final class Version20241108155826 extends AbstractMigration
 
         $this->addSql('DROP TABLE community');
 
-
         $this->addSql('DROP TABLE place');
     }
 }

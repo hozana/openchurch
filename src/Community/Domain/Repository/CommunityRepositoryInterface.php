@@ -15,7 +15,9 @@ interface CommunityRepositoryInterface extends RepositoryInterface
 {
     public function ofId(Uuid $communityid): ?Community;
 
-    /** @param string[] $communityid */
+    /**
+     * @param array<string> $ids
+     */
     public function ofIds(array $ids): static;
 
     public function addSelectField(): static;

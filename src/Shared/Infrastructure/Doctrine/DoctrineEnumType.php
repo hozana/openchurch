@@ -5,7 +5,6 @@ namespace App\Shared\Infrastructure\Doctrine;
 use App\Shared\Domain\Enum\EnumTrait;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\Type;
-use LogicException;
 
 /**
  * Doctrine enum type.
@@ -22,7 +21,7 @@ abstract class DoctrineEnumType extends Type
 
         // Ensure that none of the values is an integer
         if (!empty(array_filter(array_map('is_int', $constants)))) {
-            throw new LogicException("Please don't use integer enums in MySQL.");
+            throw new \LogicException("Please don't use integer enums in MySQL.");
         }
 
         $values = array_map(fn ($val) => "'$val'", $constants);
@@ -30,7 +29,7 @@ abstract class DoctrineEnumType extends Type
         return 'ENUM('.implode(', ', $values).')';
     }
 
-    public function convertToDatabaseValue($value, AbstractPlatform $platform): mixed
+    public function convertToDatabaseValue(mixed $value, AbstractPlatform $platform): mixed
     {
         self::ensureValid($value, true);
 

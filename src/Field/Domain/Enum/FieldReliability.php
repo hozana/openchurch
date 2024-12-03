@@ -15,11 +15,12 @@ class FieldReliability extends DoctrineEnumType
         return 'enum_reliability_type';
     }
 
-    public static function compare($reliabilityA, $reliabilityB) {
+    public static function compare(string $reliabilityA, string $reliabilityB): int
+    {
         $reliabilityValues = [
             self::HIGH => 1,
             self::MEDIUM => 2,
-            self::LOW => 3
+            self::LOW => 3,
         ];
 
         return $reliabilityValues[$reliabilityA] <=> $reliabilityValues[$reliabilityB];

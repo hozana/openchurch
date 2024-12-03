@@ -6,8 +6,10 @@ use App\Agent\Domain\Model\Agent;
 use App\Agent\Domain\Repository\AgentRepositoryInterface;
 use App\Shared\Infrastructure\Doctrine\DoctrineRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Uid\Uuid;
 
+/**
+ * @extends DoctrineRepository<Agent>
+ */
 class DoctrineAgentRepository extends DoctrineRepository implements AgentRepositoryInterface
 {
     private const ENTITY_CLASS = Agent::class;

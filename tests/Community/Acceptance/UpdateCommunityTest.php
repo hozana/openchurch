@@ -20,13 +20,14 @@ use Zenstruck\Foundry\Test\ResetDatabase;
 
 class UpdateCommunityTest extends AcceptanceTestHelper
 {
-    use ResetDatabase, Factories;
+    use ResetDatabase;
+    use Factories;
 
     public function testShouldPassWithGoodData(): void
     {
         $agent = DummyAgentFactory::createOne();
         $community = DummyCommunityFactory::createOne();
-        
+
         $response = self::assertResponse($this->patch("/communities/$community->id", $agent->apiKey, body: [
             'fields' => [
                 [
@@ -37,7 +38,7 @@ class UpdateCommunityTest extends AcceptanceTestHelper
                     'explanation' => 'yolo',
                     'engine' => FieldEngine::AI,
                 ],
-            ]
+            ],
         ]), HttpFoundationResponse::HTTP_OK);
 
         self::assertCount(1, $response['fields']);
@@ -61,10 +62,9 @@ class UpdateCommunityTest extends AcceptanceTestHelper
                     'source' => 'custom_source',
                     'explanation' => 'yolo',
                     'engine' => FieldEngine::AI,
-                ]
-            ]
+                ],
+            ],
         ]), HttpFoundationResponse::HTTP_BAD_REQUEST);
-
     }
 
     public function testShouldThrowIfFieldValueNotValid(): void
@@ -81,8 +81,8 @@ class UpdateCommunityTest extends AcceptanceTestHelper
                     'source' => 'custom_source',
                     'explanation' => 'yolo',
                     'engine' => FieldEngine::AI,
-                ]
-            ]
+                ],
+            ],
         ]), HttpFoundationResponse::HTTP_UNPROCESSABLE_ENTITY);
     }
 
@@ -95,7 +95,7 @@ class UpdateCommunityTest extends AcceptanceTestHelper
         $this->em->persist($agent);
 
         $field = new Field();
-        $field->name =  FieldCommunity::WIKIDATA_ID->value;
+        $field->name = FieldCommunity::WIKIDATA_ID->value;
         $field->intVal = 123456;
         $field->reliability = FieldReliability::HIGH;
         $field->engine = FieldEngine::AI;
@@ -103,7 +103,7 @@ class UpdateCommunityTest extends AcceptanceTestHelper
         $this->em->persist($field);
 
         $FieldCommunity2 = new Field();
-        $FieldCommunity2->name =  FieldCommunity::WIKIDATA_ID->value;
+        $FieldCommunity2->name = FieldCommunity::WIKIDATA_ID->value;
         $FieldCommunity2->intVal = 123457;
         $FieldCommunity2->reliability = FieldReliability::HIGH;
         $FieldCommunity2->engine = FieldEngine::HUMAN;
@@ -129,11 +129,11 @@ class UpdateCommunityTest extends AcceptanceTestHelper
                     'source' => 'custom_source',
                     'explanation' => 'yolo',
                     'engine' => FieldEngine::AI,
-                ]
-            ]
+                ],
+            ],
         ]), HttpFoundationResponse::HTTP_BAD_REQUEST);
 
-        self::assertEquals("Found duplicate for field wikidataId with value 123457", $response['detail']);
+        self::assertEquals('Found duplicate for field wikidataId with value 123457', $response['detail']);
     }
 
     public function testShouldThrowIfCommunityNotFound(): void
@@ -146,13 +146,13 @@ class UpdateCommunityTest extends AcceptanceTestHelper
                 [
                     'name' => FieldCommunity::CONTACT_CITY,
                     'value' => 10,
-                    "reliability" => "high",
-                    "source" => "human",
-                    "explanation" => "yolo",
-                    "engine" => "human"
-                ]
-            ]
-            ]),
+                    'reliability' => 'high',
+                    'source' => 'human',
+                    'explanation' => 'yolo',
+                    'engine' => 'human',
+                ],
+            ],
+        ]),
             (new CommunityNotFoundException($id))->getStatus(),
             (new CommunityNotFoundException($id))->getDetail(),
         );

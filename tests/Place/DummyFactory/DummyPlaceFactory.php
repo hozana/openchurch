@@ -3,7 +3,6 @@
 namespace App\Tests\Place\DummyFactory;
 
 use App\Place\Domain\Model\Place;
-use App\Tests\Field\DummyFactory\DummyFieldFactory;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
@@ -28,9 +27,9 @@ final class DummyPlaceFactory extends PersistentProxyObjectFactory
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
      *
-     * @todo add your default values here
+     * @return array<string, mixed>
      */
-    protected function defaults(): array|callable
+    protected function defaults(): array
     {
         return [
             'createdAt' => \DateTimeImmutable::createFromMutable(self::faker()->dateTime()),
@@ -45,19 +44,5 @@ final class DummyPlaceFactory extends PersistentProxyObjectFactory
         return $this
             // ->afterInstantiate(function(Place $place): void {})
         ;
-    }
-
-    public function withField(array $fieldData): self
-    {
-        return $this->afterInstantiate(function(Place $place) use ($fieldData) {
-            $field = DummyFieldFactory::createOne(array_merge(
-                $fieldData,
-                ['place' => $place]
-            ))->_save();
-
-            $place->fields->add($field);
-
-            // $place->addField($field);
-        });
     }
 }

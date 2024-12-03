@@ -12,6 +12,9 @@ use Doctrine\ORM\Query\Expr\Comparison;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\Uid\Uuid;
 
+/**
+ * @extends DoctrineRepository<Field>
+ */
 class DoctrineFieldRepository extends DoctrineRepository implements FieldRepositoryInterface
 {
     private const ENTITY_CLASS = Field::class;
@@ -28,9 +31,9 @@ class DoctrineFieldRepository extends DoctrineRepository implements FieldReposit
     }
 
     /**
-     * Checks if the specific field exists across the database. If it is, will return the UUID
+     * Checks if the specific field exists across the database. If it is, will return the UUID.
      */
-    public function exists(Uuid $id, FieldPlace|FieldCommunity $fieldName, mixed $fieldValue): string|null
+    public function exists(Uuid $id, FieldPlace|FieldCommunity $fieldName, mixed $fieldValue): ?string
     {
         $qb = $this->query();
         $row = $qb->select('COALESCE(IDENTITY(field.community), IDENTITY(field.place)) as attachedToId')
@@ -58,6 +61,7 @@ class DoctrineFieldRepository extends DoctrineRepository implements FieldReposit
         $parameterName = "{$alias}_value";
 
         $qb->setParameter($parameterName, $fieldValue);
+
         return $qb->expr()->eq("$alias.$propertyName", ":$parameterName");
     }
 }

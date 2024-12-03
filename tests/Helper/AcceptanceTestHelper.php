@@ -5,7 +5,6 @@ namespace App\Tests\Helper;
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use ApiPlatform\Symfony\Bundle\Test\Client;
 use Doctrine\ORM\EntityManagerInterface;
-use InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -16,7 +15,7 @@ abstract class AcceptanceTestHelper extends ApiTestCase
 {
     protected Client $client;
     protected EntityManagerInterface $em;
-    private static Request $lastRequest;
+    public static Request $lastRequest;
 
     protected function setUp(): void
     {
@@ -36,26 +35,42 @@ abstract class AcceptanceTestHelper extends ApiTestCase
         parent::tearDown();
     }
 
+    /**
+     * @param array<string, mixed>  $body
+     * @param array<string, string> $headers
+     */
     protected function post(string $endpoint, ?string $apikey = null, ?array $body = null, array $headers = []): Response
     {
         return $this->request(Request::METHOD_POST, $endpoint, $apikey, $body, $headers);
     }
 
+    /**
+     * @param array<string, mixed>  $body
+     * @param array<string, string> $headers
+     */
     protected function put(string $endpoint, ?string $apikey = null, ?array $body = null, array $headers = []): Response
     {
         return $this->request(Request::METHOD_PUT, $endpoint, $apikey, $body, $headers);
     }
 
+    /**
+     * @param array<string, mixed>  $body
+     * @param array<string, string> $headers
+     */
     protected function patch(string $endpoint, ?string $apikey = null, ?array $body = null, array $headers = []): Response
     {
         return $this->request(Request::METHOD_PATCH, $endpoint, $apikey, $body, $headers);
     }
 
+    /**
+     * @param array<string, mixed> $headers
+     * @param array<string, mixed> $querystring
+     */
     protected function get(string $endpoint, ?string $apikey = null, array $headers = [], array $querystring = []): Response
     {
         if (count($querystring)) {
             if (str_contains($endpoint, '?')) {
-                throw new InvalidArgumentException("$endpoint already contains a querystring, don't use both \$querystring argument and a hardcoded one!");
+                throw new \InvalidArgumentException("$endpoint already contains a querystring, don't use both \$querystring argument and a hardcoded one!");
             }
             $endpoint .= '?'.http_build_query($querystring);
         }
@@ -63,22 +78,30 @@ abstract class AcceptanceTestHelper extends ApiTestCase
         return $this->request(Request::METHOD_GET, $endpoint, $apikey, null, $headers);
     }
 
+    /**
+     * @param array<string, mixed>  $body
+     * @param array<string, string> $headers
+     */
     protected function delete(string $endpoint, ?string $apikey = null, $body = null, array $headers = []): Response
     {
         return $this->request(Request::METHOD_DELETE, $endpoint, $apikey, $body, $headers);
     }
 
+    /**
+     * @param array<string, mixed>  $body
+     * @param array<string, string> $headers
+     */
     public function request(string $method, string $endpoint, ?string $apikey, ?array $body, array $headers = []): Response
     {
         $apiHost = $this->getParameter('host_api');
         $endpoint = ltrim($endpoint, '/');
         $url = "http://$apiHost/$endpoint";
-        $content = $body !== null ? json_encode($body, JSON_THROW_ON_ERROR) : '';
+        $content = null !== $body ? json_encode($body, JSON_THROW_ON_ERROR) : '';
 
         $server = [
             'CONTENT_TYPE' => 'application/json',
         ];
-        if ($apikey !== null) {
+        if (null !== $apikey) {
             $headers['Authorization'] = "Bearer $apikey";
         }
         foreach ($headers as $key => $value) {
@@ -103,19 +126,22 @@ abstract class AcceptanceTestHelper extends ApiTestCase
         $message = "Failed asserting that status code $actual ($actualStatusText) matches expected $expected ($expectedStatusText)";
 
         // Include response to ease debugging
-        if ($response->headers->get('Content-Type') === 'application/json') {
+        if ('application/json' === $response->headers->get('Content-Type')) {
             $message .= ': '.$response->getContent();
         }
 
-        if ($messagePrefix !== null) {
+        if (null !== $messagePrefix) {
             $message = "$messagePrefix $message";
         }
 
         self::assertEquals($expectedStatusText, $actualStatusText, $message);
     }
 
+    /**
+     * @return array<mixed>|null
+     */
     protected static function assertResponse(
-        Response $response, int $expectedStatusCode = Response::HTTP_OK
+        Response $response, int $expectedStatusCode = Response::HTTP_OK,
     ): ?array {
         self::assertStatusCode($expectedStatusCode, $response);
 
@@ -127,9 +153,12 @@ abstract class AcceptanceTestHelper extends ApiTestCase
         return $decodedContent;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     protected static function assertErrorResponse(Response $response, int $expectedStatusCode, ?string $expectedError): ?array
     {
-        $decodedResponse = self::assertResponse($response, $expectedStatusCode, false);
+        $decodedResponse = self::assertResponse($response, $expectedStatusCode);
 
         self::assertSame($expectedError, $decodedResponse['detail']);
 

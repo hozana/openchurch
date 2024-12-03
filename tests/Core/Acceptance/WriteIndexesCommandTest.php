@@ -2,7 +2,6 @@
 
 namespace App\Tests\Core\Acceptance;
 
-use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use ApiPlatform\Symfony\Bundle\Test\Client;
 use App\Community\Domain\Enum\CommunityType;
 use App\Core\Domain\Search\Helper\SearchHelperInterface;
@@ -20,7 +19,8 @@ class WriteIndexesCommandTest extends AcceptanceTestHelper
     private SearchHelperInterface $searchHelper;
     private SearchServiceInterface $searchService;
 
-    protected function setUp(): void {
+    protected function setUp(): void
+    {
         parent::setUp();
 
         $this->searchHelper = static::getContainer()->get(SearchHelperInterface::class);
@@ -29,61 +29,57 @@ class WriteIndexesCommandTest extends AcceptanceTestHelper
 
     public function testExecute(): void
     {
-        $diocese1 = DummyCommunityFactory::createOne(['fields' => 
-            [
-                DummyFieldFactory::createOne([
-                    'name' => FieldCommunity::TYPE->value,
-                    Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::DIOCESE->value,
-                ]),
-                DummyFieldFactory::createOne([
-                    'name' => FieldCommunity::NAME->value,
-                    Field::getPropertyName(FieldCommunity::NAME) => "Diocèse de Nîmes",
-                ]),
-            ]
+        $diocese1 = DummyCommunityFactory::createOne(['fields' => [
+            DummyFieldFactory::createOne([
+                'name' => FieldCommunity::TYPE->value,
+                Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::DIOCESE->value,
+            ]),
+            DummyFieldFactory::createOne([
+                'name' => FieldCommunity::NAME->value,
+                Field::getPropertyName(FieldCommunity::NAME) => 'Diocèse de Nîmes',
+            ]),
+        ],
         ]);
-        $diocese2 = DummyCommunityFactory::createOne(['fields' => 
-            [
-                DummyFieldFactory::createOne([
-                    'name' => FieldCommunity::TYPE->value,
-                    Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::DIOCESE->value,
-                ]),
-                DummyFieldFactory::createOne([
-                    'name' => FieldCommunity::NAME->value,
-                    Field::getPropertyName(FieldCommunity::NAME) => "Diocèse d'Aire de Dax",
-                ]),
-            ]
+        $diocese2 = DummyCommunityFactory::createOne(['fields' => [
+            DummyFieldFactory::createOne([
+                'name' => FieldCommunity::TYPE->value,
+                Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::DIOCESE->value,
+            ]),
+            DummyFieldFactory::createOne([
+                'name' => FieldCommunity::NAME->value,
+                Field::getPropertyName(FieldCommunity::NAME) => "Diocèse d'Aire de Dax",
+            ]),
+        ],
         ]);
-        $parish1 = DummyCommunityFactory::createOne(['fields' => 
-            [
-                DummyFieldFactory::createOne([
-                    'name' => FieldCommunity::TYPE->value,
-                    Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::PARISH->value,
-                ]),
-                DummyFieldFactory::createOne([
-                    'name' => FieldCommunity::NAME->value,
-                    Field::getPropertyName(FieldCommunity::NAME) => "Paroisse Saint-Pierre-Saint-Paul-du-Marsan",
-                ]),
-                DummyFieldFactory::createOne([
-                    'name' => FieldCommunity::PARENT_COMMUNITY_ID->value,
-                    Field::getPropertyName(FieldCommunity::PARENT_COMMUNITY_ID) => $diocese2->_real(),
-                ]),
-            ]
+        $parish1 = DummyCommunityFactory::createOne(['fields' => [
+            DummyFieldFactory::createOne([
+                'name' => FieldCommunity::TYPE->value,
+                Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::PARISH->value,
+            ]),
+            DummyFieldFactory::createOne([
+                'name' => FieldCommunity::NAME->value,
+                Field::getPropertyName(FieldCommunity::NAME) => 'Paroisse Saint-Pierre-Saint-Paul-du-Marsan',
+            ]),
+            DummyFieldFactory::createOne([
+                'name' => FieldCommunity::PARENT_COMMUNITY_ID->value,
+                Field::getPropertyName(FieldCommunity::PARENT_COMMUNITY_ID) => $diocese2->_real(),
+            ]),
+        ],
         ]);
-        $parish2 = DummyCommunityFactory::createOne(['fields' => 
-            [
-                DummyFieldFactory::createOne([
-                    'name' => FieldCommunity::TYPE->value,
-                    Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::PARISH->value,
-                ]),
-                DummyFieldFactory::createOne([
-                    'name' => FieldCommunity::NAME->value,
-                    Field::getPropertyName(FieldCommunity::NAME) => "Ensemble Paroissial de Bagnols-sur-Cèze",
-                ]),
-                DummyFieldFactory::createOne([
-                    'name' => FieldCommunity::PARENT_COMMUNITY_ID->value,
-                    Field::getPropertyName(FieldCommunity::PARENT_COMMUNITY_ID) => $diocese1->_real(),
-                ]),
-            ]
+        $parish2 = DummyCommunityFactory::createOne(['fields' => [
+            DummyFieldFactory::createOne([
+                'name' => FieldCommunity::TYPE->value,
+                Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::PARISH->value,
+            ]),
+            DummyFieldFactory::createOne([
+                'name' => FieldCommunity::NAME->value,
+                Field::getPropertyName(FieldCommunity::NAME) => 'Ensemble Paroissial de Bagnols-sur-Cèze',
+            ]),
+            DummyFieldFactory::createOne([
+                'name' => FieldCommunity::PARENT_COMMUNITY_ID->value,
+                Field::getPropertyName(FieldCommunity::PARENT_COMMUNITY_ID) => $diocese1->_real(),
+            ]),
+        ],
         ]);
         $this->em->flush();
         $this->runCommand('app:write:indexes');
@@ -100,24 +96,24 @@ class WriteIndexesCommandTest extends AcceptanceTestHelper
         $rawResults = $this->searchHelper->all(SearchIndex::PARISH, 100, 0);
         static::assertEquals([
             [
-                "_index" => "parish",
-                "_id" => $parish1->id->toString(),
-                "_score" => 1.0,
-                "_source" => [
-                    "parishName" => "Paroisse Saint-Pierre-Saint-Paul-du-Marsan",
-                    "dioceseName" => "Diocèse d'Aire de Dax",
-                ]
+                '_index' => 'parish',
+                '_id' => $parish1->id->toString(),
+                '_score' => 1.0,
+                '_source' => [
+                    'parishName' => 'Paroisse Saint-Pierre-Saint-Paul-du-Marsan',
+                    'dioceseName' => "Diocèse d'Aire de Dax",
+                ],
             ],
             [
-                "_index" => "parish",
-                "_id" => $parish2->id->toString(),
-                "_score" => 1.0,
-                "_source" => [
-                    "parishName" => "Ensemble Paroissial de Bagnols-sur-Cèze",
-                    "dioceseName" => "Diocèse de Nîmes",
-                ]
+                '_index' => 'parish',
+                '_id' => $parish2->id->toString(),
+                '_score' => 1.0,
+                '_source' => [
+                    'parishName' => 'Ensemble Paroissial de Bagnols-sur-Cèze',
+                    'dioceseName' => 'Diocèse de Nîmes',
+                ],
             ],
         ],
-        $rawResults['hits']['hits']);
-    }    
+            $rawResults['hits']['hits']);
+    }
 }

@@ -14,8 +14,8 @@ class CommunityNotFoundException extends \Exception implements ProblemExceptionI
 {
     public function __construct(
         private Uuid $communityId,
-    )
-    {}
+    ) {
+    }
 
     #[Groups(['communities'])]
     public function getType(): string
@@ -26,7 +26,7 @@ class CommunityNotFoundException extends \Exception implements ProblemExceptionI
     #[Groups(['communities'])]
     public function getTitle(): ?string
     {
-        return "community not found";
+        return 'community not found';
     }
 
     public function getStatus(): ?int

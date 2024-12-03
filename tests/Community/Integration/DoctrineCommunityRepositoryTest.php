@@ -19,7 +19,8 @@ use Zenstruck\Foundry\Test\ResetDatabase;
 
 final class DoctrineCommunityRepositoryTest extends KernelTestCase
 {
-    use ResetDatabase, Factories;
+    use ResetDatabase;
+    use Factories;
 
     private static EntityManagerInterface $em;
 
@@ -51,7 +52,7 @@ final class DoctrineCommunityRepositoryTest extends KernelTestCase
         /** @var DoctrineCommunityRepository $repository */
         $repository = static::getContainer()->get(DoctrineCommunityRepository::class);
 
-        static::assertEmpty($repository);
+        static::assertCount(0, $repository);
 
         $community = DummyCommunityFactory::createOne()->_real();
         $repository->add($community);
@@ -65,7 +66,7 @@ final class DoctrineCommunityRepositoryTest extends KernelTestCase
         /** @var DoctrineCommunityRepository $repository */
         $repository = static::getContainer()->get(DoctrineCommunityRepository::class);
 
-        static::assertEmpty($repository);
+        static::assertCount(0, $repository);
         $community1 = DummyCommunityFactory::createOne();
         DummyCommunityFactory::createOne();
         DummyCommunityFactory::createOne();
@@ -78,7 +79,7 @@ final class DoctrineCommunityRepositoryTest extends KernelTestCase
     {
         /** @var DoctrineCommunityRepository $repository */
         $repository = static::getContainer()->get(DoctrineCommunityRepository::class);
-        
+
         DummyCommunityFactory::createMany(2, ['fields' => [DummyFieldFactory::new(['name' => FieldCommunity::TYPE->value, 'stringVal' => CommunityType::DIOCESE->value])]]);
         DummyCommunityFactory::createOne(['fields' => [DummyFieldFactory::new(['name' => FieldCommunity::TYPE->value, 'stringVal' => CommunityType::PARISH->value])]]);
 
@@ -95,7 +96,7 @@ final class DoctrineCommunityRepositoryTest extends KernelTestCase
     {
         /** @var DoctrineCommunityRepository $repository */
         $repository = static::getContainer()->get(DoctrineCommunityRepository::class);
-        
+
         $field1 = DummyFieldFactory::createOne(['name' => FieldCommunity::WIKIDATA_ID->value, 'intVal' => 1]);
         $field2 = DummyFieldFactory::createOne(['name' => FieldCommunity::WIKIDATA_ID->value, 'intVal' => 2]);
         $field3 = DummyFieldFactory::createOne(['name' => FieldCommunity::WIKIDATA_ID->value, 'intVal' => 3]);
@@ -114,7 +115,8 @@ final class DoctrineCommunityRepositoryTest extends KernelTestCase
         }
     }
 
-    public function testAddSelectField(): void {
+    public function testAddSelectField(): void
+    {
         /** @var DoctrineCommunityRepository $repository */
         $repository = static::getContainer()->get(DoctrineCommunityRepository::class);
 
@@ -131,7 +133,7 @@ final class DoctrineCommunityRepositoryTest extends KernelTestCase
         /** @var DoctrineCommunityRepository $repository */
         $repository = static::getContainer()->get(DoctrineCommunityRepository::class);
 
-        static::assertEmpty($repository);
+        static::assertCount(0, $repository);
         $community1 = DummyCommunityFactory::createOne();
         DummyCommunityFactory::createOne();
         DummyCommunityFactory::createOne();
@@ -188,7 +190,7 @@ final class DoctrineCommunityRepositoryTest extends KernelTestCase
         static::assertNull($repository->paginator());
 
         $communities = array_map(
-            fn (Community $community) => $community->_real(), 
+            fn (Community $community) => $community->_real(),
             DummyCommunityFactory::createMany(3)
         );
 
@@ -224,7 +226,7 @@ final class DoctrineCommunityRepositoryTest extends KernelTestCase
         $repository = static::getContainer()->get(DoctrineCommunityRepository::class);
 
         $communities = array_map(
-            fn (Community $community) => $community->_real(), 
+            fn (Community $community) => $community->_real(),
             DummyCommunityFactory::createMany(3)
         );
         foreach ($communities as $community) {

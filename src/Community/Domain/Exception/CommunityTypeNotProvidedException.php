@@ -20,7 +20,7 @@ class CommunityTypeNotProvidedException extends \Exception implements ProblemExc
     #[Groups(['communities'])]
     public function getTitle(): ?string
     {
-        return "community type not provided";
+        return 'community type not provided';
     }
 
     public function getStatus(): ?int

@@ -32,32 +32,40 @@ final class FieldService
         private readonly FieldRepositoryInterface $fieldRepo,
         private ValidatorInterface $validator,
         private Security $security,
-    ) {}
-
+    ) {
+    }
 
     /**
-     * @param FieldPlace[]|FieldCommunity[] $fieldPayloads
+     * @param Field[] $fieldPayloads
+     *
+     * @return Collection<int, Field>
      */
-    public function upsertFields(Place|Community $entity, array $fieldPayloads): Collection {
+    public function upsertFields(Place|Community $entity, array $fieldPayloads): Collection
+    {
+        /** @var Collection<int, Field> $insertedFields */
         $insertedFields = new ArrayCollection();
 
+        /** @var Agent $agent */
+        $agent = $this->security->getUser();
+
         foreach ($fieldPayloads as $fieldPayload) {
-            $enumValue = match($entity::class) {
+            $enumValue = match ($entity::class) {
                 Place::class => FieldPlace::tryFrom($fieldPayload->name),
                 Community::class => FieldCommunity::tryFrom($fieldPayload->name),
+                default => null,
             };
-            if ($enumValue === null) {
+            if (null === $enumValue) {
                 throw new FieldInvalidNameException($fieldPayload->name);
             }
 
             $field = $this->getOrCreate(
-                $entity, 
+                $entity,
                 $enumValue,
-                $this->security->getUser()
+                $agent,
             );
             $value = $this->maybeTransformEntities($enumValue, $fieldPayload->value);
 
-            if ($entity::class === Community::class) {
+            if (Community::class === $entity::class) {
                 $field->community = $entity;
             } else {
                 $field->place = $entity;
@@ -71,10 +79,10 @@ final class FieldService
             $field->touch();
 
             // Unique constraints validation (TODO use custom Assert instead)
-            if ($field->value !== null
+            if (null !== $field->value
                 && in_array($field->name, Field::UNIQUE_CONSTRAINTS, true)
                 && (null !== $attachedToId = $this->fieldRepo->exists($entity->id, $enumValue, $field->value))
-                && $attachedToId !== $entity->id
+                && $attachedToId !== $entity->id->toString()
             ) {
                 throw new FieldUnicityViolationException($field->name, $field->value);
             }
@@ -84,7 +92,7 @@ final class FieldService
                 throw new ValidationException($violations);
             }
 
-            $field->applyValue(); //Dynamycally set the value to the correct property (intVal, stringVal, ...)
+            $field->applyValue(); // Dynamycally set the value to the correct property (intVal, stringVal, ...)
 
             $this->fieldRepo->add($field);
             $insertedFields[] = $field;
@@ -93,7 +101,8 @@ final class FieldService
         return $insertedFields;
     }
 
-    private function getOrCreate(Place|Community $entity, FieldPlace|FieldCommunity $nameEnum, Agent $agent): Field {
+    private function getOrCreate(Place|Community $entity, FieldPlace|FieldCommunity $nameEnum, Agent $agent): Field
+    {
         $field = $entity->getFieldByNameAndAgent($nameEnum, $agent);
         if (!$field) {
             $field = new Field();
@@ -105,9 +114,7 @@ final class FieldService
     }
 
     /**
-     * @param FieldCommunity|FieldPlace $field
-     * @param string|array $value
-     * @return Community|Community[]|Place|Place[]
+     * @return Community|Community[]|Place|Place[]|null
      */
     private function maybeTransformEntities(FieldCommunity|FieldPlace $nameEnum, mixed $value): mixed
     {
@@ -121,30 +128,31 @@ final class FieldService
             return $value;
         }
 
-        if ($value === null) {
+        if (null === $value) {
             return null;
         }
-        if ($value === []) {
+        if ([] === $value) {
             return [];
         }
 
-        $targetEntityClassName = match(s($type)->trimSuffix('[]')->toString()) {
+        $targetEntityClassName = match (s($type)->trimSuffix('[]')->toString()) {
             'Community' => Community::class,
             'Place' => Place::class,
+            default => null,
         };
-        $repo = match($targetEntityClassName) {
+        $repo = match ($targetEntityClassName) {
             Community::class => $this->communityRepository,
             Place::class => $this->placeRepository,
+            default => throw new \RuntimeException('Unknown type '.$type),
         };
 
         if (str_ends_with($type, '[]')) {
             // That's an array
             if (!is_array($value)) {
-                throw new BadRequestHttpException($nameEnum->value.": should be an array");
+                throw new BadRequestHttpException($nameEnum->value.': should be an array');
             }
-            assert(is_array($value));
 
-            //$instances = $repo->findBy(['id' => $value]);: does not work
+            // $instances = $repo->findBy(['id' => $value]);: does not work
             $instances = array_map(fn (string $id) => $repo->ofId(Uuid::fromString($id)), $value);
             $instances = array_filter($instances);
 

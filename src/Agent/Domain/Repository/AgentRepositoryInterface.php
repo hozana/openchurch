@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Agent\Domain\Repository;
 
-use App\Shared\Domain\Repository\RepositoryInterface;
 use App\Agent\Domain\Model\Agent;
+use App\Shared\Domain\Repository\RepositoryInterface;
 
 /**
  * @extends RepositoryInterface<Agent>

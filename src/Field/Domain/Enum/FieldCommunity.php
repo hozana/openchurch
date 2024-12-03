@@ -43,7 +43,7 @@ enum FieldCommunity: string
     case PARENT_COMMUNITY_ID = 'parentCommunityId';
     case REPLACES = 'replaces';
 
-    public function getType(): string|array
+    public function getType(): string
     {
         return self::TYPES[$this->value];
     }

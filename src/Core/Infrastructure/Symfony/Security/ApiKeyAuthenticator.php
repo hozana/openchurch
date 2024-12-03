@@ -13,6 +13,7 @@ use Symfony\Component\Security\Http\Authenticator\AbstractAuthenticator;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
+
 use function Symfony\Component\String\s;
 
 class ApiKeyAuthenticator extends AbstractAuthenticator
@@ -46,7 +47,7 @@ class ApiKeyAuthenticator extends AbstractAuthenticator
         // implement your own logic to get the user identifier from `$apiToken`
         // e.g. by looking up a user in the database using its API key
         $userIdentifier = $this->agentRepo->findAgentNameByApiKey($apiKey);
-        if ($userIdentifier === null) {
+        if (null === $userIdentifier) {
             throw new CustomUserMessageAuthenticationException('Invalid API key provided');
         }
 
@@ -62,7 +63,7 @@ class ApiKeyAuthenticator extends AbstractAuthenticator
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
     {
         $data = [
-            'message' => strtr($exception->getMessageKey(), $exception->getMessageData())
+            'message' => strtr($exception->getMessageKey(), $exception->getMessageData()),
         ];
 
         return new JsonResponse($data, Response::HTTP_UNAUTHORIZED);

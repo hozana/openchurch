@@ -1,0 +1,9 @@
+parameters:
+    level: 6
+    paths:
+        - config/
+        - public/
+        - src/
+    treatPhpDocTypesAsCertain: false
+    ignoreErrors:
+        - '#Parameter \$context .* has invalid type Illuminate\\Http\\Request#'

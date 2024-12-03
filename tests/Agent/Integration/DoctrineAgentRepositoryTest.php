@@ -5,15 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Community\Integration\Doctrine;
 
 use App\Agent\Infrastructure\Doctrine\DoctrineAgentRepository;
-use App\Community\Domain\Enum\CommunityType;
-use App\Community\Domain\Model\Community;
-use App\Community\Infrastructure\Doctrine\DoctrineCommunityRepository;
-use App\Field\Domain\Enum\FieldCommunity;
-use App\Shared\Infrastructure\Doctrine\DoctrinePaginator;
 use App\Tests\Agent\DummyFactory\DummyAgentFactory;
-use App\Tests\Community\DummyFactory\DummyCommunityFactory;
-use App\Tests\Field\DummyFactory\DummyFieldFactory;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Zenstruck\Foundry\Test\Factories;
@@ -21,7 +13,8 @@ use Zenstruck\Foundry\Test\ResetDatabase;
 
 final class DoctrineAgentRepositoryTest extends KernelTestCase
 {
-    use ResetDatabase, Factories;
+    use ResetDatabase;
+    use Factories;
 
     private static EntityManagerInterface $em;
 
@@ -39,7 +32,7 @@ final class DoctrineAgentRepositoryTest extends KernelTestCase
     {
         /** @var DoctrineAgentRepository $repository */
         $repository = static::getContainer()->get(DoctrineAgentRepository::class);
-        static::assertEmpty($repository);
+        static::assertCount(0, $repository);
 
         $agent = DummyAgentFactory::createOne(['name' => 'Romain de rosario', 'apiKey' => '1234']);
         DummyAgentFactory::createOne(['name' => 'toto la praline', 'apiKey' => '5678']);

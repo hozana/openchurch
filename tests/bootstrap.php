@@ -9,7 +9,7 @@ require dirname(__DIR__).'/vendor/autoload.php';
 $dbExists = false;
 
 // Check if the database exists
-if (getenv('KEEP_DB') !== '0') {
+if ('0' !== getenv('KEEP_DB')) {
     echo 'Check if database exists: ';
     $databaseUrl = getenv('DATABASE_URL');
     $dbParts = parse_url($databaseUrl);

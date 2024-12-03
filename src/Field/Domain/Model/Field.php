@@ -8,16 +8,12 @@ use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Enum\FieldEngine;
 use App\Field\Domain\Enum\FieldPlace;
 use App\Field\Domain\Enum\FieldReliability;
-use App\Field\Infrastructure\Doctrine\DoctrineFieldRepository;
 use App\Place\Domain\Model\Place;
 use App\Shared\Infrastructure\Doctrine\Trait\DoctrineTimestampableTrait;
-use DateTime;
-use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use RuntimeException;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\SerializedName;
@@ -25,21 +21,20 @@ use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
-#[ORM\Entity(repositoryClass: DoctrineFieldRepository::class)]
+#[ORM\Entity]
 #[ORM\Table]
 #[ORM\UniqueConstraint(
     columns: ['community_id', 'place_id', 'name', 'agent_id'],
 )]
 class Field
 {
+    use DoctrineTimestampableTrait;
     public const UNIQUE_CONSTRAINTS = [
         FieldCommunity::MESSESINFO_ID->value,
         FieldCommunity::WIKIDATA_ID->value,
         FieldPlace::MESSESINFO_ID->value,
         FieldPlace::WIKIDATA_ID->value,
     ];
-
-    use DoctrineTimestampableTrait;
 
     #[ORM\Id]
     #[ORM\Column(type: 'uuid', unique: true)]
@@ -77,16 +72,16 @@ class Field
     public ?float $floatVal = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    public ?DateTimeImmutable $datetimeVal = null;
+    public ?\DateTimeImmutable $datetimeVal = null;
 
     #[ORM\Column(type: 'date', nullable: true)]
-    public ?DateTimeImmutable $dateVal = null;
+    public ?\DateTimeImmutable $dateVal = null;
 
     #[ORM\ManyToOne(targetEntity: Community::class, inversedBy: 'fieldsAsCommunityVal')]
     public ?Community $communityVal = null;
 
     /**
-     * @var ArrayCollection|Community[]
+     * @var Collection<int, Community>
      */
     #[ORM\ManyToMany(targetEntity: Community::class, inversedBy: 'fieldsAsCommunitiesVal')]
     public Collection $communitiesVal;
@@ -95,7 +90,7 @@ class Field
     public ?Place $placeVal = null;
 
     /**
-     * @var ArrayCollection|Place[]
+     * @var Collection<int, Place>
      */
     #[ORM\ManyToMany(targetEntity: Place::class, inversedBy: 'fieldsAsPlacesVal')]
     public Collection $placesVal;
@@ -122,14 +117,14 @@ class Field
     public string $engine;
 
     /**
-     * Where the data comes from (openstreetmap, for instance)
+     * Where the data comes from (openstreetmap, for instance).
      */
     #[ORM\Column(type: 'text', nullable: true)]
     #[Groups(['communities', 'places'])]
     public ?string $source;
 
     /**
-     * Explanation of the source (its URL)
+     * Explanation of the source (its URL).
      */
     #[ORM\Column(type: 'text', nullable: true)]
     #[Groups(['communities', 'places'])]
@@ -140,7 +135,7 @@ class Field
 
     public function __construct()
     {
-        $this->createdAt = new DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable();
         $this->communitiesVal = new ArrayCollection();
         $this->placesVal = new ArrayCollection();
     }
@@ -149,7 +144,7 @@ class Field
     #[SerializedName('value')]
     public function getValue(): mixed
     {
-        /** @noinspection ProperNullCoalescingOperatorUsageInspection */
+        /* @noinspection ProperNullCoalescingOperatorUsageInspection */
         return $this->stringVal
             ?? $this->intVal
             ?? $this->floatVal
@@ -165,7 +160,7 @@ class Field
     public function validate(ExecutionContextInterface $context, mixed $payload): void
     {
         // Ensure either community or place is set, not none, not both
-        if (!($this->community !== null xor $this->place !== null)) {
+        if (!(null !== $this->community xor null !== $this->place)) {
             $context->buildViolation('Field must be attached to a community or a place, not none, not both')
                 ->atPath('community')
                 ->addViolation();
@@ -173,17 +168,17 @@ class Field
 
         // Ensure name is OK according to community/place
         $enum = $this->getTypeEnum();
-        if ($enum === null) {
+        if (null === $enum) {
             $context->buildViolation(sprintf('Field %s is not acceptable', $this->name))
                 ->atPath('name')
                 ->addViolation();
         }
 
         // Ensure type is OK
-        if ($this->value !== null && $enum !== null && $enum !== false) {
+        if (null !== $this->value && null !== $enum && false !== $enum) {
             $type = $enum->getType();
             // Handle enums
-            if (is_string($type) && enum_exists($type)) {
+            if (enum_exists($type)) {
                 $type = array_column($type::cases(), 'value');
             }
 
@@ -199,12 +194,13 @@ class Field
                     Types::STRING => is_string($this->value),
                     Types::FLOAT => is_float($this->value),
                     Types::INTEGER => is_int($this->value),
-                    Types::DATETIME_MUTABLE => DateTime::createFromFormat('Y-m-d H:i:s', $this->value) !== null,
-                    Types::DATE_MUTABLE => DateTime::createFromFormat('Y-m-d', $this->value) !== null,
+                    Types::DATETIME_MUTABLE => (bool) \DateTime::createFromFormat('Y-m-d H:i:s', $this->value),
+                    Types::DATE_MUTABLE => (bool) \DateTime::createFromFormat('Y-m-d', $this->value),
                     'Community' => $this->value instanceof Community,
                     'Community[]' => is_array($this->value) && count($this->value) === count(array_filter($this->value, fn (mixed $item) => $item instanceof Community)),
                     'Place' => $this->value instanceof Place,
                     'Place[]' => is_array($this->value) && count($this->value) === count(array_filter($this->value, fn (mixed $item) => $item instanceof Place)),
+                    default => false,
                 };
                 if (!$isValid) {
                     $context->buildViolation(sprintf('Field %s expected value of type %s', $this->name, $type))
@@ -218,8 +214,8 @@ class Field
     private function getTypeEnum(): FieldCommunity|FieldPlace|false|null
     {
         return match (true) {
-            $this->community !== null => FieldCommunity::tryFrom($this->name),
-            $this->place !== null => FieldPlace::tryFrom($this->name),
+            null !== $this->community => FieldCommunity::tryFrom($this->name),
+            null !== $this->place => FieldPlace::tryFrom($this->name),
             default => false, // Use false to avoid triggering "Field name is not acceptable" when neither community nor place is attached.
         };
     }
@@ -228,7 +224,7 @@ class Field
     {
         $type = $fieldName->getType();
         // Special case: arrays
-        if (is_array($type) || (is_string($type) && enum_exists($type))) {
+        if (enum_exists($type)) {
             $type = 'array';
         }
 
@@ -242,14 +238,15 @@ class Field
             'Community[]' => 'communitiesVal',
             'Place' => 'placeVal',
             'Place[]' => 'placesVal',
+            default => throw new \RuntimeException('Unknown type '.$type),
         };
     }
 
     public function applyValue(): void
     {
         $typeEnum = $this->getTypeEnum();
-        if ($typeEnum === false) {
-            throw new RuntimeException('You must attach this Field to a Community or Place before attempting to call '.__METHOD__);
+        if (false === $typeEnum) {
+            throw new \RuntimeException('You must attach this Field to a Community or Place before attempting to call '.__METHOD__);
         }
         $propertyName = self::getPropertyName($typeEnum);
 

@@ -14,8 +14,8 @@ class PlaceNotFoundException extends \Exception implements ProblemExceptionInter
 {
     public function __construct(
         private Uuid $placeId,
-    )
-    {}
+    ) {
+    }
 
     #[Groups(['places'])]
     public function getType(): string
@@ -26,7 +26,7 @@ class PlaceNotFoundException extends \Exception implements ProblemExceptionInter
     #[Groups(['places'])]
     public function getTitle(): ?string
     {
-        return "place not found";
+        return 'place not found';
     }
 
     #[Groups(['places'])]

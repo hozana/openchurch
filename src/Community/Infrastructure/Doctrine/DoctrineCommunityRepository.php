@@ -40,43 +40,53 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
             ->addSelect('fields');
     }
 
-    /** @param string[] $communityid */
+    /**
+     * @param array<string> $ids
+     */
     public function ofIds(array $ids): static
     {
-        if (!$ids || count($ids) === 0) return $this;
+        if (!$ids || 0 === count($ids)) {
+            return $this;
+        }
 
-        return 
+        return
             $this->filter(static function (QueryBuilder $qb) use ($ids): void {
-                $qb->andWhere("community.id IN (:ids)")
-                    ->setParameter("ids", array_map(fn (string $id) => Uuid::fromString($id)->toBinary(), $ids));
-        });
+                $qb->andWhere('community.id IN (:ids)')
+                    ->setParameter('ids', array_map(fn (string $id) => Uuid::fromString($id)->toBinary(), $ids));
+            });
     }
 
     public function withType(?string $value): static
     {
-        if (!$value) return $this;
-        return 
+        if (!$value) {
+            return $this;
+        }
+
+        return
             $this->filter(static function (QueryBuilder $qb) use ($value): void {
                 $qb->andWhere("
                         EXISTS (SELECT 1 FROM App\Field\Domain\Model\Field f_type
                         WHERE f_type.community = community
                         AND f_type.name = 'type' AND f_type.stringVal = :valueType)
                     ")
-                    ->setParameter("valueType", $value);
-        });
+                    ->setParameter('valueType', $value);
+            });
     }
 
     public function withWikidataId(?int $value): static
     {
-        if (!$value) return $this;
-        return 
+        if (!$value) {
+            return $this;
+        }
+
+        return
             $this->filter(static function (QueryBuilder $qb) use ($value): void {
                 $qb->andWhere("
                         EXISTS (SELECT 1 FROM App\Field\Domain\Model\Field f_wikidata
                         WHERE f_wikidata.community = community
                         AND f_wikidata.name = 'wikidataId' AND f_wikidata.intVal = :valueWikidata)
                     ")
-                    ->setParameter("valueWikidata", $value);
-        });
+                    ->setParameter('valueWikidata', $value);
+            });
     }
 }

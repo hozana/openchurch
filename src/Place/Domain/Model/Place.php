@@ -6,7 +6,6 @@ use App\Agent\Domain\Model\Agent;
 use App\Field\Domain\Enum\FieldPlace;
 use App\Field\Domain\Model\Field;
 use App\Shared\Infrastructure\Doctrine\Trait\DoctrineTimestampableTrait;
-use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -28,13 +27,13 @@ class Place
     public ?Uuid $id = null;
 
     /**
-     * @var ArrayCollection|Field[]
+     * @var Collection<int, Field>
      */
     #[ORM\OneToMany(targetEntity: Field::class, mappedBy: 'placeVal')]
     public Collection $fieldsAsPlaceVal;
 
     /**
-     * @var ArrayCollection|Field[]
+     * @var Collection<int, Field>
      */
     #[ORM\ManyToMany(targetEntity: Field::class, mappedBy: 'placesVal')]
     public Collection $fieldsAsPlacesVal;
@@ -47,7 +46,7 @@ class Place
 
     public function __construct()
     {
-        $this->createdAt = new DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable();
         $this->fieldsAsPlaceVal = new ArrayCollection();
         $this->fieldsAsPlacesVal = new ArrayCollection();
         $this->fields = new ArrayCollection();
@@ -60,7 +59,7 @@ class Place
         // Groups:
         // - deletion reason must be set if state is deleted
         foreach ($this->getFieldsByName(FieldPlace::STATE) as $stateField) {
-            if ($stateField->getValue() === 'deleted' && !$this->getFieldByNameAndAgent(FieldPlace::DELETION_REASON, $stateField->agent)) {
+            if ('deleted' === $stateField->getValue() && !$this->getFieldByNameAndAgent(FieldPlace::DELETION_REASON, $stateField->agent)) {
                 $context->buildViolation('Deletion reason is mandatory when reporting a state=deleted state.')
                     ->atPath('fields')
                     ->addViolation();
@@ -78,7 +77,7 @@ class Place
     }
 
     /**
-     * @return Collection|Field[]
+     * @return Collection<int, Field>
      */
     public function getFieldsByName(FieldPlace $name): Collection
     {

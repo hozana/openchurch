@@ -4,24 +4,24 @@ declare(strict_types=1);
 
 namespace App\Community\Infrastructure\ApiPlatform\Resource;
 
+use ApiPlatform\Elasticsearch\State\Options;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Get;
-use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Community\Domain\Model\Community;
 use App\Community\Infrastructure\ApiPlatform\State\Processor\CreateCommunityProcessor;
 use App\Community\Infrastructure\ApiPlatform\State\Processor\UpdateCommunityProcessor;
 use App\Community\Infrastructure\ApiPlatform\State\Provider\CommunityCollectionProvider;
 use App\Community\Infrastructure\ApiPlatform\State\Provider\CommunityItemProvider;
 use App\Field\Domain\Model\Field;
+use App\Field\Infrastructure\ApiPlatform\Filter\FieldNameFilter;
 use App\Field\Infrastructure\ApiPlatform\Filter\FieldTypeFilter;
 use App\Field\Infrastructure\ApiPlatform\Filter\FieldWikidataIdFilter;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
-use ApiPlatform\Elasticsearch\State\Options;
-use App\Field\Infrastructure\ApiPlatform\Filter\FieldNameFilter;
 
 #[ApiResource(
     shortName: 'Community',
@@ -56,18 +56,20 @@ use App\Field\Infrastructure\ApiPlatform\Filter\FieldNameFilter;
         ),
     ],
 )]
-
 final class CommunityResource
 {
+    /**
+     * @param Field[] $fields
+     */
     public function __construct(
         #[Groups(['communities'])]
         #[ApiProperty(identifier: true, readable: true, writable: false)]
         public ?Uuid $id = null,
 
         #[Groups(['communities'])]
-        /** @var Field[] $fields */
         public array $fields = [],
-    ) {}
+    ) {
+    }
 
     public static function fromModel(Community $community): self
     {

@@ -9,9 +9,8 @@ use App\Shared\Domain\Enum\SearchIndex;
 class OfficialElasticSearchService implements SearchServiceInterface
 {
     public function __construct(
-        private SearchHelperInterface $elasticSearchHelper
-    )
-    {
+        private SearchHelperInterface $elasticSearchHelper,
+    ) {
     }
 
     /** @return string[] */
@@ -25,9 +24,13 @@ class OfficialElasticSearchService implements SearchServiceInterface
         $results = $this->elasticSearchHelper->search(SearchIndex::PARISH, $body);
 
         $entityIds = array_map(static fn (array $hit): string => $hit['_id'], $results['hits']['hits']);
+
         return $entityIds;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function buildQueryForParishes(string $text, int $limit, int $offset): array
     {
         return [
@@ -66,6 +69,9 @@ class OfficialElasticSearchService implements SearchServiceInterface
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function buildQueryForDioceses(string $text, int $limit, int $offset): array
     {
         return [
@@ -76,15 +82,15 @@ class OfficialElasticSearchService implements SearchServiceInterface
                             'dioceseName' => [
                                 'query' => $text,
                                 'fuzziness' => 'AUTO',
-                            ]
-                        ]
+                            ],
+                        ],
                     ],
                     'minimum_should_match' => 1, // At least one of the above rules should contain search text
-                ]
+                ],
             ],
             'size' => $limit,
             'from' => $offset,
-            '_source' => false
+            '_source' => false,
         ];
     }
 
@@ -99,24 +105,27 @@ class OfficialElasticSearchService implements SearchServiceInterface
         $results = $this->elasticSearchHelper->search(SearchIndex::DIOCESE, $body);
 
         $entityIds = array_map(static fn (array $hit): string => $hit['_id'], $results['hits']['hits']);
+
         return $entityIds;
     }
 
     /** @return string[] */
     public function allParishes(?int $limit = 100, ?int $offset = 0): array
     {
-       $results = $this->elasticSearchHelper->all(SearchIndex::PARISH, $offset, $limit);
+        $results = $this->elasticSearchHelper->all(SearchIndex::PARISH, $offset, $limit);
 
-       $entityIds = array_map(static fn (array $hit): string => $hit['_id'], $results['hits']['hits']);
-       return $entityIds;
+        $entityIds = array_map(static fn (array $hit): string => $hit['_id'], $results['hits']['hits']);
+
+        return $entityIds;
     }
 
-     /** @return string[] */
-     public function allDioceses(?int $limit = 100, ?int $offset = 0): array
-     {
+    /** @return string[] */
+    public function allDioceses(?int $limit = 100, ?int $offset = 0): array
+    {
         $results = $this->elasticSearchHelper->all(SearchIndex::DIOCESE, $offset, $limit);
- 
+
         $entityIds = array_map(static fn (array $hit): string => $hit['_id'], $results['hits']['hits']);
+
         return $entityIds;
-     }
+    }
 }

@@ -9,8 +9,6 @@ use App\Field\Domain\Enum\FieldEngine;
 use App\Field\Domain\Enum\FieldReliability;
 use App\Field\Domain\Exception\FieldEntityNotFoundException;
 use App\Tests\Agent\DummyFactory\DummyAgentFactory;
-use App\Tests\Factory\Model\AgentFactory;
-use App\Tests\Factory\Model\CommunityFactory;
 use App\Tests\Helper\AcceptanceTestHelper;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Symfony\Component\Uid\Uuid;
@@ -19,16 +17,17 @@ use Zenstruck\Foundry\Test\ResetDatabase;
 
 class CreateCommunityTest extends AcceptanceTestHelper
 {
-    use ResetDatabase, Factories;
+    use ResetDatabase;
+    use Factories;
 
     public function testShouldPassWithGoodData(): void
     {
         /** @var CommunityRepositoryInterface $communityRepository */
         $communityRepository = static::getContainer()->get(CommunityRepositoryInterface::class);
 
-        self::assertEmpty($communityRepository);
+        self::assertCount(0, $communityRepository);
         $agent = DummyAgentFactory::createOne();
-        
+
         $response = self::assertResponse($this->post('/communities', $agent->apiKey, body: [
             'fields' => [
                 [
@@ -47,7 +46,7 @@ class CreateCommunityTest extends AcceptanceTestHelper
                     'explanation' => 'yolo',
                     'engine' => FieldEngine::AI,
                 ],
-            ]
+            ],
         ]), HttpFoundationResponse::HTTP_OK);
 
         self::assertCount(1, $communityRepository);
@@ -61,9 +60,9 @@ class CreateCommunityTest extends AcceptanceTestHelper
         /** @var CommunityRepositoryInterface $communityRepository */
         $communityRepository = static::getContainer()->get(CommunityRepositoryInterface::class);
 
-        self::assertEmpty($communityRepository);
+        self::assertCount(0, $communityRepository);
         $agent = DummyAgentFactory::createOne();
-        
+
         self::assertResponse($this->post('/communities', $agent->apiKey, body: [
             'fields' => [
                 [
@@ -73,8 +72,8 @@ class CreateCommunityTest extends AcceptanceTestHelper
                     'source' => 'custom_source',
                     'explanation' => 'yolo',
                     'engine' => FieldEngine::AI,
-                ]
-            ]
+                ],
+            ],
         ]), HttpFoundationResponse::HTTP_BAD_REQUEST);
 
         self::assertCount(0, $communityRepository);
@@ -85,9 +84,9 @@ class CreateCommunityTest extends AcceptanceTestHelper
         /** @var CommunityRepositoryInterface $communityRepository */
         $communityRepository = static::getContainer()->get(CommunityRepositoryInterface::class);
 
-        self::assertEmpty($communityRepository);
+        self::assertCount(0, $communityRepository);
         $agent = DummyAgentFactory::createOne();
-        
+
         self::assertResponse($this->post('/communities', $agent->apiKey, body: [
             'fields' => [
                 [
@@ -97,8 +96,8 @@ class CreateCommunityTest extends AcceptanceTestHelper
                     'source' => 'custom_source',
                     'explanation' => 'yolo',
                     'engine' => FieldEngine::AI,
-                ]
-            ]
+                ],
+            ],
         ]), HttpFoundationResponse::HTTP_UNPROCESSABLE_ENTITY);
 
         self::assertCount(0, $communityRepository);
@@ -109,9 +108,9 @@ class CreateCommunityTest extends AcceptanceTestHelper
         /** @var CommunityRepositoryInterface $communityRepository */
         $communityRepository = static::getContainer()->get(CommunityRepositoryInterface::class);
 
-        self::assertEmpty($communityRepository);
+        self::assertCount(0, $communityRepository);
         $agent = DummyAgentFactory::createOne();
-        
+
         self::assertResponse($this->post('/communities', $agent->apiKey, body: [
             'fields' => [
                 [
@@ -121,8 +120,8 @@ class CreateCommunityTest extends AcceptanceTestHelper
                     'source' => 'custom_source',
                     'explanation' => 'yolo',
                     'engine' => FieldEngine::AI,
-                ]
-            ]
+                ],
+            ],
         ]), HttpFoundationResponse::HTTP_OK);
 
         self::assertCount(1, $communityRepository);
@@ -136,8 +135,8 @@ class CreateCommunityTest extends AcceptanceTestHelper
                     'source' => 'custom_source',
                     'explanation' => 'yolo',
                     'engine' => FieldEngine::AI,
-                ]
-            ]
+                ],
+            ],
         ]), HttpFoundationResponse::HTTP_BAD_REQUEST);
     }
 
@@ -146,20 +145,20 @@ class CreateCommunityTest extends AcceptanceTestHelper
         /** @var CommunityRepositoryInterface $communityRepository */
         $communityRepository = static::getContainer()->get(CommunityRepositoryInterface::class);
 
-        self::assertEmpty($communityRepository);
+        self::assertCount(0, $communityRepository);
         $agent = DummyAgentFactory::createOne();
-        
+
         self::assertResponse($this->post('/communities', $agent->apiKey, body: [
             'fields' => [
                 [
                     'name' => FieldCommunity::MESSESINFO_ID,
-                    'value' => "aze123456",
+                    'value' => 'aze123456',
                     'reliability' => FieldReliability::HIGH,
                     'source' => 'custom_source',
                     'explanation' => 'yolo',
                     'engine' => FieldEngine::AI,
-                ]
-            ]
+                ],
+            ],
         ]), HttpFoundationResponse::HTTP_OK);
 
         self::assertCount(1, $communityRepository);
@@ -168,13 +167,13 @@ class CreateCommunityTest extends AcceptanceTestHelper
             'fields' => [
                 [
                     'name' => FieldCommunity::MESSESINFO_ID,
-                    'value' => "aze123456",
+                    'value' => 'aze123456',
                     'reliability' => FieldReliability::HIGH,
                     'source' => 'custom_source',
                     'explanation' => 'yolo',
                     'engine' => FieldEngine::AI,
-                ]
-            ]
+                ],
+            ],
         ]), HttpFoundationResponse::HTTP_BAD_REQUEST);
     }
 
@@ -193,9 +192,9 @@ class CreateCommunityTest extends AcceptanceTestHelper
                         'source' => 'custom_source',
                         'explanation' => 'yolo',
                         'engine' => FieldEngine::AI,
-                    ]
-                ]
-            ]), 
+                    ],
+                ],
+            ]),
             (new FieldEntityNotFoundException($id))->getStatus(),
             (new FieldEntityNotFoundException($id))->getDetail(),
         );
@@ -216,9 +215,9 @@ class CreateCommunityTest extends AcceptanceTestHelper
                         'source' => 'custom_source',
                         'explanation' => 'yolo',
                         'engine' => FieldEngine::AI,
-                    ]
-                ]
-            ]), 
+                    ],
+                ],
+            ]),
             (new FieldEntityNotFoundException($ids))->getStatus(),
             (new FieldEntityNotFoundException($ids))->getDetail(),
         );
