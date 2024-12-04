@@ -20,7 +20,7 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-load_dotenv(dotenv_path='../.env')
+load_dotenv(dotenv_path='.env')
 sentry_sdk.init(dsn=os.getenv('SENTRY_DSN_SYNCHRO'))
 
 endpoint = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"

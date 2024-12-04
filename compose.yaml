@@ -45,7 +45,7 @@ services:
     container_name: openchurch_backend
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ./docker/php/Dockerfile
     volumes:
       - .:/var/www/html
       - ./usr/local/bin/docker-php-entrypoint:/usr/local/bin/docker-php-entrypoint
@@ -61,6 +61,26 @@ services:
     environment:
       SERVER_NAME: localhost api.openchurch.local admin.openchurch.local
       DATABASE_URL: mysql://root:openchurch@db:3306/openchurch?serverVersion=11.5.2-MariaDB&charset=utf8mb4
+
+  python:
+    container_name: openchurch_python
+    build:
+      context: .
+      dockerfile: ./docker/python/Dockerfile
+    volumes:
+      - ./scripts:/app
+      - ./.env:/app/.env
+    entrypoint: ["sh", "/usr/local/bin/docker-python-entrypoint"]
+    command: ["/bin/sh"]
+    tty: true
+    stdin_open: true
+    networks:
+      - app-network
+    extra_hosts:
+      - "api.openchurch.local:host-gateway"
+    depends_on:
+      - backend
+
 volumes:
   openchurch_db_data: {}
 

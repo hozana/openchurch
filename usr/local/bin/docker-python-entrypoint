@@ -1,0 +1,13 @@
+#!/bin/sh
+set -e
+
+python3 -m venv ./venv
+
+. ./venv/bin/activate
+
+pip install -r requirements.txt
+
+pip uninstall urllib3 -y \
+&& pip install urllib3
+
+exec "$@"
