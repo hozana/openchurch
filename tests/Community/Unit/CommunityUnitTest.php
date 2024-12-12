@@ -12,9 +12,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Zenstruck\Foundry\Test\Factories;
 
-use function Zenstruck\Foundry\Persistence\flush_after;
-
-class CommunityTest extends KernelTestCase
+class CommunityUnitTest extends KernelTestCase
 {
     use Factories;
 
@@ -27,8 +25,8 @@ class CommunityTest extends KernelTestCase
 
     public function testStateDeletedWithoutReason(): void
     {
-        $community = DummyCommunityFactory::createOne(['fields' => [
-            DummyFieldFactory::createOne([
+        $community = DummyCommunityFactory::new()->withoutPersisting()->create(['fields' => [
+            DummyFieldFactory::new()->withoutPersisting()->create([
                 'name' => FieldCommunity::STATE->value, 'stringVal' => CommunityState::DELETED->value,
             ]),
         ]]);
@@ -40,8 +38,8 @@ class CommunityTest extends KernelTestCase
 
     public function testCountryCodeValidation(): void
     {
-        $community = DummyCommunityFactory::createOne(['fields' => [
-            DummyFieldFactory::createOne([
+        $community = DummyCommunityFactory::new()->withoutPersisting()->create(['fields' => [
+            DummyFieldFactory::new()->withoutPersisting()->create([
                 'name' => FieldCommunity::CONTACT_COUNTRY_CODE->value, 'stringVal' => -1,
             ]),
         ]]);
@@ -53,57 +51,55 @@ class CommunityTest extends KernelTestCase
 
     public function testGetMostTrustableFieldByName(): void
     {
-        $community = flush_after(fn () => DummyCommunityFactory::createOne(['fields' => [
-            DummyFieldFactory::createOne([
+        $community = DummyCommunityFactory::new()->withoutPersisting()->create(['fields' => [
+            DummyFieldFactory::new()->withoutPersisting()->create([
                 'name' => FieldCommunity::NAME->value, 'stringVal' => 'low reliability name',
                 'reliability' => FieldReliability::LOW,
             ]),
-            DummyFieldFactory::createOne([
+            DummyFieldFactory::new()->withoutPersisting()->create([
                 'name' => FieldCommunity::NAME->value, 'stringVal' => 'high reliability name',
                 'reliability' => FieldReliability::HIGH,
             ]),
-            DummyFieldFactory::createOne([
+            DummyFieldFactory::new()->withoutPersisting()->create([
                 'name' => FieldCommunity::NAME->value, 'stringVal' => 'medium reliability name',
                 'reliability' => FieldReliability::MEDIUM,
             ]),
         ],
-        ])->_real()
-        );
+        ])->_real();
 
         $result = $community->getMostTrustableFieldByName(FieldCommunity::NAME);
         static::assertEquals('high reliability name', $result->getValue());
 
-        $community = DummyCommunityFactory::createOne();
+        $community = DummyCommunityFactory::new()->withoutPersisting()->create()->_real();
         $result = $community->getMostTrustableFieldByName(FieldCommunity::NAME);
         static::assertEmpty($result);
     }
 
     public function testGetFieldsByName(): void
     {
-        $community = flush_after(fn () => DummyCommunityFactory::createOne(['fields' => [
-            DummyFieldFactory::createOne([
+        $community = DummyCommunityFactory::new()->withoutPersisting()->create(['fields' => [
+            DummyFieldFactory::new()->withoutPersisting()->create([
                 'name' => FieldCommunity::NAME->value, 'stringVal' => 'low reliability name',
                 'reliability' => FieldReliability::LOW,
             ]),
-            DummyFieldFactory::createOne([
+            DummyFieldFactory::new()->withoutPersisting()->create([
                 'name' => FieldCommunity::NAME->value, 'stringVal' => 'high reliability name',
                 'reliability' => FieldReliability::HIGH,
             ]),
-            DummyFieldFactory::createOne([
+            DummyFieldFactory::new()->withoutPersisting()->create([
                 'name' => FieldCommunity::NAME->value, 'stringVal' => 'medium reliability name',
                 'reliability' => FieldReliability::MEDIUM,
             ]),
-            DummyFieldFactory::createOne([
+            DummyFieldFactory::new()->withoutPersisting()->create([
                 'name' => FieldCommunity::CONTACT_ADDRESS->value, 'stringVal' => 'adress...',
                 'reliability' => FieldReliability::MEDIUM,
             ]),
-            DummyFieldFactory::createOne([
+            DummyFieldFactory::new()->withoutPersisting()->create([
                 'name' => FieldCommunity::CONTACT_CITY->value, 'stringVal' => 'city...',
                 'reliability' => FieldReliability::MEDIUM,
             ]),
         ],
-        ])->_real()
-        );
+        ])->_real();
 
         $results = $community->getFieldsByName(FieldCommunity::NAME);
         static::assertCount(3, $results);
@@ -115,19 +111,14 @@ class CommunityTest extends KernelTestCase
 
     public function testRemoveField(): void
     {
-        [$community, $field] = flush_after(function () {
-            $field = DummyFieldFactory::createOne([
-                'name' => FieldCommunity::NAME->value,
-                Field::getPropertyName(FieldCommunity::NAME) => 'mon nom',
-            ])->_real();
+        $field = DummyFieldFactory::new()->withoutPersisting()->create([
+            'name' => FieldCommunity::NAME->value,
+            Field::getPropertyName(FieldCommunity::NAME) => 'mon nom',
+        ])->_real();
 
-            return [
-                DummyCommunityFactory::createOne([
-                    'fields' => [$field],
-                ])->_real(),
-                $field,
-            ];
-        });
+        $community = DummyCommunityFactory::new()->withoutPersisting()->create([
+            'fields' => [$field],
+        ])->_real();
 
         static::assertCount(1, $community->fields);
         $community->removeField($field);

@@ -12,7 +12,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Zenstruck\Foundry\Test\Factories;
 
-class FieldTest extends KernelTestCase
+class FieldUnitTest extends KernelTestCase
 {
     use Factories;
 
@@ -25,23 +25,23 @@ class FieldTest extends KernelTestCase
 
     public function testDefineCommunityOrPlace(): void
     {
-        $field = DummyFieldFactory::createOne([
-            'community' => DummyCommunityFactory::createOne(),
+        $field = DummyFieldFactory::new()->withoutPersisting()->create([
+            'community' => DummyCommunityFactory::new()->withoutPersisting()->create(),
             'name' => FieldCommunity::NAME->value,
         ]);
         $violations = $this->validator->validate($field);
         static::assertCount(0, $violations);
 
-        $field = DummyFieldFactory::createOne([
-            'community' => DummyCommunityFactory::createOne(),
-            'place' => DummyPlaceFactory::createOne(),
+        $field = DummyFieldFactory::new()->withoutPersisting()->create([
+            'community' => DummyCommunityFactory::new()->withoutPersisting()->create(),
+            'place' => DummyPlaceFactory::new()->withoutPersisting()->create(),
             'name' => FieldCommunity::NAME->value,
         ]);
         $violations = $this->validator->validate($field);
         static::assertCount(1, $violations);
         static::assertEquals('Field must be attached to a community or a place, not none, not both', $violations->get(0)->getMessage());
 
-        $field = DummyFieldFactory::createOne([
+        $field = DummyFieldFactory::new()->withoutPersisting()->create([
             'name' => FieldCommunity::NAME->value,
         ]);
         static::assertCount(1, $violations);
@@ -50,16 +50,16 @@ class FieldTest extends KernelTestCase
 
     public function testDefineWrongType(): void
     {
-        $field = DummyFieldFactory::createOne([
-            'community' => DummyCommunityFactory::createOne(),
+        $field = DummyFieldFactory::new()->withoutPersisting()->create([
+            'community' => DummyCommunityFactory::new()->withoutPersisting()->create(),
             'name' => 'toto',
         ]);
         $violations = $this->validator->validate($field);
         static::assertCount(1, $violations);
         static::assertEquals('Field toto is not acceptable', $violations->get(0)->getMessage());
 
-        $field = DummyFieldFactory::createOne([
-            'place' => DummyPlaceFactory::createOne(),
+        $field = DummyFieldFactory::new()->withoutPersisting()->create([
+            'place' => DummyPlaceFactory::new()->withoutPersisting()->create(),
             'name' => 'toto',
         ]);
         $violations = $this->validator->validate($field);
@@ -69,20 +69,20 @@ class FieldTest extends KernelTestCase
 
     public function testNotInsertCommunitiesInReplacesField(): void
     {
-        $field = DummyFieldFactory::createOne([
-            'community' => DummyCommunityFactory::createOne(),
+        $field = DummyFieldFactory::new()->withoutPersisting()->create([
+            'community' => DummyCommunityFactory::new()->withoutPersisting()->create(),
             'name' => FieldCommunity::REPLACES->value,
-            'value' => DummyCommunityFactory::createOne()->_real(),
+            'value' => DummyCommunityFactory::new()->withoutPersisting()->create()->_real(),
         ]);
         $violations = $this->validator->validate($field);
 
         static::assertCount(1, $violations);
         static::assertEquals('Field replaces expected value of type Community[]', $violations->get(0)->getMessage());
 
-        $field = DummyFieldFactory::createOne([
-            'community' => DummyCommunityFactory::createOne(),
+        $field = DummyFieldFactory::new()->withoutPersisting()->create([
+            'community' => DummyCommunityFactory::new()->withoutPersisting()->create(),
             'name' => FieldCommunity::REPLACES->value,
-            'value' => [DummyPlaceFactory::createOne()->_real()],
+            'value' => [DummyPlaceFactory::new()->withoutPersisting()->create()->_real()],
         ]);
         $violations = $this->validator->validate($field);
         static::assertEquals('Field replaces expected value of type Community[]', $violations->get(0)->getMessage());
@@ -90,20 +90,20 @@ class FieldTest extends KernelTestCase
 
     public function testNotInsertPlacesInReplacesField(): void
     {
-        $field = DummyFieldFactory::createOne([
-            'place' => DummyPlaceFactory::createOne(),
+        $field = DummyFieldFactory::new()->withoutPersisting()->create([
+            'place' => DummyPlaceFactory::new()->withoutPersisting()->create(),
             'name' => FieldPlace::REPLACES->value,
-            'value' => DummyPlaceFactory::createOne()->_real(),
+            'value' => DummyPlaceFactory::new()->withoutPersisting()->create()->_real(),
         ]);
         $violations = $this->validator->validate($field);
 
         static::assertCount(1, $violations);
         static::assertEquals('Field replaces expected value of type Place[]', $violations->get(0)->getMessage());
 
-        $field = DummyFieldFactory::createOne([
-            'place' => DummyPlaceFactory::createOne(),
+        $field = DummyFieldFactory::new()->withoutPersisting()->create([
+            'place' => DummyPlaceFactory::new()->withoutPersisting()->create(),
             'name' => FieldPlace::REPLACES->value,
-            'value' => [DummyCommunityFactory::createOne()->_real()],
+            'value' => [DummyCommunityFactory::new()->withoutPersisting()->create()->_real()],
         ]);
         $violations = $this->validator->validate($field);
         static::assertEquals('Field replaces expected value of type Place[]', $violations->get(0)->getMessage());
@@ -111,8 +111,8 @@ class FieldTest extends KernelTestCase
 
     public function testShouldFailIfValueNotInArray(): void
     {
-        $field = DummyFieldFactory::createOne([
-            'place' => DummyPlaceFactory::createOne(),
+        $field = DummyFieldFactory::new()->withoutPersisting()->create([
+            'place' => DummyPlaceFactory::new()->withoutPersisting()->create(),
             'name' => FieldPlace::TYPE->value,
             'value' => 'toto',
         ]);

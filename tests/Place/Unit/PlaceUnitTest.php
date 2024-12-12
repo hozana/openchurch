@@ -15,7 +15,7 @@ use Zenstruck\Foundry\Test\Factories;
 
 use function Zenstruck\Foundry\Persistence\flush_after;
 
-class PlaceTest extends KernelTestCase
+class PlaceUnitTest extends KernelTestCase
 {
     use Factories;
 
@@ -28,9 +28,9 @@ class PlaceTest extends KernelTestCase
 
     public function testDeletionReasonNotSet(): void
     {
-        $place = DummyPlaceFactory::createOne([
+        $place = DummyPlaceFactory::new()->withoutPersisting()->create([
             'fields' => [
-                DummyFieldFactory::createOne([
+                DummyFieldFactory::new()->withoutPersisting()->create([
                     'name' => FieldPlace::STATE->value,
                     Field::getPropertyName(FieldPlace::STATE) => PlaceState::DELETED->value,
                 ]),
@@ -43,9 +43,9 @@ class PlaceTest extends KernelTestCase
 
     public function testWrongCountryCode(): void
     {
-        $place = DummyPlaceFactory::createOne([
+        $place = DummyPlaceFactory::new()->withoutPersisting()->create([
             'fields' => [
-                DummyFieldFactory::createOne([
+                DummyFieldFactory::new()->withoutPersisting()->create([
                     'name' => FieldPlace::COUNTRY_CODE->value,
                     Field::getPropertyName(FieldPlace::COUNTRY_CODE) => -1,
                 ]),
@@ -59,16 +59,16 @@ class PlaceTest extends KernelTestCase
     public function testGetFieldsByName(): void
     {
         [$place, $field] = flush_after(function () {
-            $field = DummyFieldFactory::createOne([
+            $field = DummyFieldFactory::new()->withoutPersisting()->create([
                 'name' => FieldPlace::MESSESINFO_ID->value,
                 Field::getPropertyName(FieldPlace::MESSESINFO_ID) => 123456,
             ]);
 
             return [
-                DummyPlaceFactory::createOne([
+                DummyPlaceFactory::new()->withoutPersisting()->create([
                     'fields' => [
                         $field,
-                        DummyFieldFactory::createOne([
+                        DummyFieldFactory::new()->withoutPersisting()->create([
                             'name' => FieldPlace::NAME->value,
                             Field::getPropertyName(FieldPlace::NAME) => 'mon nom',
                         ]),
@@ -84,22 +84,22 @@ class PlaceTest extends KernelTestCase
 
     public function testGetFieldByNameAndAgent(): void
     {
-        $agent = DummyAgentFactory::createOne();
-        $place = flush_after(fn () => DummyPlaceFactory::createOne([
+        $agent = DummyAgentFactory::new()->withoutPersisting()->create();
+        $place = flush_after(fn () => DummyPlaceFactory::new()->withoutPersisting()->create([
             'fields' => [
-                DummyFieldFactory::createOne([
+                DummyFieldFactory::new()->withoutPersisting()->create([
                     'name' => FieldPlace::NAME->value,
                     Field::getPropertyName(FieldPlace::NAME) => 'mon nom',
                 ]),
-                DummyFieldFactory::createOne([
+                DummyFieldFactory::new()->withoutPersisting()->create([
                     'name' => FieldPlace::MESSESINFO_ID->value,
                     Field::getPropertyName(FieldPlace::MESSESINFO_ID) => 789456,
                     'agent' => $agent,
                 ]),
-                DummyFieldFactory::createOne([
+                DummyFieldFactory::new()->withoutPersisting()->create([
                     'name' => FieldPlace::MESSESINFO_ID->value,
                     Field::getPropertyName(FieldPlace::MESSESINFO_ID) => 123456,
-                    'agent' => DummyAgentFactory::createOne(),
+                    'agent' => DummyAgentFactory::new()->withoutPersisting()->create(),
                 ]),
             ],
         ]),
@@ -111,8 +111,8 @@ class PlaceTest extends KernelTestCase
 
     public function testAddField(): void
     {
-        $place = DummyPlaceFactory::createOne()->_real();
-        $field = DummyFieldFactory::createOne([
+        $place = DummyPlaceFactory::new()->withoutPersisting()->create()->_real();
+        $field = DummyFieldFactory::new()->withoutPersisting()->create([
             'name' => FieldPlace::NAME->value,
             Field::getPropertyName(FieldPlace::NAME) => 'mon nom',
         ])->_real();
@@ -128,13 +128,13 @@ class PlaceTest extends KernelTestCase
     public function testRemoveField(): void
     {
         [$place, $field] = flush_after(function () {
-            $field = DummyFieldFactory::createOne([
+            $field = DummyFieldFactory::new()->withoutPersisting()->create([
                 'name' => FieldPlace::NAME->value,
                 Field::getPropertyName(FieldPlace::NAME) => 'mon nom',
             ])->_real();
 
             return [
-                DummyPlaceFactory::createOne([
+                DummyPlaceFactory::new()->withoutPersisting()->create([
                     'fields' => [$field],
                 ])->_real(),
                 $field,
