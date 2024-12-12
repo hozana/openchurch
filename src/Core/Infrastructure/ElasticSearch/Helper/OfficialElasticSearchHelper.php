@@ -162,6 +162,54 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
         return $this->elasticsearchClient->indices()->create($params);
     }
 
+    public function existDocument(SearchIndex $index, string $id): bool
+    {
+        $params = [
+            'index' => $index->value,
+            'id' => $id,
+        ];
+
+        return $this->elasticsearchClient->exists($params)->asBool();
+    }
+
+    public function getDocument(SearchIndex $index, string $id): ?array
+    {
+        $params = [
+            'index' => $index->value,
+            'id' => $id,
+        ];
+
+        if (!$this->existDocument($index, $id)) {
+            return null;
+        }
+
+        return $this->elasticsearchClient->get($params)->asArray();
+    }
+
+    /**
+     * @param array<mixed> $body
+     *
+     * @return array<mixed>
+     */
+    public function upsertElement(SearchIndex $index, string $id, array $body): array
+    {
+        $params = [
+            'index' => $index->value,
+            'id' => $id,
+            'body' => $body,
+        ];
+
+        if ($this->existDocument($index, $id)) {
+            $params['body'] = [
+                'doc' => $body,
+            ];
+
+            return $this->elasticsearchClient->update($params)->asArray();
+        }
+
+        return $this->elasticsearchClient->index($params)->asArray();
+    }
+
     /**
      * @param array<string, mixed> $body
      *

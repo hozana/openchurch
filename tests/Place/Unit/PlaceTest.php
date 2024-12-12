@@ -13,6 +13,8 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Zenstruck\Foundry\Test\Factories;
 
+use function Zenstruck\Foundry\Persistence\flush_after;
+
 class PlaceTest extends KernelTestCase
 {
     use Factories;
@@ -56,19 +58,26 @@ class PlaceTest extends KernelTestCase
 
     public function testGetFieldsByName(): void
     {
-        $field = DummyFieldFactory::createOne([
-            'name' => FieldPlace::MESSESINFO_ID->value,
-            Field::getPropertyName(FieldPlace::MESSESINFO_ID) => 123456,
-        ]);
-        $place = DummyPlaceFactory::createOne([
-            'fields' => [
-                DummyFieldFactory::createOne([
-                    'name' => FieldPlace::NAME->value,
-                    Field::getPropertyName(FieldPlace::NAME) => 'mon nom',
-                ]),
+        [$place, $field] = flush_after(function () {
+            $field = DummyFieldFactory::createOne([
+                'name' => FieldPlace::MESSESINFO_ID->value,
+                Field::getPropertyName(FieldPlace::MESSESINFO_ID) => 123456,
+            ]);
+
+            return [
+                DummyPlaceFactory::createOne([
+                    'fields' => [
+                        $field,
+                        DummyFieldFactory::createOne([
+                            'name' => FieldPlace::NAME->value,
+                            Field::getPropertyName(FieldPlace::NAME) => 'mon nom',
+                        ]),
+                    ],
+                ])->_real(),
                 $field,
-            ],
-        ]);
+            ];
+        });
+
         $result = $place->getFieldsByName(FieldPlace::MESSESINFO_ID);
         static::assertEquals(new ArrayCollection([$field->_real()]), $result);
     }
@@ -76,27 +85,28 @@ class PlaceTest extends KernelTestCase
     public function testGetFieldByNameAndAgent(): void
     {
         $agent = DummyAgentFactory::createOne();
-        $field = DummyFieldFactory::createOne([
-            'name' => FieldPlace::MESSESINFO_ID->value,
-            Field::getPropertyName(FieldPlace::MESSESINFO_ID) => 123456,
-            'agent' => $agent,
-        ]);
-        $place = DummyPlaceFactory::createOne([
+        $place = flush_after(fn () => DummyPlaceFactory::createOne([
             'fields' => [
                 DummyFieldFactory::createOne([
                     'name' => FieldPlace::NAME->value,
                     Field::getPropertyName(FieldPlace::NAME) => 'mon nom',
                 ]),
-                $field,
+                DummyFieldFactory::createOne([
+                    'name' => FieldPlace::MESSESINFO_ID->value,
+                    Field::getPropertyName(FieldPlace::MESSESINFO_ID) => 789456,
+                    'agent' => $agent,
+                ]),
                 DummyFieldFactory::createOne([
                     'name' => FieldPlace::MESSESINFO_ID->value,
                     Field::getPropertyName(FieldPlace::MESSESINFO_ID) => 123456,
                     'agent' => DummyAgentFactory::createOne(),
                 ]),
             ],
-        ]);
+        ]),
+        )->_real();
+
         $result = $place->getFieldByNameAndAgent(FieldPlace::MESSESINFO_ID, $agent->_real());
-        static::assertEquals($field->_real(), $result);
+        static::assertEquals($result->getValue(), 789456);
     }
 
     public function testAddField(): void
@@ -117,11 +127,19 @@ class PlaceTest extends KernelTestCase
 
     public function testRemoveField(): void
     {
-        $field = DummyFieldFactory::createOne([
-            'name' => FieldPlace::NAME->value,
-            Field::getPropertyName(FieldPlace::NAME) => 'mon nom',
-        ])->_real();
-        $place = DummyPlaceFactory::createOne(['fields' => [$field]])->_real();
+        [$place, $field] = flush_after(function () {
+            $field = DummyFieldFactory::createOne([
+                'name' => FieldPlace::NAME->value,
+                Field::getPropertyName(FieldPlace::NAME) => 'mon nom',
+            ])->_real();
+
+            return [
+                DummyPlaceFactory::createOne([
+                    'fields' => [$field],
+                ])->_real(),
+                $field,
+            ];
+        });
 
         static::assertCount(1, $place->fields);
         $place->removeField($field);

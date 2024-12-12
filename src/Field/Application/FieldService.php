@@ -15,7 +15,6 @@ use App\Field\Domain\Model\Field;
 use App\Field\Domain\Repository\FieldRepositoryInterface;
 use App\Place\Domain\Model\Place;
 use App\Place\Domain\Repository\PlaceRepositoryInterface;
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -37,14 +36,9 @@ final class FieldService
 
     /**
      * @param Field[] $fieldPayloads
-     *
-     * @return Collection<int, Field>
      */
-    public function upsertFields(Place|Community $entity, array $fieldPayloads): Collection
+    public function upsertFields(Place|Community $entity, array $fieldPayloads): void
     {
-        /** @var Collection<int, Field> $insertedFields */
-        $insertedFields = new ArrayCollection();
-
         /** @var Agent $agent */
         $agent = $this->security->getUser();
 
@@ -93,12 +87,8 @@ final class FieldService
             }
 
             $field->applyValue(); // Dynamycally set the value to the correct property (intVal, stringVal, ...)
-
-            $this->fieldRepo->add($field);
-            $insertedFields[] = $field;
+            $entity->addField($field);
         }
-
-        return $insertedFields;
     }
 
     private function getOrCreate(Place|Community $entity, FieldPlace|FieldCommunity $nameEnum, Agent $agent): Field

@@ -13,12 +13,15 @@ use App\Place\Domain\Enum\PlaceType;
 use App\Place\Domain\Exception\PlaceNotFoundException;
 use App\Place\Domain\Model\Place;
 use App\Tests\Agent\DummyFactory\DummyAgentFactory;
+use App\Tests\Field\DummyFactory\DummyFieldFactory;
 use App\Tests\Helper\AcceptanceTestHelper;
 use App\Tests\Place\DummyFactory\DummyPlaceFactory;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Symfony\Component\Uid\UuidV7;
 use Zenstruck\Foundry\Test\Factories;
 use Zenstruck\Foundry\Test\ResetDatabase;
+
+use function Zenstruck\Foundry\Persistence\flush_after;
 
 class UpdatePlaceTest extends AcceptanceTestHelper
 {
@@ -28,26 +31,51 @@ class UpdatePlaceTest extends AcceptanceTestHelper
     public function testShouldPassWithGoodData(): void
     {
         $agent = DummyAgentFactory::createOne();
-        $place = DummyPlaceFactory::createOne();
 
-        $response = self::assertResponse($this->patch('/places/'.$place->id->toString(), $agent->apiKey, body: [
+        [$place, $field] = flush_after(function () use ($agent) {
+            $fieldWikidata = DummyFieldFactory::createOne([
+                'name' => FieldPlace::WIKIDATA_ID->value,
+                Field::getPropertyName(FieldPlace::WIKIDATA_ID) => 484848151,
+                'reliability' => FieldReliability::LOW,
+                'agent' => $agent,
+            ]);
+
+            return [
+                DummyPlaceFactory::createOne([
+                    'fields' => [
+                        $fieldWikidata->_real(),
+                        DummyFieldFactory::createOne([
+                            'name' => FieldPlace::TYPE->value,
+                            Field::getPropertyName(FieldPlace::TYPE) => PlaceType::CHURCH->value,
+                            'reliability' => FieldReliability::HIGH,
+                            'source' => 'custom_source',
+                            'explanation' => 'yolo',
+                            'engine' => FieldEngine::AI,
+                        ]),
+                    ],
+                ])->_real(),
+                $fieldWikidata,
+            ];
+        });
+
+        $response = self::assertResponse($this->patch("/places/$place->id", $agent->apiKey, body: [
             'fields' => [
                 [
                     'name' => FieldPlace::WIKIDATA_ID,
-                    'value' => 484848151,
+                    'value' => 111222333,
                     'reliability' => FieldReliability::HIGH,
                     'source' => 'custom_source',
-                    'explanation' => 'yolo',
-                    'engine' => FieldEngine::AI,
+                    'explanation' => 'yoloV2',
+                    'engine' => FieldEngine::HUMAN,
                 ],
             ],
         ]), HttpFoundationResponse::HTTP_OK);
 
-        self::assertCount(1, $response['fields']);
+        self::assertCount(2, $response['fields']);
         self::assertEquals($place->id->toString(), $response['id']);
         self::assertEquals($agent->id, $response['fields'][0]['agent']['id']);
         self::assertEquals(FieldPlace::WIKIDATA_ID->value, $response['fields'][0]['name']);
-        self::assertEquals(484848151, $response['fields'][0]['value']);
+        self::assertEquals($field->getValue(), $response['fields'][0]['value']);
     }
 
     public function testShouldThrowIfFieldNameNotValid(): void

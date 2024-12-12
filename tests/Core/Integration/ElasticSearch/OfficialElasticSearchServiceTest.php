@@ -3,25 +3,26 @@
 namespace App\Tests\Core\Integration\ElasticSearch;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
-use ApiPlatform\Symfony\Bundle\Test\Client;
+use App\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\Core\Infrastructure\ElasticSearch\Helper\OfficialElasticSearchHelper;
 use App\Core\Infrastructure\ElasticSearch\Service\OfficialElasticSearchService;
 use App\Shared\Domain\Enum\SearchIndex;
 
 class OfficialElasticSearchServiceTest extends ApiTestCase
 {
-    protected Client $client;
     public OfficialElasticSearchHelper $elasticHelper;
     public OfficialElasticSearchService $elasticService;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->client = static::createClient();
 
         /* @var OfficialElasticSearchHelper $elasticHelper */
         $this->elasticHelper = new OfficialElasticSearchHelper($_ENV['ELASTICSEARCH_IRI']);
-        $this->elasticService = new OfficialElasticSearchService($this->elasticHelper);
+        $this->elasticService = new OfficialElasticSearchService(
+            $this->elasticHelper,
+            static::getContainer()->get(CommunityRepositoryInterface::class),
+        );
 
         $this->elasticHelper->deleteIndex(SearchIndex::DIOCESE);
         $this->elasticHelper->createIndex(SearchIndex::DIOCESE);

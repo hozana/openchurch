@@ -2,14 +2,18 @@
 
 namespace App\Core\Infrastructure\ElasticSearch\Service;
 
+use App\Community\Domain\Model\Community;
+use App\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\Core\Domain\Search\Helper\SearchHelperInterface;
 use App\Core\Domain\Search\Service\SearchServiceInterface;
 use App\Shared\Domain\Enum\SearchIndex;
+use Symfony\Component\Uid\Uuid;
 
 class OfficialElasticSearchService implements SearchServiceInterface
 {
     public function __construct(
         private SearchHelperInterface $elasticSearchHelper,
+        private CommunityRepositoryInterface $communityRepo,
     ) {
     }
 
@@ -92,6 +96,26 @@ class OfficialElasticSearchService implements SearchServiceInterface
             'from' => $offset,
             '_source' => false,
         ];
+    }
+
+    public function findParish(string $id): ?Community
+    {
+        $document = $this->elasticSearchHelper->getDocument(SearchIndex::PARISH, $id);
+        if ($document) {
+            return $this->communityRepo->ofId(Uuid::fromString($document['id']));
+        }
+
+        return null;
+    }
+
+    public function findDiocese(string $id): ?Community
+    {
+        $document = $this->elasticSearchHelper->getDocument(SearchIndex::DIOCESE, $id);
+        if ($document) {
+            return $this->communityRepo->ofId(Uuid::fromString($document['id']));
+        }
+
+        return null;
     }
 
     /** @return string[] */

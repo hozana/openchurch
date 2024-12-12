@@ -30,7 +30,7 @@ final class UpdatePlaceProcessor implements ProcessorInterface
             Assert::isInstanceOf($data, PlaceResource::class);
 
             $place = $this->placeRepo->ofId($data->id);
-            $place->fields = $this->fieldService->upsertFields($place, $data->fields);
+            $this->fieldService->upsertFields($place, $data->fields);
 
             return PlaceResource::fromModel($place);
         });

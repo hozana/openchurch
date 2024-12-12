@@ -14,6 +14,7 @@ use App\Community\Infrastructure\ApiPlatform\Resource\CommunityResource;
 use App\Core\Domain\Search\Service\SearchServiceInterface;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Shared\Infrastructure\ApiPlatform\State\Paginator;
+use Symfony\Component\Uid\Uuid;
 
 /**
  * @implements ProviderInterface<CommunityResource>
@@ -60,7 +61,7 @@ final class CommunityCollectionProvider implements ProviderInterface
         }
 
         $models = $this->communityRepo
-            ->ofIds($entityIds ?? [])
+            ->ofIds(array_map(fn (string $entityId) => Uuid::fromString($entityId), $entityIds ?? []))
             ->withType($type)
             ->withWikidataId((int) $wikidataId)
             ->withPagination($page, $itemsPerPage);

@@ -5,11 +5,14 @@ namespace App\Tests\Community\Unit;
 use App\Community\Domain\Enum\CommunityState;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Enum\FieldReliability;
+use App\Field\Domain\Model\Field;
 use App\Tests\Community\DummyFactory\DummyCommunityFactory;
 use App\Tests\Field\DummyFactory\DummyFieldFactory;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Zenstruck\Foundry\Test\Factories;
+
+use function Zenstruck\Foundry\Persistence\flush_after;
 
 class CommunityTest extends KernelTestCase
 {
@@ -50,7 +53,7 @@ class CommunityTest extends KernelTestCase
 
     public function testGetMostTrustableFieldByName(): void
     {
-        $community = DummyCommunityFactory::createOne(['fields' => [
+        $community = flush_after(fn () => DummyCommunityFactory::createOne(['fields' => [
             DummyFieldFactory::createOne([
                 'name' => FieldCommunity::NAME->value, 'stringVal' => 'low reliability name',
                 'reliability' => FieldReliability::LOW,
@@ -64,7 +67,8 @@ class CommunityTest extends KernelTestCase
                 'reliability' => FieldReliability::MEDIUM,
             ]),
         ],
-        ]);
+        ])->_real()
+        );
 
         $result = $community->getMostTrustableFieldByName(FieldCommunity::NAME);
         static::assertEquals('high reliability name', $result->getValue());
@@ -76,7 +80,7 @@ class CommunityTest extends KernelTestCase
 
     public function testGetFieldsByName(): void
     {
-        $community = DummyCommunityFactory::createOne(['fields' => [
+        $community = flush_after(fn () => DummyCommunityFactory::createOne(['fields' => [
             DummyFieldFactory::createOne([
                 'name' => FieldCommunity::NAME->value, 'stringVal' => 'low reliability name',
                 'reliability' => FieldReliability::LOW,
@@ -98,7 +102,8 @@ class CommunityTest extends KernelTestCase
                 'reliability' => FieldReliability::MEDIUM,
             ]),
         ],
-        ]);
+        ])->_real()
+        );
 
         $results = $community->getFieldsByName(FieldCommunity::NAME);
         static::assertCount(3, $results);
@@ -110,16 +115,23 @@ class CommunityTest extends KernelTestCase
 
     public function testRemoveField(): void
     {
-        $field = DummyFieldFactory::createOne([
-            'name' => FieldCommunity::NAME->value, 'stringVal' => 'low reliability name',
-            'reliability' => FieldReliability::LOW,
-        ]);
-        $community = DummyCommunityFactory::createOne(['fields' => [$field]])->_real();
+        [$community, $field] = flush_after(function () {
+            $field = DummyFieldFactory::createOne([
+                'name' => FieldCommunity::NAME->value,
+                Field::getPropertyName(FieldCommunity::NAME) => 'mon nom',
+            ])->_real();
+
+            return [
+                DummyCommunityFactory::createOne([
+                    'fields' => [$field],
+                ])->_real(),
+                $field,
+            ];
+        });
 
         static::assertCount(1, $community->fields);
-        $community->removeField($field->_real());
-
+        $community->removeField($field);
         static::assertCount(0, $community->fields);
-        static::assertNull($field->community);
+        static::assertNull($field->place);
     }
 }

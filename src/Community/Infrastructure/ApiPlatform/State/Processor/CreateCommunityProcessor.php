@@ -36,7 +36,7 @@ final class CreateCommunityProcessor implements ProcessorInterface
             $community = new Community();
             $this->communityRepo->add($community);
 
-            $community->fields = $this->fieldService->upsertFields($community, $data->fields);
+            $this->fieldService->upsertFields($community, $data->fields);
 
             return CommunityResource::fromModel(
                 $community,

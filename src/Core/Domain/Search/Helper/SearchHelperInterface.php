@@ -17,6 +17,20 @@ interface SearchHelperInterface
     public function createIndex(SearchIndex $index): mixed;
 
     /**
+     * @param array<mixed> $body
+     *
+     * @return array<mixed>
+     */
+    public function upsertElement(SearchIndex $index, string $id, array $body): mixed;
+
+    public function existDocument(SearchIndex $index, string $id): bool;
+
+    /**
+     * @return array<mixed>|null
+     */
+    public function getDocument(SearchIndex $index, string $id): ?array;
+
+    /**
      * @return array<mixed>
      */
     public function deleteIndex(SearchIndex $index): array;

@@ -2,21 +2,22 @@
 
 namespace App\Tests\Community\Acceptance;
 
-use App\Agent\Domain\Model\Agent;
 use App\Community\Domain\Enum\CommunityType;
 use App\Community\Domain\Exception\CommunityNotFoundException;
-use App\Community\Domain\Model\Community;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Enum\FieldEngine;
 use App\Field\Domain\Enum\FieldReliability;
 use App\Field\Domain\Model\Field;
 use App\Tests\Agent\DummyFactory\DummyAgentFactory;
 use App\Tests\Community\DummyFactory\DummyCommunityFactory;
+use App\Tests\Field\DummyFactory\DummyFieldFactory;
 use App\Tests\Helper\AcceptanceTestHelper;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Symfony\Component\Uid\UuidV7;
 use Zenstruck\Foundry\Test\Factories;
 use Zenstruck\Foundry\Test\ResetDatabase;
+
+use function Zenstruck\Foundry\Persistence\flush_after;
 
 class UpdateCommunityTest extends AcceptanceTestHelper
 {
@@ -26,26 +27,51 @@ class UpdateCommunityTest extends AcceptanceTestHelper
     public function testShouldPassWithGoodData(): void
     {
         $agent = DummyAgentFactory::createOne();
-        $community = DummyCommunityFactory::createOne();
+
+        [$community, $field] = flush_after(function () use ($agent) {
+            $fieldWikidata = DummyFieldFactory::createOne([
+                'name' => FieldCommunity::WIKIDATA_ID->value,
+                Field::getPropertyName(FieldCommunity::WIKIDATA_ID) => 484848151,
+                'reliability' => FieldReliability::LOW,
+                'agent' => $agent,
+            ]);
+
+            return [
+                DummyCommunityFactory::createOne([
+                    'fields' => [
+                        $fieldWikidata->_real(),
+                        DummyFieldFactory::createOne([
+                            'name' => FieldCommunity::TYPE->value,
+                            Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::PARISH->value,
+                            'reliability' => FieldReliability::HIGH,
+                            'source' => 'custom_source',
+                            'explanation' => 'yolo',
+                            'engine' => FieldEngine::AI,
+                        ]),
+                    ],
+                ])->_real(),
+                $fieldWikidata,
+            ];
+        });
 
         $response = self::assertResponse($this->patch("/communities/$community->id", $agent->apiKey, body: [
             'fields' => [
                 [
                     'name' => FieldCommunity::WIKIDATA_ID,
-                    'value' => 484848151,
+                    'value' => 111222333,
                     'reliability' => FieldReliability::HIGH,
                     'source' => 'custom_source',
-                    'explanation' => 'yolo',
-                    'engine' => FieldEngine::AI,
+                    'explanation' => 'yoloV2',
+                    'engine' => FieldEngine::HUMAN,
                 ],
             ],
         ]), HttpFoundationResponse::HTTP_OK);
 
-        self::assertCount(1, $response['fields']);
+        self::assertCount(2, $response['fields']);
         self::assertEquals($community->id->toString(), $response['id']);
         self::assertEquals($agent->id, $response['fields'][0]['agent']['id']);
         self::assertEquals(FieldCommunity::WIKIDATA_ID->value, $response['fields'][0]['name']);
-        self::assertEquals(484848151, $response['fields'][0]['value']);
+        self::assertEquals($field->getValue(), $response['fields'][0]['value']);
     }
 
     public function testShouldThrowIfFieldNameNotValid(): void
@@ -88,37 +114,30 @@ class UpdateCommunityTest extends AcceptanceTestHelper
 
     public function testShouldThrowIfUnicityConstraintViolation(): void
     {
-        // TODO change me when https://github.com/zenstruck/foundry/issues/710 is fixed
-        $agent = new Agent();
-        $agent->name = 'toto';
-        $agent->apiKey = '123456';
-        $this->em->persist($agent);
+        $agent = DummyAgentFactory::createOne();
+        $community = flush_after(fn () => DummyCommunityFactory::createOne([
+            'fields' => [
+                DummyFieldFactory::createOne([
+                    'name' => FieldCommunity::WIKIDATA_ID->value,
+                    Field::getPropertyName(FieldCommunity::WIKIDATA_ID) => 123456,
+                    'reliability' => FieldReliability::HIGH,
+                    'engine' => FieldEngine::AI,
+                    'agent' => $agent,
+                ]),
+            ],
+        ]));
 
-        $field = new Field();
-        $field->name = FieldCommunity::WIKIDATA_ID->value;
-        $field->intVal = 123456;
-        $field->reliability = FieldReliability::HIGH;
-        $field->engine = FieldEngine::AI;
-        $field->agent = $agent;
-        $this->em->persist($field);
-
-        $FieldCommunity2 = new Field();
-        $FieldCommunity2->name = FieldCommunity::WIKIDATA_ID->value;
-        $FieldCommunity2->intVal = 123457;
-        $FieldCommunity2->reliability = FieldReliability::HIGH;
-        $FieldCommunity2->engine = FieldEngine::HUMAN;
-        $FieldCommunity2->agent = $agent;
-        $this->em->persist($FieldCommunity2);
-
-        $community = new Community();
-        $community->addField($field);
-        $this->em->persist($community);
-
-        $community2 = new Community();
-        $community2->addField($FieldCommunity2);
-        $this->em->persist($community2);
-
-        $this->em->flush();
+        flush_after(fn () => DummyCommunityFactory::createOne([
+            'fields' => [
+                DummyFieldFactory::createOne([
+                    'name' => FieldCommunity::WIKIDATA_ID->value,
+                    Field::getPropertyName(FieldCommunity::WIKIDATA_ID) => 123457,
+                    'reliability' => FieldReliability::HIGH,
+                    'engine' => FieldEngine::AI,
+                    'agent' => $agent,
+                ]),
+            ],
+        ]));
 
         $response = self::assertResponse($this->patch("/communities/$community->id", $agent->apiKey, body: [
             'fields' => [

@@ -41,7 +41,7 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
     }
 
     /**
-     * @param array<string> $ids
+     * @param array<Uuid> $ids
      */
     public function ofIds(array $ids): static
     {
@@ -52,7 +52,7 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
         return
             $this->filter(static function (QueryBuilder $qb) use ($ids): void {
                 $qb->andWhere('community.id IN (:ids)')
-                    ->setParameter('ids', array_map(fn (string $id) => Uuid::fromString($id)->toBinary(), $ids));
+                    ->setParameter('ids', array_map(fn (Uuid $id) => $id->toBinary(), $ids));
             });
     }
 
@@ -87,6 +87,23 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
                         AND f_wikidata.name = 'wikidataId' AND f_wikidata.intVal = :valueWikidata)
                     ")
                     ->setParameter('valueWikidata', $value);
+            });
+    }
+
+    public function withParentCommunityId(?Uuid $parentId): static
+    {
+        if (!$parentId) {
+            return $this;
+        }
+
+        return
+            $this->filter(static function (QueryBuilder $qb) use ($parentId): void {
+                $qb->andWhere("
+                        EXISTS (SELECT 1 FROM App\Field\Domain\Model\Field f_community_parent_id
+                        WHERE f_community_parent_id.community = community
+                        AND f_community_parent_id.name = 'parentCommunityId' AND IDENTITY(f_community_parent_id.communityVal) = :valueParentCommunity)
+                    ")
+                    ->setParameter('valueParentCommunity', $parentId->toBinary());
             });
     }
 }

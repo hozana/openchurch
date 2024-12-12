@@ -36,7 +36,7 @@ final class CreatePlaceProcessor implements ProcessorInterface
             $place = new Place();
             $this->placeRepo->add($place);
 
-            $place->fields = $this->fieldService->upsertFields($place, $data->fields);
+            $this->fieldService->upsertFields($place, $data->fields);
 
             return PlaceResource::fromModel(
                 $place,
