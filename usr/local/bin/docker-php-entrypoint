@@ -16,6 +16,9 @@ if [ "$APP_ENV" != 'prod' ]; then
 		apt update && apt install -y mycli inetutils-telnet zip
 	fi
 
+    pecl install xdebug 
+	docker-php-ext-enable xdebug
+
 	# Install composer dependencies
 	COMPOSER_MEMORY_LIMIT=-1 /usr/local/bin/composer -n install --optimize-autoloader --classmap-authoritative
 fi
@@ -44,11 +47,6 @@ fi
 
 # Clear cache https://github.com/symfony/symfony/issues/23592#issuecomment-318627886
 rm -rf var/cache/prod/* var/cache/dev/* var/cache/test/*
-
-if [ "$APP_ENV" == 'prod' ]; then
-    # Install composer dependencies
-    COMPOSER_MEMORY_LIMIT=-1 composer install --no-scripts --no-progress --no-suggest --prefer-dist --no-interaction
-fi
 
 # Dump parameters
 # Disabled for now, portainer env variables values does not seem to be taken into account

@@ -33,8 +33,7 @@ RUN docker-php-ext-install \
     gmp
 
 # add PECL extensions
-RUN pecl install apcu && docker-php-ext-enable apcu && \
-    pecl install xdebug && docker-php-ext-enable xdebug
+RUN pecl install apcu && docker-php-ext-enable apcu
 
 COPY src/ /var/www/html/src/
 COPY public/ /var/www/html/public/
@@ -48,20 +47,19 @@ COPY composer.lock /var/www/html/
 COPY symfony.lock /var/www/html/
 COPY usr/local/bin/docker-php-entrypoint /usr/local/bin/
 COPY .env /var/www/html/
-COPY .env.test /var/www/html/
 COPY etc/cron.d/backend /etc/cron.d/backend
 
 # The following line is needed only for load tests
-COPY tests/ /var/www/html/tests/
 COPY etc/caddy/Caddyfile /etc/caddy/Caddyfile
 COPY etc/logrotate.d/symfony /etc/logrotate.d/symfony
-RUN mkdir -p var/{cache,log} && mkdir -p var/cache/prod && chown -R ${USER}:${USER} var
 
-RUN \
- # Ajouter la capacité supplémentaire de se lier aux ports 80 et 443
- setcap CAP_NET_BIND_SERVICE=+eip /usr/local/bin/frankenphp &&\
- # Donner l'accès en écriture à /data/caddy et /config/caddy
- chown -R ${USER}:${USER} /data/caddy && chown -R ${USER}:${USER} /config/caddy;
+RUN COMPOSER_MEMORY_LIMIT=-1 composer install --no-scripts --no-progress --no-suggest --prefer-dist --no-interaction
+RUN mkdir -p var/cache && mkdir -p var/log && mkdir -p var/cache/prod && chown -R ${USER}:${USER} var
+
+# Ajouter la capacité supplémentaire de se lier aux ports 80 et 443
+# Donner l'accès en écriture à /data/caddy et /config/caddy
+RUN setcap CAP_NET_BIND_SERVICE=+eip /usr/local/bin/frankenphp && \
+    chown -R ${USER}:${USER} /data/caddy && chown -R ${USER}:${USER} /config/caddy;
 
 RUN rm -f /var/run/crond.pid
 

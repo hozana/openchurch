@@ -60,7 +60,13 @@ services:
       - app-network
     environment:
       SERVER_NAME: localhost api.openchurch.local admin.openchurch.local
+      APP_ENV: dev
+      APP_SECRET: "secret"
       DATABASE_URL: mysql://root:openchurch@db:3306/openchurch?serverVersion=11.5.2-MariaDB&charset=utf8mb4
+      HOST_API: api.openchurch.local/api
+      HOST_ADMIN: admin.openchurch.local
+      ELASTIC_PASSWORD: admin
+      ELASTICSEARCH_IRI: https://elastic:admin@elasticsearch:9200
 
   python:
     container_name: openchurch_python
