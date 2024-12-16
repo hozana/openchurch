@@ -67,19 +67,15 @@ services:
     build:
       context: .
       dockerfile: ./docker/python/Dockerfile
-    volumes:
-      - ./scripts:/app
-      - ./.env:/app/.env
-    entrypoint: ["sh", "/usr/local/bin/docker-python-entrypoint"]
-    command: ["/bin/sh"]
-    tty: true
-    stdin_open: true
     networks:
       - app-network
     extra_hosts:
       - "api.openchurch.local:host-gateway"
-    depends_on:
-      - backend
+    environment:
+      SQLITE_DATABASE: local.sqlite
+      OPENCHURCH_HOST: "https://api.openchurch.local/api"
+      OPENCHURCH_API_TOKEN: "fake_token"
+      PYTHONWARNINGS: "ignore:Unverified HTTPS request"
 
 volumes:
   openchurch_db_data: {}

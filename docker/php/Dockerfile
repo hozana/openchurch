@@ -2,34 +2,19 @@ FROM dunglas/frankenphp
 LABEL org.opencontainers.image.authors="contact@hozana.org"
 
 ARG USER=www-data
-ARG SERVER_NAME=rosario.local
-
 WORKDIR /var/www/html
 
 RUN apt update && apt install -y \
     acl \
     autoconf \
     cron \
-    ffmpeg \
-    gawk \
-    g++ \ 
-    make \
-    libnss3-tools \
-    libpng-dev \
-    libexif-dev \
-    libxpm-dev \
-    libxml2-dev \
-    libxslt-dev \
-    libwebp-dev \
-    libzip-dev \
-    libgmp-dev \
-    libjpeg-dev \
     logrotate \
-    nodejs \
-    npm \
     sudo \
     bash \
     procps \
+    libzip-dev \
+    libxslt-dev \
+    libgmp-dev \
     && mkdir -p /var/www/html/var/ \
     && apt clean
 
@@ -38,14 +23,8 @@ RUN curl -sS https://getcomposer.org/installer -o /tmp/composer-setup.php \
     && php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer \
     && rm /tmp/composer-setup.php
 
-RUN docker-php-ext-configure gd --with-jpeg --with-webp \
-    && docker-php-ext-configure gmp \
-    && docker-php-ext-configure intl
-
 RUN docker-php-ext-install \
     pdo_mysql \
-    gd \
-    intl \
     zip \
     exif \
     xsl \
@@ -54,10 +33,8 @@ RUN docker-php-ext-install \
     gmp
 
 # add PECL extensions
-RUN pecl install redis && docker-php-ext-enable redis && \
-    pecl install apcu && docker-php-ext-enable apcu && \
+RUN pecl install apcu && docker-php-ext-enable apcu && \
     pecl install xdebug && docker-php-ext-enable xdebug
-    #pecl install amqp && docker-php-ext-enable amqp && \
 
 COPY src/ /var/www/html/src/
 COPY public/ /var/www/html/public/
@@ -72,6 +49,7 @@ COPY symfony.lock /var/www/html/
 COPY usr/local/bin/docker-php-entrypoint /usr/local/bin/
 COPY .env /var/www/html/
 COPY .env.test /var/www/html/
+COPY etc/cron.d/backend /etc/cron.d/backend
 
 # The following line is needed only for load tests
 COPY tests/ /var/www/html/tests/

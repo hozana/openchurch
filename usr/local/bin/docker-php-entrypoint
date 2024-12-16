@@ -11,7 +11,7 @@ echo "PHP          --> "$(php -v | grep -Eo "PHP [0-9\.]+" | sed 's/PHP //')
 echo "Composer     --> "$(composer --version | grep -o '\d.\d.\d ')
 
 if [ "$APP_ENV" != 'prod' ]; then
-	# Install dev convinience tools
+	# Install dev convenience tools
 	if [ -z "$(which mycli)" ]; then
 		apt update && apt install -y mycli inetutils-telnet zip
 	fi
