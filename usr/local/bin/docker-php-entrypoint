@@ -16,8 +16,8 @@ if [ "$APP_ENV" != 'prod' ]; then
 		apt update && apt install -y mycli inetutils-telnet zip
 	fi
 
-    pecl install xdebug 
-	docker-php-ext-enable xdebug
+	bash -c '[[ -n "$(pecl list | grep xdebug)" ]]\
+ 		|| (pecl install xdebug && docker-php-ext-enable xdebug)'
 
 	# Install composer dependencies
 	COMPOSER_MEMORY_LIMIT=-1 /usr/local/bin/composer -n install --optimize-autoloader --classmap-authoritative

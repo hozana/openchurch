@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Community\Infrastructure\ApiPlatform\Resource;
 
-use ApiPlatform\Elasticsearch\State\Options;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
@@ -25,7 +24,6 @@ use Symfony\Component\Uid\Uuid;
 
 #[ApiResource(
     shortName: 'Community',
-    stateOptions: new Options(index: 'community'),
     operations: [
         new Post(
             security: 'is_granted("ROLE_AGENT")',
