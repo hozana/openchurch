@@ -126,7 +126,7 @@ jobs:
         run: php bin/console lint:yaml config src
       - name: doctrine:schema:validate
         if: always()
-        run: php bin/console doctrine:schema:validate
+        run: php bin/console doctrine:schema:validate -vvv
         env:
           DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/openchurch_test
       - name: Archive logs as artifacts
