@@ -28,6 +28,7 @@
     "symfony/form": "7.1.*",
     "symfony/framework-bundle": "7.1.*",
     "symfony/http-client": "7.1.*",
+    "symfony/intl": "7.1.*",
     "symfony/lock": "7.1.*",
     "symfony/monolog-bundle": "^3.0",
     "symfony/property-access": "7.1.*",
