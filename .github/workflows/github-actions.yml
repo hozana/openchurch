@@ -128,7 +128,7 @@ jobs:
         if: always()
         run: php bin/console doctrine:schema:validate
         env:
-          DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/symfony
+          DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/openchurch_test
       - name: Archive logs as artifacts
         if: always()
         uses: actions/upload-artifact@v4
