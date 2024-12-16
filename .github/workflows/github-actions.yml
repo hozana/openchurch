@@ -56,6 +56,8 @@ jobs:
           docker push $DOCKER_IMAGE_PYTHON:$(git rev-parse --abbrev-ref HEAD)
 
   tests:
+    env:
+      HOST_API: api.openchurch.local/api      
     runs-on: ubuntu-latest
     # Docs: https://docs.github.com/en/actions/using-containerized-services
     services:
