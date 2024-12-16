@@ -15,11 +15,9 @@ use App\Tests\Community\DummyFactory\DummyCommunityFactory;
 use App\Tests\Field\DummyFactory\DummyFieldFactory;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Zenstruck\Foundry\Test\Factories;
-use Zenstruck\Foundry\Test\ResetDatabase;
 
 final class DoctrineCommunityListenerTest extends KernelTestCase
 {
-    use ResetDatabase;
     use Factories;
 
     private DoctrineCommunityListener $listener;

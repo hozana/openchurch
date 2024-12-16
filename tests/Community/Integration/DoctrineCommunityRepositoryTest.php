@@ -15,11 +15,9 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Zenstruck\Foundry\Test\Factories;
-use Zenstruck\Foundry\Test\ResetDatabase;
 
 final class DoctrineCommunityRepositoryTest extends KernelTestCase
 {
-    use ResetDatabase;
     use Factories;
 
     private static EntityManagerInterface $em;

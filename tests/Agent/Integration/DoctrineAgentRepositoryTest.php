@@ -9,11 +9,9 @@ use App\Tests\Agent\DummyFactory\DummyAgentFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Zenstruck\Foundry\Test\Factories;
-use Zenstruck\Foundry\Test\ResetDatabase;
 
 final class DoctrineAgentRepositoryTest extends KernelTestCase
 {
-    use ResetDatabase;
     use Factories;
 
     private static EntityManagerInterface $em;

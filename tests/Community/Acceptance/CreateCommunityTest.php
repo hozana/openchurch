@@ -13,11 +13,9 @@ use App\Tests\Helper\AcceptanceTestHelper;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Symfony\Component\Uid\Uuid;
 use Zenstruck\Foundry\Test\Factories;
-use Zenstruck\Foundry\Test\ResetDatabase;
 
 class CreateCommunityTest extends AcceptanceTestHelper
 {
-    use ResetDatabase;
     use Factories;
 
     public function testShouldPassWithGoodData(): void

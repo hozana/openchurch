@@ -15,13 +15,11 @@ use App\Tests\Helper\AcceptanceTestHelper;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Symfony\Component\Uid\UuidV7;
 use Zenstruck\Foundry\Test\Factories;
-use Zenstruck\Foundry\Test\ResetDatabase;
 
 use function Zenstruck\Foundry\Persistence\flush_after;
 
 class UpdateCommunityTest extends AcceptanceTestHelper
 {
-    use ResetDatabase;
     use Factories;
 
     public function testShouldPassWithGoodData(): void

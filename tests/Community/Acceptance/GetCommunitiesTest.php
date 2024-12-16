@@ -15,11 +15,9 @@ use App\Tests\Field\DummyFactory\DummyFieldFactory;
 use App\Tests\Helper\AcceptanceTestHelper;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Zenstruck\Foundry\Test\Factories;
-use Zenstruck\Foundry\Test\ResetDatabase;
 
 class GetCommunitiesTest extends AcceptanceTestHelper
 {
-    use ResetDatabase;
     use Factories;
 
     public SearchHelperInterface $searchHelper;

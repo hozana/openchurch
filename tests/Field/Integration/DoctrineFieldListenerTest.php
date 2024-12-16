@@ -16,13 +16,11 @@ use App\Tests\Field\DummyFactory\DummyFieldFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Zenstruck\Foundry\Test\Factories;
-use Zenstruck\Foundry\Test\ResetDatabase;
 
 use function Zenstruck\Foundry\Persistence\flush_after;
 
 final class DoctrineFieldListenerTest extends KernelTestCase
 {
-    use ResetDatabase;
     use Factories;
 
     private EntityManagerInterface $em;
