@@ -20,7 +20,14 @@ jobs:
       DOCKER_IMAGE_PYTHON: hozanaci/openchurch-sync
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+          uses: actions/checkout@v4
+          with:
+            ref: feat/v2
+            fetch-depth: 0
+      - name: Debug branch info
+        run: |
+          echo "Current branch: $(git rev-parse --abbrev-ref HEAD)"
+          echo "Git ref: ${{ github.ref }}"
       - name: Create version.json file
         run: |
           echo "{ \"version\": \"$(git rev-parse --short HEAD)\", \"build\": \"$(date)\", \"branch\": \"$(git rev-parse --abbrev-ref HEAD)\", \"tag\": \"$(git name-rev --tags --name-only $(git rev-parse HEAD))\" } " > public/version.json
