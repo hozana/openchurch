@@ -49,7 +49,6 @@ COPY usr/local/bin/docker-php-entrypoint /usr/local/bin/
 COPY .env /var/www/html/
 COPY etc/cron.d/backend /etc/cron.d/backend
 
-# The following line is needed only for load tests
 COPY etc/caddy/Caddyfile /etc/caddy/Caddyfile
 COPY etc/logrotate.d/symfony /etc/logrotate.d/symfony
 
