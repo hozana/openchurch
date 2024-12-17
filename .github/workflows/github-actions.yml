@@ -55,9 +55,9 @@ jobs:
           echo "$DOCKER_PASSWORD" | docker login $DOCKER_REPOSITORY -u $DOCKER_USERNAME --password-stdin
           docker pull $DOCKER_IMAGE_PHP:$(git rev-parse --short HEAD)
           docker tag $DOCKER_IMAGE_PHP:$(git rev-parse --short HEAD) $DOCKER_IMAGE_PHP:$(git rev-parse --abbrev-ref HEAD)
-          docker push $DOCKER_IMAGE_PHP:$(git rev-parse --abbrev-ref HEAD)
+          docker push $DOCKER_IMAGE_PHP:$(git rev-parse --abbrev-ref HEAD | tr '/' '-')
           docker tag $DOCKER_IMAGE_PYTHON:$(git rev-parse --short HEAD) $DOCKER_IMAGE_PYTHON:$(git rev-parse --abbrev-ref HEAD)
-          docker push $DOCKER_IMAGE_PYTHON:$(git rev-parse --abbrev-ref HEAD)
+          docker push $DOCKER_IMAGE_PYTHON:$(git rev-parse --abbrev-ref HEAD | tr '/' '-')
 
   tests:
     env:
