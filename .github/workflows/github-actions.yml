@@ -19,6 +19,8 @@ jobs:
       DOCKER_IMAGE_PHP: hozanaci/openchurch-backend
       DOCKER_IMAGE_PYTHON: hozanaci/openchurch-sync
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Debug branch info
         run: |
           echo "Current branch: $(git rev-parse --abbrev-ref HEAD)"
@@ -29,9 +31,9 @@ jobs:
       - name: Build and push the image to DockerHub
         run: |
           echo "$DOCKER_PASSWORD" | docker login $DOCKER_REPOSITORY -u $DOCKER_USERNAME --password-stdin
-          docker build -t $DOCKER_IMAGE_PHP:$(git rev-parse --short HEAD) -f docker/php/Dockerfile .
+          docker build -t $DOCKER_IMAGE_PHP:$(git rev-parse --short HEAD) docker/php/.
           docker push $DOCKER_IMAGE_PHP:$(git rev-parse --short HEAD)
-          docker build -t $DOCKER_IMAGE_PYTHON:$(git rev-parse --short HEAD) -f docker/python/Dockerfile .
+          docker build -t $DOCKER_IMAGE_PYTHON:$(git rev-parse --short HEAD) docker/python/.
           docker push $DOCKER_IMAGE_PYTHON:$(git rev-parse --short HEAD)
 
   publish-docker-image:
