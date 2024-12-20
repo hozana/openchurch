@@ -1,4 +1,4 @@
-FROM dunglas/frankenphp
+FROM dunglas/frankenphp:php8.4-bookworm
 LABEL org.opencontainers.image.authors="contact@hozana.org"
 
 ARG USER=www-data
