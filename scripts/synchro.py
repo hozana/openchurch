@@ -496,7 +496,7 @@ class OpenChurchClient(object):
     urllib3.disable_warnings(category=urllib3.exceptions.InsecureRequestWarning)
     hostname = os.getenv('OPENCHURCH_HOST')
     headers = {
-        'Authorization': 'Bearer ' + os.getenv('OPENCHURCH_API_TOKEN')
+        'Authorization': 'Bearer ' + os.getenv('SYNCHRO_SECRET_KEY')
     }
 
     def create_session(self):

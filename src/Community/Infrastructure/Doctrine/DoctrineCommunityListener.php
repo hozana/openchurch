@@ -11,17 +11,25 @@ use App\Field\Domain\Enum\FieldCommunity;
 use App\Shared\Domain\Enum\SearchIndex;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 use Doctrine\ORM\Events;
+use Symfony\Bundle\SecurityBundle\Security;
 
 #[AsEntityListener(event: Events::postPersist, method: 'postPersist', entity: Community::class)]
 final class DoctrineCommunityListener
 {
     public function __construct(
+        private readonly string $synchroSecretKey,
+        private readonly Security $security,
         private readonly SearchHelperInterface $searchHelper,
     ) {
     }
 
     public function postPersist(Community $community): void
     {
+        $agent = $this->security->getUser();
+        if ($agent->apiKey === $this->synchroSecretKey) {
+            return;
+        }
+
         $type = $community->getMostTrustableFieldByName(FieldCommunity::TYPE)?->getValue();
         if ($type === CommunityType::PARISH->value) {
             // A new parish has been inserted

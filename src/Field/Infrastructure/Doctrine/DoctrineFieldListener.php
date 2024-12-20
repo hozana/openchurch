@@ -12,11 +12,14 @@ use App\Field\Domain\Model\Field;
 use App\Shared\Domain\Enum\SearchIndex;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 use Doctrine\ORM\Events;
+use Symfony\Bundle\SecurityBundle\Security;
 
 #[AsEntityListener(event: Events::postUpdate, method: 'postUpdate', entity: Field::class)]
 final class DoctrineFieldListener
 {
     public function __construct(
+        private readonly string $synchroSecretKey,
+        private readonly Security $security,
         private readonly SearchHelperInterface $searchHelper,
         private readonly CommunityRepositoryInterface $communityRepo,
     ) {
@@ -24,6 +27,11 @@ final class DoctrineFieldListener
 
     public function postUpdate(Field $field): void
     {
+        $agent = $this->security->getUser();
+        if ($agent->apiKey === $this->synchroSecretKey) {
+            return;
+        }
+
         if ($field->name === FieldCommunity::NAME->value) {
             $this->onFieldNameChange($field);
         }

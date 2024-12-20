@@ -52,6 +52,12 @@ services:
   App\Core\Infrastructure\ElasticSearch\Helper\OfficialElasticSearchHelper:
     arguments:
       $elasticsearchHost: "%env(ELASTICSEARCH_IRI)%"
+  App\Field\Infrastructure\Doctrine\DoctrineFieldListener:
+    arguments:
+      $synchroSecretKey: "%env(SYNCHRO_SECRET_KEY)%"
+  App\Community\Infrastructure\Doctrine\DoctrineCommunityListener:
+    arguments:
+      $synchroSecretKey: "%env(SYNCHRO_SECRET_KEY)%"
 
   App\Core\Infrastructure\Doctrine\FixDoctrineMigrationTableSchema:
     autoconfigure: false
