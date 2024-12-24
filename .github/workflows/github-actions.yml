@@ -56,6 +56,7 @@ jobs:
           docker pull $DOCKER_IMAGE_PHP:$(git rev-parse --short HEAD)
           docker tag $DOCKER_IMAGE_PHP:$(git rev-parse --short HEAD) $DOCKER_IMAGE_PHP:$(git rev-parse --abbrev-ref HEAD | tr '/' '-')
           docker push $DOCKER_IMAGE_PHP:$(git rev-parse --abbrev-ref HEAD | tr '/' '-')
+          docker pull $DOCKER_IMAGE_PYTHON:$(git rev-parse --short HEAD)
           docker tag $DOCKER_IMAGE_PYTHON:$(git rev-parse --short HEAD) $DOCKER_IMAGE_PYTHON:$(git rev-parse --abbrev-ref HEAD | tr '/' '-')
           docker push $DOCKER_IMAGE_PYTHON:$(git rev-parse --abbrev-ref HEAD | tr '/' '-')
 
