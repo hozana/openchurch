@@ -4,7 +4,7 @@ ENV PYTHONUNBUFFERED 1
 WORKDIR /app/
 
 # install cron daemon
-RUN apt update && apt install cron -y && apt -yq autoremove ; apt clean
+RUN apt update; apt install cron -y; apt -yq autoremove; apt clean
 
 RUN python -m venv /opt/venv
 # Enable venv
