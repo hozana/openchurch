@@ -3,6 +3,9 @@ ENV PYTHONUNBUFFERED 1
 
 WORKDIR /app/
 
+# install cron daemon
+RUN apt update && apt install cron -y && apt -yq autoremove ; apt clean
+
 RUN python -m venv /opt/venv
 # Enable venv
 ENV PATH="/opt/venv/bin:$PATH"
@@ -18,4 +21,4 @@ COPY --from=compiler /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 COPY ./scripts /app/
 
-ENTRYPOINT ["tail", "-f", "/dev/null"]
+ENTRYPOINT ["/usr/sbin/cron", "-f", "-l", "15"]
