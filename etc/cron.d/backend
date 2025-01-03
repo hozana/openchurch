@@ -1,0 +1,39 @@
+HOME=/var/www/html
+LANG=nb_NO.UTF-8
+LC_ALL=nb_NO.UTF-8
+
+# Each task to run has to be defined through a single line
+# indicating with different fields when the task will be run
+# and what command to run for the task
+#
+# To define the time you can provide concrete values for
+# minute (m), hour (h), day of month (dom), month (mon),
+# and day of week (dow) or use '*' in these fields (for 'any').
+#
+# Notice that tasks will be started based on the cron's system
+# daemon's notion of time and timezones.
+#
+# Output of the crontab jobs (including errors) is sent through
+# email to the user the crontab file belongs to (unless redirected).
+#
+# For example, you can run a backup of all your user accounts
+# at 5 a.m every week with:
+# 0 5 * * 1 tar -zcf /var/backups/home.tgz /home/
+#
+# For more information see the manual pages of crontab(5) and cron(8)
+#
+# m h  dom mon dow   command
+
+# 0 0 * * * root test ! -f $HOME/deploying.lock && /usr/local/bin/php $HOME/bin/console app:cron:delete-expired-refresh-tokens > /proc/1/fd/1 2>/proc/1/fd/2
+# 0 3 * * * root test ! -f $HOME/deploying.lock && /usr/local/bin/php $HOME/bin/console app:cron:clean-volatile-streams > /proc/1/fd/1 2>/proc/1/fd/2
+# 0 0 * * * root test ! -f $HOME/deploying.lock && /usr/local/bin/php $HOME/bin/console app:cron:delete-accounts > /proc/1/fd/1 2>/proc/1/fd/2
+# 0 * * * * root test ! -f $HOME/deploying.lock && /usr/local/bin/php $HOME/bin/console app:cron:set-chapelets-as-over > /proc/1/fd/1 2>/proc/1/fd/2
+# 0 3 * * * root test ! -f $HOME/deploying.lock && /usr/local/bin/php $HOME/bin/console app:cron:update-chapelets-activity-score > /proc/1/fd/1 2>/proc/1/fd/2
+# 0 6 * * * root test ! -f $HOME/deploying.lock && /usr/local/bin/php $HOME/bin/console app:cron:send-onboarding-push-notifications > /proc/1/fd/1 2>/proc/1/fd/2
+# 0 8 * * * root test ! -f $HOME/deploying.lock && /usr/local/bin/php $HOME/bin/console app:cron:inactivity > /proc/1/fd/1 2>/proc/1/fd/2
+# * * * * * root test ! -f $HOME/deploying.lock && /usr/local/bin/php $HOME/bin/console app:cron:send-announcements > /proc/1/fd/1 2>/proc/1/fd/2
+# * * * * * root test ! -f $HOME/deploying.lock && /usr/local/bin/php $HOME/bin/console app:cron:send-scheduled-push-notifications > /proc/1/fd/1 2>/proc/1/fd/2
+# 0 5 * * * root test ! -f $HOME/deploying.lock && /usr/local/bin/php $HOME/bin/console app:cron:chapelet:defragmenter > /proc/1/fd/1 2>/proc/1/fd/2
+# 0 18 * * * root test ! -f $HOME/deploying.lock && /usr/local/bin/php $HOME/bin/console app:cron:message:send-digest > /proc/1/fd/1 2>/proc/1/fd/2
+# 0 * * * * root test ! -f $HOME/deploying.lock && /usr/bin/php $HOME/bin/console app:cron:import-adjust-events > /proc/1/fd/1 2>/proc/1/fd/2
+# 0 0 * * * root /usr/sbin/logrotate -v -d > /proc/1/fd/1 2>/proc/1/fd/2
