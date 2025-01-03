@@ -16,7 +16,7 @@ COPY --from=compiler /opt/venv /opt/venv
 
 # install and configure cron daemon
 RUN apt update; apt install cron libterm-readline-gnu-perl -y; apt -yq autoremove; apt clean
-COPY etc/cron.d/openchurch /etc/cron.d/openchurch
+COPY etc/cron.d/syncro /etc/cron.d/syncro
 
 # Enable venv
 ENV PATH="/opt/venv/bin:$PATH"
