@@ -28,7 +28,7 @@ final class DoctrineCommunityListener
     {
         /** @var Agent $agent */
         $agent = $this->security->getUser();
-        if ($agent->apiKey === $this->synchroSecretKey) {
+        if ($agent && $agent->apiKey === $this->synchroSecretKey) {
             return;
         }
 
