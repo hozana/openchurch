@@ -3,9 +3,6 @@ ENV PYTHONUNBUFFERED 1
 
 WORKDIR /app/
 
-# install cron daemon
-RUN apt update; apt install cron -y; apt -yq autoremove; apt clean
-
 RUN python -m venv /opt/venv
 # Enable venv
 ENV PATH="/opt/venv/bin:$PATH"
@@ -16,6 +13,9 @@ RUN pip install -Ur requirements.txt
 FROM python:3.9-slim as runner
 WORKDIR /app/
 COPY --from=compiler /opt/venv /opt/venv
+
+# install cron daemon
+RUN apt update; apt install cron libterm-readline-gnu-perl -y; apt -yq autoremove; apt clean
 
 # Enable venv
 ENV PATH="/opt/venv/bin:$PATH"
