@@ -37,3 +37,4 @@ LC_ALL=nb_NO.UTF-8
 # 0 18 * * * root test ! -f $HOME/deploying.lock && /usr/local/bin/php $HOME/bin/console app:cron:message:send-digest > /proc/1/fd/1 2>/proc/1/fd/2
 # 0 * * * * root test ! -f $HOME/deploying.lock && /usr/bin/php $HOME/bin/console app:cron:import-adjust-events > /proc/1/fd/1 2>/proc/1/fd/2
 # 0 0 * * * root /usr/sbin/logrotate -v -d > /proc/1/fd/1 2>/proc/1/fd/2
+*/5 0 * * * root /opt/venv/bin/python /app/synchro.py > /proc/1/fd/1 2>/proc/1/fd/2
