@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Community\Infrastructure\Doctrine;
 
+use App\Agent\Domain\Model\Agent;
 use App\Community\Domain\Enum\CommunityType;
 use App\Community\Domain\Model\Community;
 use App\Core\Domain\Search\Helper\SearchHelperInterface;
@@ -25,6 +26,7 @@ final class DoctrineCommunityListener
 
     public function postPersist(Community $community): void
     {
+        /** @var Agent $agent */
         $agent = $this->security->getUser();
         if ($agent->apiKey === $this->synchroSecretKey) {
             return;

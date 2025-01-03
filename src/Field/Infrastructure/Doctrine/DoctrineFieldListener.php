@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Field\Infrastructure\Doctrine;
 
+use App\Agent\Domain\Model\Agent;
 use App\Community\Domain\Enum\CommunityType;
 use App\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\Core\Domain\Search\Helper\SearchHelperInterface;
@@ -27,6 +28,7 @@ final class DoctrineFieldListener
 
     public function postUpdate(Field $field): void
     {
+        /** @var Agent $agent */
         $agent = $this->security->getUser();
         if ($agent->apiKey === $this->synchroSecretKey) {
             return;
