@@ -14,8 +14,9 @@ FROM python:3.9-slim as runner
 WORKDIR /app/
 COPY --from=compiler /opt/venv /opt/venv
 
-# install cron daemon
+# install and configure cron daemon
 RUN apt update; apt install cron libterm-readline-gnu-perl -y; apt -yq autoremove; apt clean
+COPY etc/cron.d/openchurch /etc/cron.d/openchurch
 
 # Enable venv
 ENV PATH="/opt/venv/bin:$PATH"
