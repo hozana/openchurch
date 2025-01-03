@@ -21,4 +21,6 @@ COPY --from=compiler /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 COPY ./scripts /app/
 
-ENTRYPOINT ["/usr/sbin/cron", "-f", "-l", "15"]
+CMD ["/usr/sbin/cron", "-f", "-l", "15"]
+
+# ENTRYPOINT ["/usr/sbin/cron", "-f", "-l", "15"]
