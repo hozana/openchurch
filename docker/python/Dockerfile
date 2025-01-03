@@ -15,7 +15,7 @@ WORKDIR /app/
 COPY --from=compiler /opt/venv /opt/venv
 
 # install and configure cron daemon
-RUN apt update; apt install cron libterm-readline-gnu-perl -y; apt -yq autoremove; apt clean
+RUN apt update; apt install cron libterm-readline-gnu-perl procps -y; apt -yq autoremove; apt clean
 COPY etc/cron.d/syncro /etc/cron.d/syncro
 
 # Enable venv
