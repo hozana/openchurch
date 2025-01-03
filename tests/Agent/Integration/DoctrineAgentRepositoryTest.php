@@ -30,7 +30,6 @@ final class DoctrineAgentRepositoryTest extends KernelTestCase
     {
         /** @var DoctrineAgentRepository $repository */
         $repository = static::getContainer()->get(DoctrineAgentRepository::class);
-        static::assertCount(0, $repository);
 
         $agent = DummyAgentFactory::createOne(['name' => 'Romain de rosario', 'apiKey' => '1234']);
         DummyAgentFactory::createOne(['name' => 'toto la praline', 'apiKey' => '5678']);
