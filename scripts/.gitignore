@@ -5,3 +5,4 @@ venv
 pyvenv.cfg
 pywikibot.lwp
 wikidata_*.json
+apicache-py3

@@ -24,16 +24,4 @@ LC_ALL=nb_NO.UTF-8
 #
 # m h  dom mon dow   command
 
-# 0 0 * * * root test ! -f $HOME/deploying.lock && /usr/local/bin/php $HOME/bin/console app:cron:delete-expired-refresh-tokens > /proc/1/fd/1 2>/proc/1/fd/2
-# 0 3 * * * root test ! -f $HOME/deploying.lock && /usr/local/bin/php $HOME/bin/console app:cron:clean-volatile-streams > /proc/1/fd/1 2>/proc/1/fd/2
-# 0 0 * * * root test ! -f $HOME/deploying.lock && /usr/local/bin/php $HOME/bin/console app:cron:delete-accounts > /proc/1/fd/1 2>/proc/1/fd/2
-# 0 * * * * root test ! -f $HOME/deploying.lock && /usr/local/bin/php $HOME/bin/console app:cron:set-chapelets-as-over > /proc/1/fd/1 2>/proc/1/fd/2
-# 0 3 * * * root test ! -f $HOME/deploying.lock && /usr/local/bin/php $HOME/bin/console app:cron:update-chapelets-activity-score > /proc/1/fd/1 2>/proc/1/fd/2
-# 0 6 * * * root test ! -f $HOME/deploying.lock && /usr/local/bin/php $HOME/bin/console app:cron:send-onboarding-push-notifications > /proc/1/fd/1 2>/proc/1/fd/2
-# 0 8 * * * root test ! -f $HOME/deploying.lock && /usr/local/bin/php $HOME/bin/console app:cron:inactivity > /proc/1/fd/1 2>/proc/1/fd/2
-# * * * * * root test ! -f $HOME/deploying.lock && /usr/local/bin/php $HOME/bin/console app:cron:send-announcements > /proc/1/fd/1 2>/proc/1/fd/2
-# * * * * * root test ! -f $HOME/deploying.lock && /usr/local/bin/php $HOME/bin/console app:cron:send-scheduled-push-notifications > /proc/1/fd/1 2>/proc/1/fd/2
-# 0 5 * * * root test ! -f $HOME/deploying.lock && /usr/local/bin/php $HOME/bin/console app:cron:chapelet:defragmenter > /proc/1/fd/1 2>/proc/1/fd/2
-# 0 18 * * * root test ! -f $HOME/deploying.lock && /usr/local/bin/php $HOME/bin/console app:cron:message:send-digest > /proc/1/fd/1 2>/proc/1/fd/2
-# 0 * * * * root test ! -f $HOME/deploying.lock && /usr/bin/php $HOME/bin/console app:cron:import-adjust-events > /proc/1/fd/1 2>/proc/1/fd/2
-# 0 0 * * * root /usr/sbin/logrotate -v -d > /proc/1/fd/1 2>/proc/1/fd/2
+30 18 * * * /usr/bin/php $HOME/bin/console app:write:indexes > /proc/1/fd/1 2>/proc/1/fd/2

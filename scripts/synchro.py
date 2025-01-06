@@ -246,21 +246,32 @@ class Query(object):
         print(len(self.cache_parishes), 'parishes in cache')
 
     def fetch(self, filename, query):
-        if os.path.isfile(filename) and os.path.getmtime(filename) > time.time() - 12 * 3600: # cache JSON for 12 hours
-            with open(filename, 'r', encoding='utf-8') as content_file:
-                print('Loading from file', filename ,'please wait...')
-                return json.loads(content_file.read())
+        offset = 0
+        all_results = []
+        batch_size = 20000
+
+        if os.path.isfile(filename):
+            if os.path.getmtime(filename) > time.time() - 12 * 3600: # cache JSON for 12 hours
+                with open(filename, 'r', encoding='utf-8') as content_file:
+                    print('Loading from file', filename ,'please wait...')
+                    return json.loads(content_file.read())
+            else:
+                os.remove(filename)
 
         print('Query running for', filename, ' - please wait...')
         sparql = SPARQLWrapper(endpoint, agent=agent)
-        sparql.setQuery(query)
         sparql.setReturnFormat(JSON)
-        data = sparql.query().convert()
-
-        if len(data) > 0:
-            json.dump(data, open(filename, 'wb', encoding='utf-8'))
-
-        return data
+        while True:
+            print('Loaded ' + str(offset + batch_size) + ' entries. Please wait...')
+            sparql.setQuery(query + ' LIMIT %s OFFSET %s' % (batch_size, offset))
+            data = sparql.query().convert()
+            if len(data) > 0:
+                all_results.extend(data)
+                json.dump(data, open(filename, 'a', encoding='utf-8'))
+                offset += batch_size
+            else:
+                break
+        return all_results
 
     def add_place(self, wikidata_id, country = False):
         datapage = pywikibot.ItemPage(pywikibot.Site('fr').data_repository(), 'Q%s' % (wikidata_id,))

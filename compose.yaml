@@ -82,6 +82,8 @@ services:
       OPENCHURCH_HOST: "https://api.openchurch.local/api"
       PYTHONWARNINGS: "ignore:Unverified HTTPS request"
       SYNCHRO_SECRET_KEY: "secret"
+    volumes:
+      - ./scripts:/app
 
 volumes:
   openchurch_db_data: {}
