@@ -24,4 +24,4 @@ LC_ALL=nb_NO.UTF-8
 #
 # m h  dom mon dow   command
 
-0,30 0 * * * root /opt/venv/bin/python /app/synchro.py > /proc/1/fd/1 2>/proc/1/fd/2; root /opt/venv/bin/python /app/synchro.py push > /proc/1/fd/1 2>/proc/1/fd/2
+0,30 0 * * * root /opt/venv/bin/python /app/synchro.py > /proc/1/fd/1 2>/proc/1/fd/2; /opt/venv/bin/python /app/synchro.py push > /proc/1/fd/1 2>/proc/1/fd/2
