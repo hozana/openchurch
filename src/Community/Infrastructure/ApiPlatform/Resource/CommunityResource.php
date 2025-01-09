@@ -24,6 +24,10 @@ use Symfony\Component\Uid\Uuid;
 
 #[ApiResource(
     shortName: 'Community',
+    cacheHeaders: [
+        'public' => true,
+        'max_age' => 3600,
+    ],
     operations: [
         new Post(
             security: 'is_granted("ROLE_AGENT")',
@@ -51,6 +55,7 @@ use Symfony\Component\Uid\Uuid;
         ),
         new Get(
             provider: CommunityItemProvider::class,
+            normalizationContext: ['groups' => ['communities']],
         ),
     ],
 )]

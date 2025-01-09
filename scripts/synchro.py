@@ -265,8 +265,9 @@ class Query(object):
             print('Loaded ' + str(offset + batch_size) + ' entries. Please wait...')
             sparql.setQuery(query + ' LIMIT %s OFFSET %s' % (batch_size, offset))
             data = sparql.query().convert()
-            if len(data) > 0:
-                all_results.extend(data)
+            if len(data['results']['bindings']) > 0:
+                print(len(data['results']['bindings']))
+                all_results.extend(data['results']['bindings'])
                 json.dump(data, open(filename, 'a', encoding='utf-8'))
                 offset += batch_size
             else:
@@ -385,60 +386,59 @@ class Query(object):
             print('\nFinished')
 
     def update_dioceses(self, data):
-        if 'results' in data.keys() and 'bindings' in data['results'].keys():
-            t = len(data['results']['bindings'])
-            print(t, 'dioceses loaded')
-            i = 0
-            j = 0
-            for item in data['results']['bindings']:
-                i += 1
-                if i % DB.commit_frequency == 0:
-                    DB.session.commit()
-                wikidata_id = int(item['dioceses']['value'].split('/')[-1].replace('Q', ''))
-                modified = item['modified']['value'].replace('T', ' ').replace('Z', '')
-                if wikidata_id in self.cache_dioceses and self.cache_dioceses[wikidata_id] == modified:
-                    print('(%s/%s) Q%s' % (i, t, wikidata_id), '-> continue', end='    \r')
-                    continue
-                gcatholic_id = Query.get_value(item, 'P8389')
-                if not gcatholic_id:
-                    continue
-                print('(%s/%s) Q%s' % (i, t, wikidata_id), '-> update', end='    \r')
-                type_ = Query.get_wikidata_id(item, 'P31')
-                if not type_ or int(type_) not in Query.dioceses_types:
-                    continue # ignore item FIXME we may want to delete if from the DB
-                country_id = Query.get_wikidata_id(item, 'P17')
-                website = Query.get_decoded_value(item, 'P856', '')
-                label_fr = item['label_fr']['value'] if 'label_fr' in item.keys() else item['label_en']['value'] if 'label_en' in item.keys() else ''
+        t = len(data)
+        print(t, 'dioceses loaded')
+        i = 0
+        j = 0
+        for item in data:
+            i += 1
+            if i % DB.commit_frequency == 0:
+                DB.session.commit()
+            wikidata_id = int(item['dioceses']['value'].split('/')[-1].replace('Q', ''))
+            modified = item['modified']['value'].replace('T', ' ').replace('Z', '')
+            if wikidata_id in self.cache_dioceses and self.cache_dioceses[wikidata_id] == modified:
+                print('(%s/%s) Q%s' % (i, t, wikidata_id), '-> continue', end='    \r')
+                continue
+            gcatholic_id = Query.get_value(item, 'P8389')
+            if not gcatholic_id:
+                continue
+            print('(%s/%s) Q%s' % (i, t, wikidata_id), '-> update', end='    \r')
+            type_ = Query.get_wikidata_id(item, 'P31')
+            if not type_ or int(type_) not in Query.dioceses_types:
+                continue # ignore item FIXME we may want to delete if from the DB
+            country_id = Query.get_wikidata_id(item, 'P17')
+            website = Query.get_decoded_value(item, 'P856', '')
+            label_fr = item['label_fr']['value'] if 'label_fr' in item.keys() else item['label_en']['value'] if 'label_en' in item.keys() else ''
 
-                # dirty hack so that Annecy appears in France and not in Switzerland
-                if wikidata_id == 866863: # Annecy
-                    country_id = 142 # France
+            # dirty hack so that Annecy appears in France and not in Switzerland
+            if wikidata_id == 866863: # Annecy
+                country_id = 142 # France
 
-                if country_id and country_id not in self.cache_places:
-                    self.add_place(country_id, True)
+            if country_id and country_id not in self.cache_places:
+                self.add_place(country_id, True)
 
-                diocese = {
-                  'name': Query.ucfirst(label_fr),
-                  'country_id': country_id,
-                  'gcatholic_id': gcatholic_id,
-                  'website': website,
-                  'updated_at': datetime.datetime.strptime(modified, Query.dateformat),
-                }
+            diocese = {
+                'name': Query.ucfirst(label_fr),
+                'country_id': country_id,
+                'gcatholic_id': gcatholic_id,
+                'website': website,
+                'updated_at': datetime.datetime.strptime(modified, Query.dateformat),
+            }
 
-                if wikidata_id in self.cache_dioceses:
-                    up = update(DB.dioceses, DB.dioceses.c.wikidata_id==wikidata_id)
-                    up = up.values(diocese)
-                    DB.session.execute(up)
-                else:
-                    diocese['wikidata_id'] = wikidata_id
-                    diocese['created_at'] = DB.now
-                    ins = insert(DB.dioceses)
-                    ins = ins.values(diocese)
-                    DB.session.execute(ins)
+            if wikidata_id in self.cache_dioceses:
+                up = update(DB.dioceses, DB.dioceses.c.wikidata_id==wikidata_id)
+                up = up.values(diocese)
+                DB.session.execute(up)
+            else:
+                diocese['wikidata_id'] = wikidata_id
+                diocese['created_at'] = DB.now
+                ins = insert(DB.dioceses)
+                ins = ins.values(diocese)
+                DB.session.execute(ins)
 
-                self.cache_dioceses[wikidata_id] = modified
-            DB.session.commit()
-            print('\nFinished')
+            self.cache_dioceses[wikidata_id] = modified
+        DB.session.commit()
+        print('\nFinished')
 
     def update_parishes(self, data):
         if 'results' in data.keys() and 'bindings' in data['results'].keys():
