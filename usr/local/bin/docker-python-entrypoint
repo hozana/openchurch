@@ -1,0 +1,7 @@
+#!/bin/bash
+set -e
+
+env > /etc/environment
+echo -------------------; echo Versions: ; python --version ; pip --version ; echo -------------------
+
+exec "$@"
