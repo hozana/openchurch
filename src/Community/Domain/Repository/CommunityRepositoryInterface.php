@@ -28,5 +28,7 @@ interface CommunityRepositoryInterface extends RepositoryInterface
 
     public function withWikidataId(int $wikidataId): static;
 
+    public function withWikidataIds(array $wikidataIds): static;
+
     public function withParentCommunityId(Uuid $parentId): static;
 }

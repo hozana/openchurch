@@ -19,6 +19,10 @@ use Symfony\Component\Uid\Uuid;
 
 #[ApiResource(
     shortName: 'Place',
+    cacheHeaders: [
+        'public' => true,
+        'max_age' => 3600,
+    ],
     operations: [
         new Post(
             security: 'is_granted("ROLE_AGENT")',
@@ -37,6 +41,7 @@ use Symfony\Component\Uid\Uuid;
         ),
         new Get(
             provider: PlaceItemProvider::class,
+            normalizationContext: ['groups' => ['places']],
         ),
     ],
 )]

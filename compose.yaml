@@ -39,7 +39,6 @@ services:
       - app-network
     ports:
       - 9200:9200
-
   backend:
     extra_hosts: *default-extra_hosts
     container_name: openchurch_backend
@@ -63,7 +62,7 @@ services:
       APP_ENV: dev
       APP_SECRET: "secret"
       DATABASE_URL: mysql://root:openchurch@db:3306/openchurch?serverVersion=11.5.2-MariaDB&charset=utf8mb4
-      HOST_API: api.openchurch.local/api
+      HOST_API: https://api.openchurch.local/api
       HOST_ADMIN: admin.openchurch.local
       ELASTIC_PASSWORD: admin
       ELASTICSEARCH_IRI: https://elastic:admin@elasticsearch:9200
@@ -73,6 +72,8 @@ services:
     build:
       context: .
       dockerfile: ./docker/python/Dockerfile
+    depends_on:
+      - redis
     networks:
       - app-network
     extra_hosts:
@@ -84,6 +85,19 @@ services:
       SYNCHRO_SECRET_KEY: "secret"
     volumes:
       - ./scripts:/app
+  redis:
+    image: redis:5
+    container_name: openchurch_redis
+    expose:
+      - 6379
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 1s
+      timeout: 5s
+      retries: 55
+      start_period: 30s
 
 volumes:
   openchurch_db_data: {}

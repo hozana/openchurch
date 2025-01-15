@@ -23,6 +23,7 @@ enum FieldCommunity: string
         self::CONTACT_COUNTRY_CODE->value => Types::STRING,
         self::MESSESINFO_ID->value => Types::STRING,
         self::WIKIDATA_ID->value => Types::INTEGER,
+        self::WIKIDATA_UPDATED_AT->value => Types::STRING,
         self::PARENT_COMMUNITY_ID->value => 'Community',
         self::REPLACES->value => 'Community[]',
     ];
@@ -40,6 +41,7 @@ enum FieldCommunity: string
     case CONTACT_COUNTRY_CODE = 'contactCountryCode';
     case MESSESINFO_ID = 'messesInfoId';
     case WIKIDATA_ID = 'wikidataId';
+    case WIKIDATA_UPDATED_AT = 'wikidataUpdatedAt';
     case PARENT_COMMUNITY_ID = 'parentCommunityId';
     case REPLACES = 'replaces';
 

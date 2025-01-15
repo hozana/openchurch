@@ -90,6 +90,23 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
             });
     }
 
+    public function withWikidataIds(?array $wikidataIds): static
+    {
+        if (count($wikidataIds) === 0) {
+            return $this;
+        }
+
+        return
+            $this->filter(static function (QueryBuilder $qb) use ($wikidataIds): void {
+                $qb->andWhere("
+                        EXISTS (SELECT 1 FROM App\Field\Domain\Model\Field f_wikidata
+                        WHERE f_wikidata.community = community
+                        AND f_wikidata.name = 'wikidataId' AND f_wikidata.intVal IN(:valueWikidataIds))
+                    ")
+                    ->setParameter('valueWikidataIds', $wikidataIds);
+            });
+    }
+
     public function withParentCommunityId(?Uuid $parentId): static
     {
         if (!$parentId) {

@@ -36,6 +36,7 @@ final class CommunityCollectionProvider implements ProviderInterface
         /** @var string|null $type */
         $type = $context['filters'][FieldCommunity::TYPE->value] ?? null;
         $wikidataId = $context['filters'][FieldCommunity::WIKIDATA_ID->value] ?? null;
+        
         $name = $context['filters'][FieldCommunity::NAME->value] ?? null;
         $page = $itemsPerPage = null;
 
@@ -49,6 +50,7 @@ final class CommunityCollectionProvider implements ProviderInterface
             if (!$type) {
                 throw new CommunityTypeNotProvidedException();
             }
+
             $entityIds = match ($type) {
                 CommunityType::PARISH->value => $this->searchService->searchParishIds($name, $itemsPerPage, $page - 1),
                 CommunityType::DIOCESE->value => $this->searchService->searchDioceseIds($name, $itemsPerPage, $page - 1),
@@ -63,7 +65,7 @@ final class CommunityCollectionProvider implements ProviderInterface
         $models = $this->communityRepo
             ->ofIds(array_map(fn (string $entityId) => Uuid::fromString($entityId), $entityIds ?? []))
             ->withType($type)
-            ->withWikidataId((int) $wikidataId)
+            ->withWikidataId(intval($wikidataId))
             ->withPagination($page, $itemsPerPage);
 
         $resources = [];

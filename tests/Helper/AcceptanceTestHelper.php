@@ -95,7 +95,7 @@ abstract class AcceptanceTestHelper extends ApiTestCase
     {
         $apiHost = $this->getParameter('host_api');
         $endpoint = ltrim($endpoint, '/');
-        $url = "http://$apiHost/$endpoint";
+        $url = "$apiHost/$endpoint";
         $content = null !== $body ? json_encode($body, JSON_THROW_ON_ERROR) : '';
 
         $server = [

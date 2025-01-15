@@ -8,11 +8,15 @@ use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use App\Community\Domain\Model\Community;
+use App\Community\Infrastructure\ApiPlatform\Input\CommunityFieldsInput;
 use App\Community\Infrastructure\ApiPlatform\State\Processor\CreateCommunityProcessor;
 use App\Community\Infrastructure\ApiPlatform\State\Processor\UpdateCommunityProcessor;
+use App\Community\Infrastructure\ApiPlatform\State\Processor\UpsertCommunityProcessor;
 use App\Community\Infrastructure\ApiPlatform\State\Provider\CommunityCollectionProvider;
 use App\Community\Infrastructure\ApiPlatform\State\Provider\CommunityItemProvider;
 use App\Field\Domain\Model\Field;
@@ -43,6 +47,13 @@ use Symfony\Component\Uid\Uuid;
             provider: CommunityItemProvider::class,
             processor: UpdateCommunityProcessor::class,
             normalizationContext: ['groups' => ['communities']],
+        ),
+        new Put(
+            security: 'is_granted("ROLE_AGENT")',
+            uriTemplate: '/communities/upsert',
+            status: 200,
+            processor: UpsertCommunityProcessor::class,
+            input: CommunityFieldsInput::class,
         ),
         new GetCollection(
             filters: [
