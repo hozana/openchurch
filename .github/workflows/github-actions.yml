@@ -62,7 +62,7 @@ jobs:
 
   tests:
     env:
-      HOST_API: api.openchurch.local/api
+      HOST_API: http://api.openchurch.local/api
     runs-on: ubuntu-latest
     # Docs: https://docs.github.com/en/actions/using-containerized-services
     services:
@@ -112,7 +112,6 @@ jobs:
         run: env
       - name: Run migrations
         run: |
-          env
           php bin/console doctrine:migrations:migrate --no-interaction || echo "No migrations found or migration failed"
         env:
           DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/openchurch_test
