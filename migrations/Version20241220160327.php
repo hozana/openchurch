@@ -12,11 +12,17 @@ final class Version20241220160327 extends AbstractMigration
 {
     public function up(Schema $schema): void
     {
+        $syncroSecretKey = $_ENV['SYNCHRO_SECRET_KEY'] ?? null;
+
+        if (!$syncroSecretKey) {
+            throw new \RuntimeException('The environment variable SYNCHRO_SECRET_KEY is not defined.');
+        }
+
         $this->addSql(
             'INSERT INTO agent (id, name, api_key) VALUES (:id, "CLI_SYNCHRO", :syncroSecretKey)',
             [
                 'id' => Uuid::v7()->toBinary(),
-                'syncroSecretKey' => $_ENV['SYNCHRO_SECRET_KEY'],
+                'syncroSecretKey' => $syncroSecretKey,
             ],
         );
     }
