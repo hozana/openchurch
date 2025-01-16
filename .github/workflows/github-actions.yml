@@ -112,10 +112,8 @@ jobs:
         run: env
       - name: Run migrations
         run: |
+          env
           php bin/console doctrine:migrations:migrate --no-interaction || echo "No migrations found or migration failed"
-        env:
-          DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/openchurch_test
-          SYNCHRO_SECRET_KEY: secret
       - name: Execute tests (Unit and Feature tests) via PHPUnit
         run: vendor/bin/phpunit
         env:
