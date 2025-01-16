@@ -31,6 +31,10 @@ interface RepositoryInterface extends \IteratorAggregate, \Countable
 
     public function clear(): void;
 
+    public function detach(object $entity): void;
+
+    public function remove(object $entity): void;
+
     /**
      * @return Collection<int, T>
      */

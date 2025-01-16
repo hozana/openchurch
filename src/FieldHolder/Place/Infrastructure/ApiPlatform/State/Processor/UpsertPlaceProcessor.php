@@ -1,0 +1,102 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\FieldHolder\Place\Infrastructure\ApiPlatform\State\Processor;
+
+use ApiPlatform\Metadata\Operation;
+use ApiPlatform\State\ProcessorInterface;
+use App\Field\Application\FieldService;
+use App\Field\Domain\Enum\FieldPlace;
+use App\Field\Domain\Exception\FieldWikidataIdMissingException;
+use App\FieldHolder\Application\FieldHolderUpsertService;
+use App\FieldHolder\Place\Domain\Model\Place;
+use App\FieldHolder\Place\Domain\Repository\PlaceRepositoryInterface;
+use App\FieldHolder\Place\Infrastructure\ApiPlatform\Input\PlaceWikidataInput;
+use App\Shared\Domain\Manager\TransactionManagerInterface;
+use DateTimeImmutable;
+use Exception;
+use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Webmozart\Assert\Assert;
+
+/**
+ * @implements ProcessorInterface<PlaceWikidataInput, PlaceWikidataInput>
+ */
+final class UpsertPlaceProcessor implements ProcessorInterface
+{
+    public function __construct(
+        private PlaceRepositoryInterface $placeRepo,
+        private TransactionManagerInterface $transactionManager,
+        private HttpClientInterface $httpClient,
+        private FieldService $fieldService,
+        private DenormalizerInterface $denormalizer,
+        private FieldHolderUpsertService $fieldHolderUpsertService,
+    ) {
+    }
+
+    /**
+     * @param PlaceWikidataInput $data
+     */
+    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): array
+    {
+        return $this->transactionManager->transactional(function () use ($data) {
+            Assert::isInstanceOf($data, PlaceWikidataInput::class);
+
+            $wikidataIdFields = [];
+            $result = [];
+
+            $wikidataIds = array_map(function (array $fields) use(&$wikidataIdFields) {
+                $wikidataField = $this->fieldHolderUpsertService->getFieldByName($fields, FieldPlace::WIKIDATA_ID->value);
+                if (!$wikidataField) throw new FieldWikidataIdMissingException();
+
+                $wikidataId = $wikidataField['value'];
+                $wikidataIdFields[$wikidataId] = $fields;
+                return $wikidataId;
+            }, $data->wikidataEntities);   
+            
+            // Update...
+            $places = $this->placeRepo->addSelectField()->withWikidataIds($wikidataIds)->asCollection();
+            foreach ($places as $place) {
+                $wikidataId = $place->getMostTrustableFieldByName(FieldPlace::WIKIDATA_ID)->getValue();
+                $openChurchWikidataUpdatedAt = $place->getMostTrustableFieldByName(FieldPlace::WIKIDATA_UPDATED_AT);
+                $wikidataUpdatedAt = $this->fieldHolderUpsertService->getFieldByName($wikidataIdFields[$wikidataId], FieldPlace::WIKIDATA_UPDATED_AT->value);
+                
+                if (
+                    !$openChurchWikidataUpdatedAt || 
+                    intval((new DateTimeImmutable($wikidataUpdatedAt['value']))->diff($openChurchWikidataUpdatedAt->getValue())->format('%a')) >= 1
+                ) {
+                    // WikidataUpdatedAt diff is greater than 1 day. We have to update the data
+                    try {
+                        $this->fieldService->upsertFields($place, $this->fieldHolderUpsertService->arrayToFields($wikidataIdFields[$wikidataId]));
+                        $result[$wikidataId] = 'Updated';
+                    }
+                    catch (Exception $e) {
+                        $result[$wikidataId] = $this->fieldHolderUpsertService->handleError($place, $e, [$this->placeRepo, 'detach']);
+                    }
+                }
+                else {
+                    $result[$wikidataId] = 'No need to update';
+                }
+                unset($wikidataIdFields[$wikidataId]);
+            }
+
+
+            // Insert...
+            foreach ($wikidataIdFields as $wikidataId => $fields) {
+                try {
+                    $place = new Place();
+                    $this->placeRepo->add($place);
+
+                    $this->fieldService->upsertFields($place, $this->fieldHolderUpsertService->arrayToFields($fields));
+                    $result[$wikidataId] = 'Inserted';
+                }
+                catch (Exception $e) {
+                    $result[$wikidataId] = $this->fieldHolderUpsertService->handleError($place, $e, [$this->placeRepo, 'detach']);
+                }
+            }
+
+            return $result;
+        });
+    }
+}

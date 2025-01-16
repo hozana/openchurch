@@ -29,11 +29,11 @@ services:
     class: App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager
 
   # Repositories
-  App\Place\Domain\Repository\PlaceRepositoryInterface:
-    class: App\Place\Infrastructure\Doctrine\DoctrinePlaceRepository
+  App\FieldHolder\Place\Domain\Repository\PlaceRepositoryInterface:
+    class: App\FieldHolder\Place\Infrastructure\Doctrine\DoctrinePlaceRepository
 
-  App\Community\Domain\Repository\CommunityRepositoryInterface:
-    class: App\Community\Infrastructure\Doctrine\DoctrineCommunityRepository
+  App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface:
+    class: App\FieldHolder\Community\Infrastructure\Doctrine\DoctrineCommunityRepository
 
   App\Field\Domain\Repository\FieldRepositoryInterface:
     class: App\Field\Infrastructure\Doctrine\DoctrineFieldRepository
@@ -55,7 +55,7 @@ services:
   App\Field\Infrastructure\Doctrine\DoctrineFieldListener:
     arguments:
       $synchroSecretKey: "%env(SYNCHRO_SECRET_KEY)%"
-  App\Community\Infrastructure\Doctrine\DoctrineCommunityListener:
+  App\FieldHolder\Community\Infrastructure\Doctrine\DoctrineCommunityListener:
     arguments:
       $synchroSecretKey: "%env(SYNCHRO_SECRET_KEY)%"
 

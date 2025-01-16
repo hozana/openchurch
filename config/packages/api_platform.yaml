@@ -8,10 +8,10 @@ api_platform:
       vary: ["Content-Type", "Authorization", "Origin"]
   mapping:
     paths:
-      - "%kernel.project_dir%/src/Community/Infrastructure/ApiPlatform/Resource/"
-      - "%kernel.project_dir%/src/Place/Infrastructure/ApiPlatform/Resource/"
-      - "%kernel.project_dir%/src/Place/Domain/Exception/"
-      - "%kernel.project_dir%/src/Community/Domain/Exception/"
+      - "%kernel.project_dir%/src/FieldHolder/Community/Infrastructure/ApiPlatform/Resource/"
+      - "%kernel.project_dir%/src/FieldHolder/Place/Infrastructure/ApiPlatform/Resource/"
+      - "%kernel.project_dir%/src/FieldHolder/Place/Domain/Exception/"
+      - "%kernel.project_dir%/src/FieldHolder/Community/Domain/Exception/"
       - "%kernel.project_dir%/src/Field/Domain/Exception/"
   formats:
     json: ["application/json"]

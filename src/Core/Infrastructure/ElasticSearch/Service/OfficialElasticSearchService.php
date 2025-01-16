@@ -2,8 +2,8 @@
 
 namespace App\Core\Infrastructure\ElasticSearch\Service;
 
-use App\Community\Domain\Model\Community;
-use App\Community\Domain\Repository\CommunityRepositoryInterface;
+use App\FieldHolder\Community\Domain\Model\Community;
+use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\Core\Domain\Search\Helper\SearchHelperInterface;
 use App\Core\Domain\Search\Service\SearchServiceInterface;
 use App\Shared\Domain\Enum\SearchIndex;

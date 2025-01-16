@@ -2,9 +2,9 @@
 
 namespace App\Field\Domain\Enum;
 
-use App\Place\Domain\Enum\PlaceDeletionReason;
-use App\Place\Domain\Enum\PlaceState;
-use App\Place\Domain\Enum\PlaceType;
+use App\FieldHolder\Place\Domain\Enum\PlaceDeletionReason;
+use App\FieldHolder\Place\Domain\Enum\PlaceState;
+use App\FieldHolder\Place\Domain\Enum\PlaceType;
 use Doctrine\DBAL\Types\Types;
 
 enum FieldPlace: string
@@ -26,6 +26,8 @@ enum FieldPlace: string
         self::DELETION_REASON->value => PlaceDeletionReason::class,
         self::REPLACES->value => 'Place[]',
         self::PARENT_COMMUNITIES->value => 'Community[]',
+        self::PARENT_WIKIDATA_IDS->value => 'Community[]',
+        self::WIKIDATA_UPDATED_AT->value => Types::DATETIME_IMMUTABLE,
     ];
 
     case NAME = 'name';
@@ -44,6 +46,8 @@ enum FieldPlace: string
     case DELETION_REASON = 'deletionReason';
     case REPLACES = 'replaces';
     case PARENT_COMMUNITIES = 'parentCommunities';
+    case PARENT_WIKIDATA_IDS = 'parentWikidataIds';
+    case WIKIDATA_UPDATED_AT = 'wikidataUpdatedAt';
 
     public function getType(): string
     {

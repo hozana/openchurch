@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Domain\Search\Service;
 
-use App\Community\Domain\Model\Community;
+use App\FieldHolder\Community\Domain\Model\Community;
 
 interface SearchServiceInterface
 {

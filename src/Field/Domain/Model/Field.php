@@ -3,13 +3,14 @@
 namespace App\Field\Domain\Model;
 
 use App\Agent\Domain\Model\Agent;
-use App\Community\Domain\Model\Community;
+use App\FieldHolder\Community\Domain\Model\Community;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Enum\FieldEngine;
 use App\Field\Domain\Enum\FieldPlace;
 use App\Field\Domain\Enum\FieldReliability;
-use App\Place\Domain\Model\Place;
+use App\FieldHolder\Place\Domain\Model\Place;
 use App\Shared\Infrastructure\Doctrine\Trait\DoctrineTimestampableTrait;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -71,10 +72,10 @@ class Field
     #[ORM\Column(type: 'float', nullable: true)]
     public ?float $floatVal = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     public ?\DateTimeImmutable $datetimeVal = null;
 
-    #[ORM\Column(type: 'date', nullable: true)]
+    #[ORM\Column(type: 'date_immutable', nullable: true)]
     public ?\DateTimeImmutable $dateVal = null;
 
     #[ORM\ManyToOne(targetEntity: Community::class, inversedBy: 'fieldsAsCommunityVal')]
@@ -151,9 +152,9 @@ class Field
             ?? $this->datetimeVal
             ?? $this->dateVal
             ?? $this->communityVal
-            ?? $this->communitiesVal
+            ?? $this->communitiesVal->toArray()
             ?? $this->placeVal
-            ?? $this->placesVal;
+            ?? $this->placesVal->toArray();
     }
 
     #[Assert\Callback()]
@@ -196,12 +197,15 @@ class Field
                     Types::INTEGER => is_int($this->value),
                     Types::DATETIME_MUTABLE => (bool) \DateTime::createFromFormat('Y-m-d H:i:s', $this->value),
                     Types::DATE_MUTABLE => (bool) \DateTime::createFromFormat('Y-m-d', $this->value),
+                    Types::DATETIME_IMMUTABLE => (bool) \DateTime::createFromFormat('Y-m-d H:i:s', $this->value),
+                    Types::DATE_IMMUTABLE => (bool) \DateTime::createFromFormat('Y-m-d', $this->value),
                     'Community' => $this->value instanceof Community,
                     'Community[]' => is_array($this->value) && count($this->value) === count(array_filter($this->value, fn (mixed $item) => $item instanceof Community)),
                     'Place' => $this->value instanceof Place,
                     'Place[]' => is_array($this->value) && count($this->value) === count(array_filter($this->value, fn (mixed $item) => $item instanceof Place)),
                     default => false,
                 };
+
                 if (!$isValid) {
                     $context->buildViolation(sprintf('Field %s expected value of type %s', $this->name, $type))
                         ->atPath('value')
@@ -234,6 +238,8 @@ class Field
             Types::INTEGER => 'intVal',
             Types::DATETIME_MUTABLE => 'datetimeVal',
             Types::DATE_MUTABLE => 'dateVal',
+            Types::DATETIME_IMMUTABLE => 'datetimeVal',
+            Types::DATE_IMMUTABLE => 'dateVal',
             'Community' => 'communityVal',
             'Community[]' => 'communitiesVal',
             'Place' => 'placeVal',
@@ -249,10 +255,17 @@ class Field
             throw new \RuntimeException('You must attach this Field to a Community or Place before attempting to call '.__METHOD__);
         }
         $propertyName = self::getPropertyName($typeEnum);
-
         $value = $this->value;
+
         if (is_array($this->value)) {
             $value = new ArrayCollection($value);
+        }
+
+        if ('datetimeVal' === $propertyName) {
+            $value = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $value);
+        }
+        if ('dateVal' === $propertyName) {
+            $value = DateTimeImmutable::createFromFormat('Y-m-d', $value);
         }
 
         $propertyAccessor = new PropertyAccessor();

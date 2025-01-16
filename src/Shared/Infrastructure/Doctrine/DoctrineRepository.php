@@ -132,6 +132,16 @@ abstract class DoctrineRepository implements RepositoryInterface
         $this->em->clear();
     }
 
+    public function detach(object $entity): void
+    {
+        $this->em->detach($entity);
+    }
+
+    public function remove(object $entity): void
+    {
+        $this->em->remove($entity);
+    }
+
     /**
      * @return Collection<int, T>
      */

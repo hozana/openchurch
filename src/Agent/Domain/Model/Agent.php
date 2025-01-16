@@ -37,6 +37,11 @@ class Agent implements UserInterface
         $this->fields = new ArrayCollection();
     }
 
+    public function __toString()
+    {
+        return $this->id->toString();
+    }
+
     public function getRoles(): array
     {
         return ['ROLE_AGENT'];

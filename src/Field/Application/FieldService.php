@@ -4,8 +4,8 @@ namespace App\Field\Application;
 
 use ApiPlatform\Validator\Exception\ValidationException;
 use App\Agent\Domain\Model\Agent;
-use App\Community\Domain\Model\Community;
-use App\Community\Domain\Repository\CommunityRepositoryInterface;
+use App\FieldHolder\Community\Domain\Model\Community;
+use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Enum\FieldPlace;
 use App\Field\Domain\Exception\FieldEntityNotFoundException;
@@ -13,11 +13,12 @@ use App\Field\Domain\Exception\FieldInvalidNameException;
 use App\Field\Domain\Exception\FieldUnicityViolationException;
 use App\Field\Domain\Model\Field;
 use App\Field\Domain\Repository\FieldRepositoryInterface;
-use App\Place\Domain\Model\Place;
-use App\Place\Domain\Repository\PlaceRepositoryInterface;
+use App\FieldHolder\Place\Domain\Model\Place;
+use App\FieldHolder\Place\Domain\Repository\PlaceRepositoryInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Uid\UuidV7;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 use function Symfony\Component\String\s;
@@ -38,6 +39,7 @@ final class FieldService
      */
     public function upsertFields(Place|Community $entity, array $fieldPayloads): void
     {
+
         /** @var Agent $agent */
         $agent = $this->security->getUser();
 
@@ -57,12 +59,15 @@ final class FieldService
                 $agent,
             );
             $value = $this->maybeTransformEntities($enumValue, $fieldPayload->value);
-
             if (Community::class === $entity::class) {
                 $field->community = $entity;
+                if (FieldCommunity::PARENT_WIKIDATA_ID === $enumValue) {
+                    $fieldPayload->name = FieldCommunity::PARENT_COMMUNITY_ID->value;
+                }
             } else {
                 $field->place = $entity;
             }
+
             $field->name = $fieldPayload->name;
             $field->value = $value;
             $field->engine = $fieldPayload->engine;
@@ -70,7 +75,7 @@ final class FieldService
             $field->source = $fieldPayload->source;
             $field->explanation = $fieldPayload->explanation;
             $field->touch();
-
+    
             // Unique constraints validation (TODO use custom Assert instead)
             if (null !== $field->value
                 && in_array($field->name, Field::UNIQUE_CONSTRAINTS, true)
@@ -86,7 +91,6 @@ final class FieldService
             }
 
             $field->applyValue(); // Dynamycally set the value to the correct property (intVal, stringVal, ...)
-            $entity->addField($field);
         }
     }
 
@@ -97,6 +101,7 @@ final class FieldService
             $field = new Field();
             $field->agent = $agent;
             $this->fieldRepo->add($field);
+            $entity->addField($field);
         }
 
         return $field;
@@ -141,19 +146,29 @@ final class FieldService
                 throw new BadRequestHttpException($nameEnum->value.': should be an array');
             }
 
-            // $instances = $repo->findBy(['id' => $value]);: does not work
-            $instances = array_map(fn (string $id) => $repo->ofId(Uuid::fromString($id)), $value);
-            $instances = array_filter($instances);
+            if ($nameEnum->name === FieldPlace::PARENT_WIKIDATA_IDS->name) {
+                $instances = $repo->withWikidataIds($value)->asCollection();
+            }
+            else {
+                $instances = $repo->ofIds(array_map(fn (string $id) => UuidV7::fromString($id), $value))->asCollection();
+            }
 
             if (count($instances) !== count($value)) {
                 throw new FieldEntityNotFoundException($value);
             }
 
-            return $instances;
+            return $instances->toArray();
         } else {
-            // That's an object
-            assert(is_string($value));
-            $instance = $repo->ofId(Uuid::fromString($value));
+            $instance = null;
+            if ($nameEnum->name === FieldCommunity::PARENT_WIKIDATA_ID->name) {
+                assert(is_int($value));
+                $instance = $repo->withWikidataId($value)->asCollection()[0];
+            }
+            else {
+                // That's an object
+                assert(is_string($value));
+                $instance = $repo->ofId(Uuid::fromString($value));
+            }
 
             if (!$instance) {
                 throw new FieldEntityNotFoundException($value);

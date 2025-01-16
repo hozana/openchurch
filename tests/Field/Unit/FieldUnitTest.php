@@ -4,10 +4,10 @@ namespace App\Tests\Field\Unit;
 
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Enum\FieldPlace;
-use App\Place\Domain\Enum\PlaceType;
-use App\Tests\Community\DummyFactory\DummyCommunityFactory;
+use App\FieldHolder\Place\Domain\Enum\PlaceType;
+use App\Tests\FieldHolder\Community\DummyFactory\DummyCommunityFactory;
 use App\Tests\Field\DummyFactory\DummyFieldFactory;
-use App\Tests\Place\DummyFactory\DummyPlaceFactory;
+use App\Tests\FieldHolder\Place\DummyFactory\DummyPlaceFactory;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Zenstruck\Foundry\Test\Factories;

@@ -25,13 +25,13 @@ doctrine:
       Community:
         type: attribute
         is_bundle: false
-        dir: "%kernel.project_dir%/src/Community/Domain/Model"
-        prefix: 'App\Community\Domain'
+        dir: "%kernel.project_dir%/src/FieldHolder/Community/Domain/Model"
+        prefix: 'App\FieldHolder\Community\Domain'
       Place:
         type: attribute
         is_bundle: false
-        dir: "%kernel.project_dir%/src/Place/Domain/Model"
-        prefix: 'App\Place\Domain'
+        dir: "%kernel.project_dir%/src/FieldHolder/Place/Domain/Model"
+        prefix: 'App\FieldHolder\Place\Domain'
       Field:
         type: attribute
         is_bundle: false
