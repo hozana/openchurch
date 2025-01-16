@@ -63,6 +63,7 @@ jobs:
   tests:
     env:
       HOST_API: api.openchurch.local/api
+      SYNCHRO_SECRET_KEY: secret
     runs-on: ubuntu-latest
     # Docs: https://docs.github.com/en/actions/using-containerized-services
     services:
