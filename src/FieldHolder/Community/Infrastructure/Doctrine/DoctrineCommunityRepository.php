@@ -92,7 +92,7 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
 
     public function withWikidataIds(?array $wikidataIds): static
     {
-        if (count($wikidataIds) === 0) {
+        if (0 === count($wikidataIds)) {
             return $this;
         }
 

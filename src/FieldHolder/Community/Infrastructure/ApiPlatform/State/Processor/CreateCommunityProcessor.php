@@ -6,10 +6,10 @@ namespace App\FieldHolder\Community\Infrastructure\ApiPlatform\State\Processor;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
+use App\Field\Application\FieldService;
 use App\FieldHolder\Community\Domain\Model\Community;
 use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\FieldHolder\Community\Infrastructure\ApiPlatform\Resource\CommunityResource;
-use App\Field\Application\FieldService;
 use App\Shared\Domain\Manager\TransactionManagerInterface;
 use Webmozart\Assert\Assert;
 

@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\FieldHolder\Community\Infrastructure\ApiPlatform\Input;
 
-final class CommunityWikidataInput {
+use App\Field\Domain\Model\Field;
 
+final class CommunityWikidataInput
+{
     /**
-     * @param array<Field[]> $fields
+     * @var array<Field[]>
      */
     public array $wikidataEntities = [];
 }

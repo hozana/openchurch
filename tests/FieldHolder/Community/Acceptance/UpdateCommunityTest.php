@@ -2,15 +2,15 @@
 
 namespace App\Tests\FieldHolder\Community\Acceptance;
 
-use App\FieldHolder\Community\Domain\Enum\CommunityType;
-use App\FieldHolder\Community\Domain\Exception\CommunityNotFoundException;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Enum\FieldEngine;
 use App\Field\Domain\Enum\FieldReliability;
 use App\Field\Domain\Model\Field;
+use App\FieldHolder\Community\Domain\Enum\CommunityType;
+use App\FieldHolder\Community\Domain\Exception\CommunityNotFoundException;
 use App\Tests\Agent\DummyFactory\DummyAgentFactory;
-use App\Tests\FieldHolder\Community\DummyFactory\DummyCommunityFactory;
 use App\Tests\Field\DummyFactory\DummyFieldFactory;
+use App\Tests\FieldHolder\Community\DummyFactory\DummyCommunityFactory;
 use App\Tests\Helper\AcceptanceTestHelper;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Symfony\Component\Uid\UuidV7;

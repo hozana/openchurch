@@ -30,6 +30,10 @@ enum FieldPlace: string
         self::WIKIDATA_UPDATED_AT->value => Types::DATETIME_IMMUTABLE,
     ];
 
+    public const ALIASES = [
+        self::PARENT_WIKIDATA_IDS->name => self::PARENT_COMMUNITIES,
+    ];
+
     case NAME = 'name';
     case TYPE = 'type';
     case WEBSITE = 'website';

@@ -4,8 +4,6 @@ namespace App\Field\Application;
 
 use ApiPlatform\Validator\Exception\ValidationException;
 use App\Agent\Domain\Model\Agent;
-use App\FieldHolder\Community\Domain\Model\Community;
-use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Enum\FieldPlace;
 use App\Field\Domain\Exception\FieldEntityNotFoundException;
@@ -13,6 +11,8 @@ use App\Field\Domain\Exception\FieldInvalidNameException;
 use App\Field\Domain\Exception\FieldUnicityViolationException;
 use App\Field\Domain\Model\Field;
 use App\Field\Domain\Repository\FieldRepositoryInterface;
+use App\FieldHolder\Community\Domain\Model\Community;
+use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\FieldHolder\Place\Domain\Model\Place;
 use App\FieldHolder\Place\Domain\Repository\PlaceRepositoryInterface;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -39,7 +39,6 @@ final class FieldService
      */
     public function upsertFields(Place|Community $entity, array $fieldPayloads): void
     {
-
         /** @var Agent $agent */
         $agent = $this->security->getUser();
 
@@ -47,6 +46,11 @@ final class FieldService
             $enumValue = match ($entity::class) {
                 Place::class => FieldPlace::tryFrom($fieldPayload->name),
                 Community::class => FieldCommunity::tryFrom($fieldPayload->name),
+                default => null,
+            };
+            $aliases = match ($entity::class) {
+                Place::class => FieldPlace::ALIASES,
+                Community::class => FieldCommunity::ALIASES,
                 default => null,
             };
             if (null === $enumValue) {
@@ -61,13 +65,13 @@ final class FieldService
             $value = $this->maybeTransformEntities($enumValue, $fieldPayload->value);
             if (Community::class === $entity::class) {
                 $field->community = $entity;
-                if (FieldCommunity::PARENT_WIKIDATA_ID === $enumValue) {
-                    $fieldPayload->name = FieldCommunity::PARENT_COMMUNITY_ID->value;
-                }
             } else {
                 $field->place = $entity;
             }
 
+            if (in_array($enumValue->name, array_keys($aliases))) {
+                $fieldPayload->name = $aliases[$enumValue->name]->value;
+            }
             $field->name = $fieldPayload->name;
             $field->value = $value;
             $field->engine = $fieldPayload->engine;
@@ -75,7 +79,7 @@ final class FieldService
             $field->source = $fieldPayload->source;
             $field->explanation = $fieldPayload->explanation;
             $field->touch();
-    
+
             // Unique constraints validation (TODO use custom Assert instead)
             if (null !== $field->value
                 && in_array($field->name, Field::UNIQUE_CONSTRAINTS, true)
@@ -148,8 +152,7 @@ final class FieldService
 
             if ($nameEnum->name === FieldPlace::PARENT_WIKIDATA_IDS->name) {
                 $instances = $repo->withWikidataIds($value)->asCollection();
-            }
-            else {
+            } else {
                 $instances = $repo->ofIds(array_map(fn (string $id) => UuidV7::fromString($id), $value))->asCollection();
             }
 
@@ -163,8 +166,7 @@ final class FieldService
             if ($nameEnum->name === FieldCommunity::PARENT_WIKIDATA_ID->name) {
                 assert(is_int($value));
                 $instance = $repo->withWikidataId($value)->asCollection()[0];
-            }
-            else {
+            } else {
                 // That's an object
                 assert(is_string($value));
                 $instance = $repo->ofId(Uuid::fromString($value));

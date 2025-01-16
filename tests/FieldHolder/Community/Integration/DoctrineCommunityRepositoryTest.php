@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Tests\FieldHolder\Community\Integration\Doctrine;
 
+use App\Field\Domain\Enum\FieldCommunity;
 use App\FieldHolder\Community\Domain\Enum\CommunityType;
 use App\FieldHolder\Community\Domain\Model\Community;
 use App\FieldHolder\Community\Infrastructure\Doctrine\DoctrineCommunityRepository;
-use App\Field\Domain\Enum\FieldCommunity;
 use App\Shared\Infrastructure\Doctrine\DoctrinePaginator;
-use App\Tests\FieldHolder\Community\DummyFactory\DummyCommunityFactory;
 use App\Tests\Field\DummyFactory\DummyFieldFactory;
+use App\Tests\FieldHolder\Community\DummyFactory\DummyCommunityFactory;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;

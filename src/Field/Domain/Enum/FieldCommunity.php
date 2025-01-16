@@ -29,6 +29,10 @@ enum FieldCommunity: string
         self::REPLACES->value => 'Community[]',
     ];
 
+    public const ALIASES = [
+        self::PARENT_WIKIDATA_ID->name => self::PARENT_COMMUNITY_ID,
+    ];
+
     case NAME = 'name';
     case TYPE = 'type';
     case STATE = 'state';

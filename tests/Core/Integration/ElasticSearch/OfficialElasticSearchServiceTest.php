@@ -3,9 +3,9 @@
 namespace App\Tests\Core\Integration\ElasticSearch;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
-use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\Core\Infrastructure\ElasticSearch\Helper\OfficialElasticSearchHelper;
 use App\Core\Infrastructure\ElasticSearch\Service\OfficialElasticSearchService;
+use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\Shared\Domain\Enum\SearchIndex;
 
 class OfficialElasticSearchServiceTest extends ApiTestCase

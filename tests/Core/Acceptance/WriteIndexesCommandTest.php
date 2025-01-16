@@ -3,14 +3,14 @@
 namespace App\Tests\Core\Acceptance;
 
 use ApiPlatform\Symfony\Bundle\Test\Client;
-use App\FieldHolder\Community\Domain\Enum\CommunityType;
 use App\Core\Domain\Search\Helper\SearchHelperInterface;
 use App\Core\Domain\Search\Service\SearchServiceInterface;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Model\Field;
+use App\FieldHolder\Community\Domain\Enum\CommunityType;
 use App\Shared\Domain\Enum\SearchIndex;
-use App\Tests\FieldHolder\Community\DummyFactory\DummyCommunityFactory;
 use App\Tests\Field\DummyFactory\DummyFieldFactory;
+use App\Tests\FieldHolder\Community\DummyFactory\DummyCommunityFactory;
 use App\Tests\Helper\AcceptanceTestHelper;
 
 class WriteIndexesCommandTest extends AcceptanceTestHelper

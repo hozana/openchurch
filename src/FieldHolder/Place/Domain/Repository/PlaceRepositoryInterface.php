@@ -21,5 +21,8 @@ interface PlaceRepositoryInterface extends RepositoryInterface
 
     public function withWikidataId(?int $value): static;
 
+    /**
+     * @param array<int> $wikidataIds
+     */
     public function withWikidataIds(array $wikidataIds): static;
 }

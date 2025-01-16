@@ -11,6 +11,10 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
+use App\Field\Domain\Model\Field;
+use App\Field\Infrastructure\ApiPlatform\Filter\FieldNameFilter;
+use App\Field\Infrastructure\ApiPlatform\Filter\FieldTypeFilter;
+use App\Field\Infrastructure\ApiPlatform\Filter\FieldWikidataIdFilter;
 use App\FieldHolder\Community\Domain\Model\Community;
 use App\FieldHolder\Community\Infrastructure\ApiPlatform\Input\CommunityWikidataInput;
 use App\FieldHolder\Community\Infrastructure\ApiPlatform\State\Processor\CreateCommunityProcessor;
@@ -18,10 +22,6 @@ use App\FieldHolder\Community\Infrastructure\ApiPlatform\State\Processor\UpdateC
 use App\FieldHolder\Community\Infrastructure\ApiPlatform\State\Processor\UpsertCommunityProcessor;
 use App\FieldHolder\Community\Infrastructure\ApiPlatform\State\Provider\CommunityCollectionProvider;
 use App\FieldHolder\Community\Infrastructure\ApiPlatform\State\Provider\CommunityItemProvider;
-use App\Field\Domain\Model\Field;
-use App\Field\Infrastructure\ApiPlatform\Filter\FieldNameFilter;
-use App\Field\Infrastructure\ApiPlatform\Filter\FieldTypeFilter;
-use App\Field\Infrastructure\ApiPlatform\Filter\FieldWikidataIdFilter;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
 

@@ -15,10 +15,9 @@ use App\Tests\Field\DummyFactory\DummyFieldFactory;
 use App\Tests\FieldHolder\Community\DummyFactory\DummyCommunityFactory;
 use App\Tests\FieldHolder\Place\DummyFactory\DummyPlaceFactory;
 use App\Tests\Helper\AcceptanceTestHelper;
-use DateTime;
-use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Zenstruck\Foundry\Test\Factories;
+
 use function Zenstruck\Foundry\Persistence\flush_after;
 
 class UpsertPlaceTest extends AcceptanceTestHelper
@@ -74,7 +73,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
                     ],
                     [
                         'name' => FieldPlace::MESSESINFO_ID,
-                        'value' => "12345",
+                        'value' => '12345',
                         'reliability' => FieldReliability::HIGH,
                         'source' => 'custom_source',
                         'explanation' => 'yolo',
@@ -100,7 +99,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
                     ],
                     [
                         'name' => FieldPlace::WIKIDATA_UPDATED_AT,
-                        'value' => (new DateTime())->format('Y-m-d H:i:s'),
+                        'value' => (new \DateTime())->format('Y-m-d H:i:s'),
                         'reliability' => FieldReliability::HIGH,
                         'source' => 'custom_source',
                         'explanation' => 'yolo',
@@ -112,8 +111,8 @@ class UpsertPlaceTest extends AcceptanceTestHelper
 
         self::assertCount(2, $placeRepository);
         self::assertEquals($response, [
-            9999999 => "Updated",
-            8888888 => "Inserted",
+            9999999 => 'Updated',
+            8888888 => 'Inserted',
         ]);
     }
 
@@ -197,12 +196,11 @@ class UpsertPlaceTest extends AcceptanceTestHelper
             ],
         ]), HttpFoundationResponse::HTTP_OK);
 
-
         $place = $placeRepository->withWikidataId(880099)->asCollection()[0];
-        
+
         $insertedField = $place->getMostTrustableFieldByName(FieldPlace::PARENT_COMMUNITIES);
         self::assertCount(2, $placeRepository);
-        self::assertEquals($response, [880099 => "Inserted"]);
+        self::assertEquals($response, [880099 => 'Inserted']);
         self::assertEquals($insertedField->name, FieldPlace::PARENT_COMMUNITIES->value);
         self::assertEquals($insertedField->getValue(), [$parentCommunity]);
     }
@@ -246,7 +244,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
                         'engine' => FieldEngine::AI,
                         'agent' => $agent,
                     ]),
-                ]
+                ],
             ])->_real();
             $community2 = DummyCommunityFactory::createOne([
                 'fields' => [
@@ -297,12 +295,11 @@ class UpsertPlaceTest extends AcceptanceTestHelper
             ],
         ]), HttpFoundationResponse::HTTP_OK);
 
-
         $place = $placeRepository->withWikidataId($fieldWikidataPlace->getValue())->asCollection()[0];
-        $insertedField = $place->getMostTrustableFieldByName(FieldPlace::PARENT_WIKIDATA_IDS);
+        $insertedField = $place->getMostTrustableFieldByName(FieldPlace::PARENT_COMMUNITIES);
         self::assertCount(1, $placeRepository);
-        self::assertEquals($response, [$fieldWikidataPlace->getValue() => "Inserted"]);
-        self::assertEquals($insertedField->name, FieldPlace::PARENT_WIKIDATA_IDS->value);
+        self::assertEquals($response, [$fieldWikidataPlace->getValue() => 'Inserted']);
+        self::assertEquals($insertedField->name, FieldPlace::PARENT_COMMUNITIES->value);
         self::assertEquals($insertedField->getValue(), $parentCommunities);
     }
 
@@ -357,8 +354,8 @@ class UpsertPlaceTest extends AcceptanceTestHelper
 
         self::assertCount(1, $placeRepository);
         self::assertEquals($response, [
-            147258369 => "Inserted",
-            123456 => "Field toto: invalid field name",
+            147258369 => 'Inserted',
+            123456 => 'Field toto: invalid field name',
         ]);
     }
 
@@ -395,7 +392,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
 
         self::assertCount(0, $placeRepository);
         self::assertEquals($response, [
-            123456 => sprintf('value: Field type does not accept value toto (accepted values: %s)', implode(', ', array_column(PlaceType::cases(), 'value')))
+            123456 => sprintf('value: Field type does not accept value toto (accepted values: %s)', implode(', ', array_column(PlaceType::cases(), 'value'))),
         ]);
     }
 
@@ -446,7 +443,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
                         $fieldWikidata->_real(),
                         DummyFieldFactory::createOne([
                             'name' => FieldPlace::MESSESINFO_ID->value,
-                            Field::getPropertyName(FieldPlace::MESSESINFO_ID) => "messeInfoId",
+                            Field::getPropertyName(FieldPlace::MESSESINFO_ID) => 'messeInfoId',
                             'reliability' => FieldReliability::HIGH,
                             'source' => 'custom_source',
                             'explanation' => 'yolo',
@@ -472,7 +469,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
                     ],
                     [
                         'name' => FieldPlace::MESSESINFO_ID,
-                        'value' => "messeInfoId",
+                        'value' => 'messeInfoId',
                         'reliability' => FieldReliability::HIGH,
                         'source' => 'custom_source',
                         'explanation' => 'yolo',
@@ -484,7 +481,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
 
         self::assertCount(1, $placeRepository);
         self::assertEquals($response, [
-            8888888 => "Found duplicate for field messesInfoId with value messeInfoId"
+            8888888 => 'Found duplicate for field messesInfoId with value messeInfoId',
         ]);
     }
 }

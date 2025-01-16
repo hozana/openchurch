@@ -2,7 +2,6 @@
 
 namespace App\FieldHolder\Place\Domain\Model;
 
-use App\Agent\Domain\Model\Agent;
 use App\Field\Domain\Enum\FieldPlace;
 use App\Field\Domain\Model\Field;
 use App\FieldHolder\Domain\Model\FieldHolder;
@@ -26,6 +25,12 @@ class Place extends FieldHolder
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
     public ?Uuid $id = null;
+
+    /**
+     * @var Collection<int, Field>
+     */
+    #[ORM\OneToMany(targetEntity: Field::class, mappedBy: 'place')]
+    public Collection $fields;
 
     /**
      * @var Collection<int, Field>

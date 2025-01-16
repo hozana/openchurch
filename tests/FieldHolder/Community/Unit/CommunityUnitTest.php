@@ -2,12 +2,12 @@
 
 namespace App\Tests\FieldHolder\Community\Unit;
 
-use App\FieldHolder\Community\Domain\Enum\CommunityState;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Enum\FieldReliability;
 use App\Field\Domain\Model\Field;
-use App\Tests\FieldHolder\Community\DummyFactory\DummyCommunityFactory;
+use App\FieldHolder\Community\Domain\Enum\CommunityState;
 use App\Tests\Field\DummyFactory\DummyFieldFactory;
+use App\Tests\FieldHolder\Community\DummyFactory\DummyCommunityFactory;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Zenstruck\Foundry\Test\Factories;

@@ -29,6 +29,12 @@ class Community extends FieldHolder
     /**
      * @var Collection<int, Field>
      */
+    #[ORM\OneToMany(targetEntity: Field::class, mappedBy: 'community')]
+    public Collection $fields;
+
+    /**
+     * @var Collection<int, Field>
+     */
     #[ORM\OneToMany(targetEntity: Field::class, mappedBy: 'communityVal')]
     public Collection $fieldsAsCommunityVal;
 

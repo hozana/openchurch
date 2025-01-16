@@ -7,8 +7,8 @@ namespace App\FieldHolder\Place\Infrastructure\Doctrine;
 use App\FieldHolder\Place\Domain\Model\Place;
 use App\FieldHolder\Place\Domain\Repository\PlaceRepositoryInterface;
 use App\Shared\Infrastructure\Doctrine\DoctrineRepository;
-use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\Uid\Uuid;
 
 /**
@@ -29,12 +29,11 @@ final class DoctrinePlaceRepository extends DoctrineRepository implements PlaceR
         return $this->em->find(self::ENTITY_CLASS, $placeId);
     }
 
-        /**
+    /**
      * @param array<Uuid> $ids
      */
     public function ofIds(array $ids): static
     {
-        dd('je passe');
         if (!$ids || 0 === count($ids)) {
             return $this;
         }
@@ -74,9 +73,12 @@ final class DoctrinePlaceRepository extends DoctrineRepository implements PlaceR
             });
     }
 
+    /**
+     * @param array<int> $wikidataIds
+     */
     public function withWikidataIds(?array $wikidataIds): static
     {
-        if (count($wikidataIds) === 0) {
+        if (0 === count($wikidataIds)) {
             return $this;
         }
 

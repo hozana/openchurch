@@ -7,12 +7,12 @@ namespace App\FieldHolder\Community\Infrastructure\ApiPlatform\State\Provider;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\Pagination\Pagination;
 use ApiPlatform\State\ProviderInterface;
+use App\Core\Domain\Search\Service\SearchServiceInterface;
+use App\Field\Domain\Enum\FieldCommunity;
 use App\FieldHolder\Community\Domain\Enum\CommunityType;
 use App\FieldHolder\Community\Domain\Exception\CommunityTypeNotProvidedException;
 use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\FieldHolder\Community\Infrastructure\ApiPlatform\Resource\CommunityResource;
-use App\Core\Domain\Search\Service\SearchServiceInterface;
-use App\Field\Domain\Enum\FieldCommunity;
 use App\Shared\Infrastructure\ApiPlatform\State\Paginator;
 use Symfony\Component\Uid\Uuid;
 
@@ -36,7 +36,7 @@ final class CommunityCollectionProvider implements ProviderInterface
         /** @var string|null $type */
         $type = $context['filters'][FieldCommunity::TYPE->value] ?? null;
         $wikidataId = $context['filters'][FieldCommunity::WIKIDATA_ID->value] ?? null;
-        
+
         $name = $context['filters'][FieldCommunity::NAME->value] ?? null;
         $page = $itemsPerPage = null;
 

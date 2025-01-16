@@ -2,10 +2,10 @@
 
 namespace App\Core\Infrastructure\ElasticSearch\Service;
 
-use App\FieldHolder\Community\Domain\Model\Community;
-use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\Core\Domain\Search\Helper\SearchHelperInterface;
 use App\Core\Domain\Search\Service\SearchServiceInterface;
+use App\FieldHolder\Community\Domain\Model\Community;
+use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\Shared\Domain\Enum\SearchIndex;
 use Symfony\Component\Uid\Uuid;
 

@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\FieldHolder\Place\Infrastructure\ApiPlatform\Input;
 
-final class PlaceWikidataInput {
+use App\Field\Domain\Model\Field;
 
+final class PlaceWikidataInput
+{
     /**
-     * @param array<Field[]> $fields
+     * @var array<Field[]>
      */
     public array $wikidataEntities = [];
 }

@@ -8,14 +8,12 @@ use App\Field\Domain\Enum\FieldPlace;
 use App\Field\Domain\Enum\FieldReliability;
 use App\Field\Domain\Model\Field;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping as ORM;
 
 class FieldHolder
 {
     /**
      * @var Collection<int, Field>
      */
-    #[ORM\OneToMany(targetEntity: Field::class, mappedBy: 'community')]
     public Collection $fields;
 
     /**
