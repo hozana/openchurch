@@ -152,8 +152,12 @@ class Query(object):
         return [lst[i:i + batch_size] for i in range(0, len(lst), batch_size)]
 
     def fetch(self, file_name, query):
+        offset = 0
+        all_results = []
+        batch_size = 20000
+
         if os.path.isfile(file_name):
-            if os.path.getmtime(file_name) > time.time() - 1 * 1800: # cache JSON for 30 mins
+            if os.path.getmtime(file_name) > time.time() - 1 * 3600: # cache JSON for 60 mins
                 with open(file_name, 'r', encoding='utf-8') as content_file:
                     print('Loading from file', file_name ,'please wait...')
                     return json.loads(content_file.read())
@@ -163,11 +167,20 @@ class Query(object):
         print('Query running for', file_name, ' - please wait...')
         sparql = SPARQLWrapper(endpoint, agent=agent)
         sparql.setReturnFormat(JSON)
-
-        sparql.setQuery(query)
-        data = sparql.query().convert()
-        json.dump(data['results']['bindings'], open(file_name, 'wb', encoding='utf-8'))
-        return data['results']['bindings']
+        while True:
+            try:
+                print('Loaded ' + str(offset + batch_size) + ' entries. Please wait while inserting it into a file...')
+                sparql.setQuery(query + ' LIMIT %s OFFSET %s' % (batch_size, offset))
+                data = sparql.query().convert()
+                if len(data['results']['bindings']) > 0:
+                    all_results.extend(data['results']['bindings'])
+                    offset += batch_size
+                else:
+                    break
+            except Exception:
+                print("Failed to load data %s to %s" % (offset, offset + batch_size))
+        json.dump(all_results, open(file_name, 'wb', encoding='utf-8'))
+        return all_results
 
     def extractDiocesesFromSparqlQuery(self, sparqlData):
         dioceses = {}
@@ -436,13 +449,12 @@ def process_entity(type, batch_size, verbosity_level):
                 redis_client.hset(key, "successCount", success_count)
                 redis_client.hset(key, "failureCount", len(res) - success_count)
                 redis_client.hset(key, "status", "success")
-                print(success_count, len(res) - success_count)
             else:
                 redis_client.hset(key, "status", "error")
         else:
             print("Ignore batch %s/%s" % (iteration, len(batches) + 1))
         iteration += 1
-    print("ended syncrho for", type)
+    print("ended synchro for", type)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
