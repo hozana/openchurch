@@ -15,8 +15,8 @@ class DashboardController extends AbstractController
     public function __construct(
         private readonly CommunityRepositoryInterface $communityRepository,
         private readonly PlaceRepositoryInterface $placeRepository,
-    )
-    {}
+    ) {
+    }
 
     #[Route('/dashboard', name: 'dashboard')]
     public function index(): Response
