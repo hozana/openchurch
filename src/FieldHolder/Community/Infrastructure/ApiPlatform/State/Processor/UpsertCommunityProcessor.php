@@ -56,21 +56,11 @@ final class UpsertCommunityProcessor implements ProcessorInterface
             $communities = $this->communityRepo->addSelectField()->withWikidataIds($wikidataIds)->asCollection();
             foreach ($communities as $community) {
                 $wikidataId = $community->getMostTrustableFieldByName(FieldCommunity::WIKIDATA_ID)->getValue();
-                $openChurchWikidataUpdatedAt = $community->getMostTrustableFieldByName(FieldCommunity::WIKIDATA_UPDATED_AT);
-                $wikidataUpdatedAt = $this->fieldHolderUpsertService->getFieldByName($wikidataIdFields[$wikidataId], FieldCommunity::WIKIDATA_UPDATED_AT->value);
-                if (
-                    !$openChurchWikidataUpdatedAt
-                    || intval((new \DateTimeImmutable($wikidataUpdatedAt->value))->diff($openChurchWikidataUpdatedAt->getValue())->format('%a')) >= 1
-                ) {
-                    // WikidataUpdatedAt diff is greater than 1 day. We have to update the data
-                    try {
-                        $this->fieldService->upsertFields($community, $wikidataIdFields[$wikidataId]);
-                        $result[$wikidataId] = 'Updated';
-                    } catch (\Exception $e) {
-                        $result[$wikidataId] = $this->fieldHolderUpsertService->handleError($community, $e, [$this->communityRepo, 'detach']);
-                    }
-                } else {
-                    $result[$wikidataId] = 'No need to update';
+                try {
+                    $this->fieldService->upsertFields($community, $wikidataIdFields[$wikidataId]);
+                    $result[$wikidataId] = 'Updated';
+                } catch (\Exception $e) {
+                    $result[$wikidataId] = $this->fieldHolderUpsertService->handleError($community, $e, [$this->communityRepo, 'detach']);
                 }
                 unset($wikidataIdFields[$wikidataId]);
             }

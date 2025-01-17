@@ -9,6 +9,8 @@ import datetime
 import sentry_sdk
 import urllib.parse
 import urllib3
+import argparse
+import redis
 
 from codecs import open
 from dotenv import load_dotenv
@@ -16,6 +18,7 @@ from sqlalchemy import create_engine, exc, MetaData, Table, orm, func, insert, u
 from SPARQLWrapper import SPARQLWrapper, JSON
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from datetime import datetime, timedelta
 
 load_dotenv(dotenv_path='.env')
 sentry_sdk.init(dsn=os.getenv('SENTRY_DSN_SYNCHRO'))
@@ -110,6 +113,7 @@ class Query(object):
         373074, # suffragan diocese
     ]
     dateformat = '%Y-%m-%d %H:%M:%S'
+    verbosity_level = 0
 
     def __init__(self):
         self.cache_places = {}
@@ -149,7 +153,7 @@ class Query(object):
 
     def fetch(self, file_name, query):
         if os.path.isfile(file_name):
-            if os.path.getmtime(file_name) > time.time() - 12 * 3600: # cache JSON for 12 hours
+            if os.path.getmtime(file_name) > time.time() - 1 * 1800: # cache JSON for 30 mins
                 with open(file_name, 'r', encoding='utf-8') as content_file:
                     print('Loading from file', file_name ,'please wait...')
                     return json.loads(content_file.read())
@@ -195,7 +199,7 @@ class Query(object):
                 'name': Query.ucfirst(label_fr),
                 'contactCountryCode': 'fr',
                 'website': website,
-                'wikidataUpdatedAt': str(datetime.datetime.strptime(modified, Query.dateformat)),
+                'wikidataUpdatedAt': str(datetime.strptime(modified, Query.dateformat)),
             }
         return dioceses
     
@@ -284,7 +288,7 @@ class Query(object):
                 'name': Query.ucfirst(label_fr),
                 'latitude': float(latitude),
                 'longitude': float(longitude),
-                'wikidataUpdatedAt': str(datetime.datetime.strptime(modified, Query.dateformat)),
+                'wikidataUpdatedAt': str(datetime.strptime(modified, Query.dateformat)),
             }
         return churches
 
@@ -295,8 +299,10 @@ class Query(object):
             fields = client.populate_fields(wikidataIdDioceses[wikidataId], wikidataId)
             wikidataEntities['wikidataEntities'].append(fields)
         if len(wikidataEntities['wikidataEntities']) > 0:
+            self.print_logs(wikidataEntities['wikidataEntities'], 2)
             response = client.upsert_wikidata_entities('/communities/upsert', wikidataEntities)
-            print('DIOCESES : ', response)
+            self.print_logs(response, 1)
+            return response
 
     def update_parishes(self, sparqlData, client):
         wikidataEntities = {'wikidataEntities': []}
@@ -305,8 +311,10 @@ class Query(object):
             fields = client.populate_fields(wikidataIdParishes[wikidataId], wikidataId)
             wikidataEntities['wikidataEntities'].append(fields)
         if len(wikidataEntities['wikidataEntities']) > 0:
+            self.print_logs(wikidataEntities['wikidataEntities'], 2)
             response = client.upsert_wikidata_entities('/communities/upsert', wikidataEntities)
-            print("PARISHES : ", response)
+            self.print_logs(response, 1)
+            return response
 
     def update_churches(self, sparqlData, client):
         wikidataEntities = {'wikidataEntities': []}
@@ -315,8 +323,14 @@ class Query(object):
             fields = client.populate_fields(wikidataIdChurches[wikidataId], wikidataId)
             wikidataEntities['wikidataEntities'].append(fields)
         if len(wikidataEntities['wikidataEntities']) > 0:
+            self.print_logs(wikidataEntities['wikidataEntities'], 2)
             response = client.upsert_wikidata_entities('/places/upsert', wikidataEntities)
-            print("CHURCHES : ", response)
+            self.print_logs(response, 1)
+            return response
+
+    def print_logs(self, data, required_level):
+        if self.verbosity_level >= required_level:
+            print(json.dumps(data, indent=4, ensure_ascii=False))
 
 class UuidDoesNotExistException(Exception):
     pass
@@ -330,7 +344,7 @@ class OpenChurchClient(object):
     session = requests.Session()
     # Configure retries and timeouts
     retry_strategy = Retry(
-        total=3,
+        total=1,
         backoff_factor=1,
         status_forcelist=[429, 500, 502, 503, 504]
     )
@@ -347,15 +361,15 @@ class OpenChurchClient(object):
     session.request_timeout = (3.05, 27)
         
     def upsert_wikidata_entities(self, path, body):
-        response = self.session.put(self.hostname + path, json=body, headers=self.headers, verify=False)
-        if response.status_code == 200:
-            data = response.json()
-            return data
-        elif response.status_code == 404 and True:
-            print(response.status_code, response.text, 'for GET', path)
-            raise UuidDoesNotExistException
-        else:
-            print(response.status_code, response.text, 'for PUT', path, body)
+        try:
+            response = self.session.put(self.hostname + path, json=body, headers=self.headers, verify=False)
+            if response.status_code == 200:
+                data = response.json()
+                return data
+            else:
+                print(response.status_code, 'for PUT', path)
+                return None
+        except requests.exceptions.RequestException as e:
             return None
 
     def populate_fields(self, values, wikidata_id):
@@ -375,22 +389,64 @@ class OpenChurchClient(object):
 def percentage(num, total):
     return '%s = %s%%' % (num, (round(100 * num / total, 2)))
 
-if __name__ == '__main__':
+def get_redis_key(type, origin, to):
+    return '%s_%s-%s' % (type, origin, to)
+
+def process_entity(type, batch_size, verbosity_level):
+    redis_url = os.getenv('REDIS_URL')
+    redis_client = redis.from_url(redis_url)
     q = Query()
+    q.verbosity_level = verbosity_level
     client = OpenChurchClient()
-    batch_size = 25
 
-    # dioceses = q.fetch('wikidata_dioceses.json', dioceses_query)
-    # batches = Query.split_into_batches(dioceses, batch_size)
-    # for batch in batches:
-    #     q.update_dioceses(batch, client)
-
-    # parishes = q.fetch('wikidata_parishes.json', parishes_query)
-    # batches = Query.split_into_batches(parishes, batch_size)
-    # for batch in batches:
-    #     q.update_parishes(batch, client)
-
-    churches = q.fetch('wikidata_churches.json', churches_query)
-    batches = Query.split_into_batches(churches, batch_size)
+    print("starting synchro for", type)
+    if type == "diocese":
+        data = q.fetch('wikidata_dioceses.json', dioceses_query)
+        method = "update_dioceses"
+    elif type == "parish":
+        data = q.fetch('wikidata_parishes.json', parishes_query)
+        method = "update_parishes"
+    elif type == "church":
+        data = q.fetch('wikidata_churches.json', churches_query)
+        method = "update_churches"
+    else:
+        raise("Type d'entité non reconnu")
+    
+    batches = Query.split_into_batches(data, batch_size)
+    iteration = 1
     for batch in batches:
-        q.update_churches(batch, client)
+        can_process = True
+        key = get_redis_key(type, iteration - 1, len(batch))
+        value = redis_client.hgetall(key)
+        if value:
+            # A key exist. We chek if we can process it
+            decoded_data = {key.decode('utf-8'): value.decode('utf-8') for key, value in value.items()}
+            if decoded_data.get('status') in {'success', 'error'}:
+                time_diff = datetime.now() - datetime.strptime(decoded_data.get('updatedAt'), "%Y-%m-%d %H:%M:%S.%f")
+                if time_diff <= timedelta(minutes=30):
+                    can_process = False # We updated the batch less than 30 minutes ago. We skip it
+
+        if can_process:
+            redis_client.hset(key, "status", "processing")
+            redis_client.hset(key, "updatedAt", str(datetime.now()))
+            print("Processing batch %s/%s" % (iteration, len(batches) + 1))
+            res = getattr(q, method)(batch, client)
+            if res:
+                success_count = sum(1 for value in res.values() if value in {'Updated', 'Inserted'})
+                redis_client.hset(key, "successCount", success_count)
+                redis_client.hset(key, "failureCount", len(res) - success_count)
+                redis_client.hset(key, "status", "success")
+                print(success_count, len(res) - success_count)
+            else:
+                redis_client.hset(key, "status", "error")
+        else:
+            print("Ignore batch %s/%s" % (iteration, len(batches) + 1))
+        iteration += 1
+    print("ended syncrho for", type)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--entity-only", type=str, required=True, choices=["parish", "diocese", "church"], help="Spécifiez l'entité à traiter : 'diocese', 'parish' ou 'church'")
+    parser.add_argument("-v", "--verbose", action="count", default=0, help="Augmente le niveau de verbosité (utilisez -vvv pour plus de détails).")
+    args = parser.parse_args()
+    process_entity(args.entity_only, 100, args.verbose)

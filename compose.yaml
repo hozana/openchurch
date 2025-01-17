@@ -39,6 +39,8 @@ services:
       - app-network
     ports:
       - 9200:9200
+    volumes:
+      - ./openchurch_elasticsearch_data:/usr/share/elasticsearch/data
   backend:
     extra_hosts: *default-extra_hosts
     container_name: openchurch_backend
@@ -74,6 +76,7 @@ services:
       dockerfile: ./docker/python/Dockerfile
     depends_on:
       - redis
+      - backend
     networks:
       - app-network
     extra_hosts:
@@ -83,6 +86,7 @@ services:
       OPENCHURCH_HOST: "https://api.openchurch.local/api"
       PYTHONWARNINGS: "ignore:Unverified HTTPS request"
       SYNCHRO_SECRET_KEY: "secret"
+      REDIS_URL: redis://redis:6379
     volumes:
       - ./scripts:/app
   redis:
@@ -101,6 +105,7 @@ services:
 
 volumes:
   openchurch_db_data: {}
+  openchurch_elasticsearch_data: {}
 
 networks:
   app-network:

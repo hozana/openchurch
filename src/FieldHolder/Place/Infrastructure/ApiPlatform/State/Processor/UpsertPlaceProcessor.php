@@ -57,21 +57,11 @@ final class UpsertPlaceProcessor implements ProcessorInterface
             $places = $this->placeRepo->addSelectField()->withWikidataIds($wikidataIds)->asCollection();
             foreach ($places as $place) {
                 $wikidataId = $place->getMostTrustableFieldByName(FieldPlace::WIKIDATA_ID)->getValue();
-                $openChurchWikidataUpdatedAt = $place->getMostTrustableFieldByName(FieldPlace::WIKIDATA_UPDATED_AT);
-                $wikidataUpdatedAt = $this->fieldHolderUpsertService->getFieldByName($wikidataIdFields[$wikidataId], FieldPlace::WIKIDATA_UPDATED_AT->value);
-                if (
-                    !$openChurchWikidataUpdatedAt
-                    || intval((new \DateTimeImmutable($wikidataUpdatedAt->value))->diff($openChurchWikidataUpdatedAt->getValue())->format('%a')) >= 1
-                ) {
-                    // WikidataUpdatedAt diff is greater than 1 day. We have to update the data
-                    try {
-                        $this->fieldService->upsertFields($place, $wikidataIdFields[$wikidataId]);
-                        $result[$wikidataId] = 'Updated';
-                    } catch (\Exception $e) {
-                        $result[$wikidataId] = $this->fieldHolderUpsertService->handleError($place, $e, [$this->placeRepo, 'detach']);
-                    }
-                } else {
-                    $result[$wikidataId] = 'No need to update';
+                try {
+                    $this->fieldService->upsertFields($place, $wikidataIdFields[$wikidataId]);
+                    $result[$wikidataId] = 'Updated';
+                } catch (\Exception $e) {
+                    $result[$wikidataId] = $this->fieldHolderUpsertService->handleError($place, $e, [$this->placeRepo, 'detach']);
                 }
                 unset($wikidataIdFields[$wikidataId]);
             }

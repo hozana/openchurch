@@ -4,7 +4,8 @@ set -e
 env > /etc/environment
 echo -------------------; echo Versions: ; python --version ; pip --version ; echo -------------------
 
-/opt/venv/bin/python /app/synchro.py
-/opt/venv/bin/python /app/synchro.py push
+/opt/venv/bin/python /app/synchro.py --entity-only diocese
+/opt/venv/bin/python /app/synchro.py --entity-only parish
+/opt/venv/bin/python /app/synchro.py --entity-only church
 
 exec "$@"

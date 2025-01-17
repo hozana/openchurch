@@ -36,3 +36,5 @@ coverage/
 ###> phpstan/phpstan ###
 phpstan.neon
 ###< phpstan/phpstan ###
+
+openchurch_elasticsearch_data
