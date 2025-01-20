@@ -68,6 +68,8 @@ parishes_query = '''PREFIX schema: <http://schema.org/>
   SERVICE wikibase:label {bd:serviceParam wikibase:language "fr".} }'''
 
 class Query(object):
+    verbosity_level = 0
+
     building_types = [
         16970, # église
         2977, # cathédrale
@@ -113,13 +115,13 @@ class Query(object):
         373074, # suffragan diocese
     ]
     dateformat = '%Y-%m-%d %H:%M:%S'
-    verbosity_level = 0
 
-    def __init__(self):
+    def __init__(self, verbosity_level):
         self.cache_places = {}
         self.cache_churches = {}
         self.cache_dioceses = {}
         self.cache_parishes = {}
+        self.verbosity_level = verbosity_level
 
     @staticmethod
     def decode(string):
@@ -414,13 +416,15 @@ class OpenChurchClient(object):
         return fields
     
 class Processor(object):
+    batch_size = 100
     client = OpenChurchClient()
-    q = Query()
     redis_url = os.getenv('REDIS_URL')
     redis_client = redis.from_url(redis_url)
-    verbosity_level = 0
-    type = 'diocece'
-    batch_size = 100
+
+    def __init__(self, verbosity_level, type):
+        self.q = Query(verbosity_level=verbosity_level)
+        self.verbosity_level = verbosity_level
+        self.type = type
 
     def process_batch(self, data, method, run_id):
         batches = Query.split_into_batches(data, self.batch_size)
@@ -476,7 +480,7 @@ class Processor(object):
                 self.process_batch(data, method, run_id)
             else:
                 self.clean_entity(int(run_id) + 1)
-                self.process_batch(data, method, run_id)
+                self.process_batch(data, method, int(run_id) + 1)
         else:
             self.clean_entity(1)
             self.process_batch(data, method, 1)
@@ -504,7 +508,5 @@ if __name__ == '__main__':
     parser.add_argument("-v", "--verbose", action="count", default=0, help="Augmente le niveau de verbosité (utilisez -vvv pour plus de détails).")
     args = parser.parse_args()
 
-    processor = Processor()
-    processor.verbosity_level = args.verbose
-    processor.type = args.entity_only
+    processor = Processor(verbosity_level=args.verbose, type=args.entity_only)
     processor.process_entity()
