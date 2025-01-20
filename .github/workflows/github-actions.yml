@@ -86,6 +86,11 @@ jobs:
           bootstrap.memory_lock: true
           ES_JAVA_OPTS: -Xms512m -Xmx512m
         options: --health-cmd="curl http://localhost:9200/_cluster/health" --health-interval=10s --health-timeout=5s --health-retries=3
+      redis:
+        image: redis:5
+        ports:
+          - 6379:6379
+        options: --health-cmd="redis-cli --raw incr ping"
     steps:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -137,6 +142,7 @@ jobs:
         run: php bin/console doctrine:schema:validate -vvv
         env:
           DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/openchurch_test
+          REDIS_URL: redis://redis:6379
       - name: Archive logs as artifacts
         if: always()
         uses: actions/upload-artifact@v4
