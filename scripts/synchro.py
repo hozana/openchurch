@@ -168,7 +168,7 @@ class Query(object):
         sparql.setReturnFormat(JSON)
 
         with open(file_name, 'w', encoding='utf-8') as f:
-            f.write('[')  # Début du tableau JSON
+            f.write('[')
             first_batch = True
             while True:
                 try:
@@ -177,24 +177,22 @@ class Query(object):
                     data = sparql.query().convert()
 
                     results = data['results']['bindings']
-                    if not results:  # Si aucun résultat, arrêter la boucle
+                    if not results:  # if no result, we stop the loop
                         break
 
-                    # Ajouter les résultats au fichier
+                    # add data to file
                     for result in results:
                         if not first_batch:
-                            f.write(',')  # Ajouter une virgule entre les objets JSON
+                            f.write(',')
                         json.dump(result, f, ensure_ascii=False)
                         first_batch = False
-
                     offset += batch_size
-
                 except Exception as e:
-                    print(f"Échec du chargement des données entre {offset} et {offset + batch_size}: {e}")
-                    break
+                    print(f"Failed to load data from {offset} to {offset + batch_size}: {e}")
+                offset += batch_size
             f.write(']')  # Fin du tableau JSON
 
-        print(f'Données écrites dans le fichier {file_name}.')
+        print(f'Data written in {file_name}.')
         with open(file_name, 'r', encoding='utf-8') as content_file:
             return json.loads(content_file.read())
 
@@ -414,6 +412,85 @@ class OpenChurchClient(object):
                     'explanation': 'https://www.wikidata.org/wiki/Q'+format(wikidata_id),
                 })
         return fields
+    
+class Processor(object):
+    client = OpenChurchClient()
+    q = Query()
+    redis_url = os.getenv('REDIS_URL')
+    redis_client = redis.from_url(redis_url)
+    verbosity_level = 0
+    type = 'diocece'
+    batch_size = 100
+
+    def process_batch(self, data, method, run_id):
+        batches = Query.split_into_batches(data, self.batch_size)
+        self.redis_client.hset(self.type, "batchCount", len(batches))
+        iteration = 1
+        for batch in batches:
+            can_process = True
+            self.redis_client.hset(self.type, "currentBatch", iteration)
+            key_batch = get_redis_key(self.type, (iteration - 1) * self.batch_size, (iteration) * self.batch_size)
+            value_batch = self.redis_client.hgetall(key_batch)
+            if value_batch:
+                # A key exist. We chek if we can process it
+                decoded_data = {key.decode('utf-8'): value_batch.decode('utf-8') for key, value_batch in value_batch.items()}
+                current_run_id = decoded_data.get('runId')
+                if current_run_id == run_id:
+                    can_process = False # This have already been processed. We skip it
+            if can_process:
+                self.redis_client.hset(key_batch, "status", "processing")
+                self.redis_client.hset(key_batch, "updatedAt", str(datetime.now()))
+                self.redis_client.hset(key_batch, "runId", run_id)
+                print("Processing batch %s/%s" % (iteration, len(batches)))
+                res = getattr(self.q, method)(batch, self.client)
+                if res:
+                    success_count = sum(1 for value in res.values() if value in {'Updated', 'Inserted'})
+                    self.redis_client.hset(key_batch, "successCount", success_count)
+                    self.redis_client.hset(key_batch, "failureCount", len(res) - success_count)
+                    self.redis_client.hset(key_batch, "status", "success")
+                else:
+                    self.redis_client.hset(key_batch, "status", "error")
+            else:
+                print("Ignore batch %s/%s" % (iteration, len(batches)))
+            iteration += 1
+
+    def process_entity(self):
+        print("starting synchro for", self.type)
+        if self.type == "diocese":
+            data = self.q.fetch('wikidata_dioceses.json', dioceses_query)
+            method = "update_dioceses"
+        elif self.type == "parish":
+            data = self.q.fetch('wikidata_parishes.json', parishes_query)
+            method = "update_parishes"
+        elif self.type == "church":
+            data = self.q.fetch('wikidata_churches.json', churches_query)
+            method = "update_churches"
+        else:
+            raise("Unknown entity type %s" % self.type)
+        
+        value_entity = self.redis_client.hgetall(self.type)
+        if value_entity:
+            decoded_data = {key.decode('utf-8'): value_entity.decode('utf-8') for key, value_entity in value_entity.items()}
+            run_id = decoded_data.get('runId')
+            if decoded_data.get('status') in {'processing'}:
+                self.process_batch(data, method, run_id)
+            else:
+                self.clean_entity(int(run_id) + 1)
+                self.process_batch(data, method, run_id)
+        else:
+            self.clean_entity(1)
+            self.process_batch(data, method, 1)
+
+        self.redis_client.hset(self.type, "status", "success")
+        self.redis_client.hset(self.type, "endDate", str(datetime.now()))
+        print("ended synchro for", self.type)
+
+    def clean_entity(self, run_id):
+        self.redis_client.hset(self.type, "runId", run_id)
+        self.redis_client.hset(self.type, "startDate", str(datetime.now()))
+        self.redis_client.hset(self.type, "status", "processing")
+        self.redis_client.hset(self.type, "batchSize", self.batch_size)
+        self.redis_client.hdel(self.type, "endDate")
 
 def percentage(num, total):
     return '%s = %s%%' % (num, (round(100 * num / total, 2)))
@@ -421,60 +498,13 @@ def percentage(num, total):
 def get_redis_key(type, origin, to):
     return '%s_%s-%s' % (type, origin, to)
 
-def process_entity(type, batch_size, verbosity_level):
-    redis_url = os.getenv('REDIS_URL')
-    redis_client = redis.from_url(redis_url)
-    q = Query()
-    q.verbosity_level = verbosity_level
-    client = OpenChurchClient()
-
-    print("starting synchro for", type)
-    if type == "diocese":
-        data = q.fetch('wikidata_dioceses.json', dioceses_query)
-        method = "update_dioceses"
-    elif type == "parish":
-        data = q.fetch('wikidata_parishes.json', parishes_query)
-        method = "update_parishes"
-    elif type == "church":
-        data = q.fetch('wikidata_churches.json', churches_query)
-        method = "update_churches"
-    else:
-        raise("Type d'entité non reconnu")
-    
-    batches = Query.split_into_batches(data, batch_size)
-    iteration = 1
-    for batch in batches:
-        can_process = True
-        key = get_redis_key(type, iteration - 1, len(batch))
-        value = redis_client.hgetall(key)
-        if value:
-            # A key exist. We chek if we can process it
-            decoded_data = {key.decode('utf-8'): value.decode('utf-8') for key, value in value.items()}
-            if decoded_data.get('status') in {'success', 'error'}:
-                time_diff = datetime.now() - datetime.strptime(decoded_data.get('updatedAt'), "%Y-%m-%d %H:%M:%S.%f")
-                if time_diff <= timedelta(minutes=30):
-                    can_process = False # We updated the batch less than 30 minutes ago. We skip it
-
-        if can_process:
-            redis_client.hset(key, "status", "processing")
-            redis_client.hset(key, "updatedAt", str(datetime.now()))
-            print("Processing batch %s/%s" % (iteration, len(batches) + 1))
-            res = getattr(q, method)(batch, client)
-            if res:
-                success_count = sum(1 for value in res.values() if value in {'Updated', 'Inserted'})
-                redis_client.hset(key, "successCount", success_count)
-                redis_client.hset(key, "failureCount", len(res) - success_count)
-                redis_client.hset(key, "status", "success")
-            else:
-                redis_client.hset(key, "status", "error")
-        else:
-            print("Ignore batch %s/%s" % (iteration, len(batches) + 1))
-        iteration += 1
-    print("ended synchro for", type)
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--entity-only", type=str, required=True, choices=["parish", "diocese", "church"], help="Spécifiez l'entité à traiter : 'diocese', 'parish' ou 'church'")
     parser.add_argument("-v", "--verbose", action="count", default=0, help="Augmente le niveau de verbosité (utilisez -vvv pour plus de détails).")
     args = parser.parse_args()
-    process_entity(args.entity_only, 100, args.verbose)
+
+    processor = Processor()
+    processor.verbosity_level = args.verbose
+    processor.type = args.entity_only
+    processor.process_entity()

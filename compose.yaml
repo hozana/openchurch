@@ -64,6 +64,7 @@ services:
       APP_ENV: dev
       APP_SECRET: "secret"
       DATABASE_URL: mysql://root:openchurch@db:3306/openchurch?serverVersion=11.5.2-MariaDB&charset=utf8mb4
+      REDIS_URL: redis://redis:6379
       HOST_API: https://api.openchurch.local/api
       HOST_ADMIN: admin.openchurch.local
       ELASTIC_PASSWORD: admin

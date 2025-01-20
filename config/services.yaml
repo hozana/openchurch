@@ -21,6 +21,12 @@ services:
       - "../src/Entity/"
       - "../src/Kernel.php"
 
+  app.predis_client:
+    class: Predis\Client
+    arguments:
+      - "%env(REDIS_URL)%"
+  Predis\Client: "@app.predis_client"
+
   # add more service definitions when explicit configuration is needed
   # please note that last definitions always *replace* previous ones
 
