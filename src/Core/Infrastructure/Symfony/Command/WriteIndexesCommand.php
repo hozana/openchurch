@@ -19,7 +19,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand('app:write:indexes')]
 class WriteIndexesCommand extends Command
 {
-    private const BULK_SIZE = 1000;
+    private const BULK_SIZE = 100;
 
     public function __construct(
         private SearchHelperInterface $elasticHelper,
