@@ -6,6 +6,9 @@ on: [push]
 permissions:
   contents: read
 
+env:
+  REDIS_URL: redis://redis:6379
+
 jobs:
   build-docker-image:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/preprod' || github.ref == 'refs/heads/prod' || github.ref == 'refs/heads/feat/v2'
@@ -124,7 +127,6 @@ jobs:
       - name: Execute tests (Unit and Feature tests) via PHPUnit
         run: vendor/bin/phpunit
         env:
-          REDIS_URL: redis://redis:6379
           DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/openchurch_test
       - name: phpstan
         if: always()
@@ -136,18 +138,15 @@ jobs:
         if: always()
         run: php bin/console lint:container
         env:
-          REDIS_URL: redis://redis:6379
       - name: lint:yaml
         if: always()
         run: php bin/console lint:yaml config src
         env:
-          REDIS_URL: redis://redis:6379
       - name: doctrine:schema:validate
         if: always()
         run: php bin/console doctrine:schema:validate -vvv
         env:
           DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/openchurch_test
-          REDIS_URL: redis://redis:6379
       - name: Archive logs as artifacts
         if: always()
         uses: actions/upload-artifact@v4
