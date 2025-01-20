@@ -124,6 +124,7 @@ jobs:
       - name: Execute tests (Unit and Feature tests) via PHPUnit
         run: vendor/bin/phpunit
         env:
+          REDIS_URL: redis://redis:6379
           DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/openchurch_test
       - name: phpstan
         if: always()
@@ -134,9 +135,13 @@ jobs:
       - name: lint:container
         if: always()
         run: php bin/console lint:container
+        env:
+          REDIS_URL: redis://redis:6379
       - name: lint:yaml
         if: always()
         run: php bin/console lint:yaml config src
+        env:
+          REDIS_URL: redis://redis:6379
       - name: doctrine:schema:validate
         if: always()
         run: php bin/console doctrine:schema:validate -vvv
