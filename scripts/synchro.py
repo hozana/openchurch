@@ -416,17 +416,18 @@ class OpenChurchClient(object):
         return fields
     
 class Processor(object):
-    batch_size = 100
     client = OpenChurchClient()
     redis_url = os.getenv('REDIS_URL')
     redis_client = redis.from_url(redis_url)
 
-    def __init__(self, verbosity_level, type):
+    def __init__(self, verbosity_level, type, batch_size):
         self.q = Query(verbosity_level=verbosity_level)
         self.verbosity_level = verbosity_level
         self.type = type
+        self.batch_size = batch_size
 
     def process_batch(self, data, method, run_id):
+        print(self.batch_size)
         batches = Query.split_into_batches(data, self.batch_size)
         self.redis_client.hset(self.type, "batchCount", len(batches))
         iteration = 1
@@ -508,5 +509,5 @@ if __name__ == '__main__':
     parser.add_argument("-v", "--verbose", action="count", default=0, help="Augmente le niveau de verbosité (utilisez -vvv pour plus de détails).")
     args = parser.parse_args()
 
-    processor = Processor(verbosity_level=args.verbose, type=args.entity_only)
+    processor = Processor(verbosity_level=args.verbose, type=args.entity_only, batch_size=50)
     processor.process_entity()
