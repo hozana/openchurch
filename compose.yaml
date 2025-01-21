@@ -41,6 +41,7 @@ services:
       - 9200:9200
     volumes:
       - ./openchurch_elasticsearch_data:/usr/share/elasticsearch/data
+
   backend:
     extra_hosts: *default-extra_hosts
     container_name: openchurch_backend
@@ -69,8 +70,34 @@ services:
       HOST_API: https://api.openchurch.local/api
       HOST_ADMIN: admin.openchurch.local
       ELASTIC_PASSWORD: admin
-      ELASTICSEARCH_IRI: https://elastic:admin@elasticsearch:9200
+      ELASTICSEARCH_IRI: http://elastic:admin@elasticsearch:9200
       SYNCHRO_SECRET_KEY: "secret"
+  cli:
+    extra_hosts: *default-extra_hosts
+    container_name: openchurch_backend_cli
+    command: /usr/sbin/cron -f -l 15
+    build:
+      context: .
+      dockerfile: ./docker/php/Dockerfile
+    environment:
+      SERVER_NAME: :80
+      APP_ENV: prod
+      DATABASE_URL: "mysql://openchurch:openchurch@db:3306/openchurch?serverVersion=8.0&charset=utf8mb4"
+      HOST_API: api-preprod-openchurch.hozana.org
+      APP_SECRET: JK6nAUJQhFXMwiBvqHE_3UX8RyCeFEec
+      JWT_TOKEN_TTL: 120
+      JWT_PASSPHRASE: b361bf0a703911722b2a1704cc002cab
+      ELASTICSEARCH_IRI: http://elastic:admin@elasticsearch:9200
+      ELASTIC_PASSWORD: admin
+      SYNCHRO_SECRET_KEY: secret
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - db
+      - redis
+      - elasticsearch
+    user: root
+    networks:
+      - app-network
   python:
     container_name: openchurch_python
     build:
