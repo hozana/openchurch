@@ -72,6 +72,7 @@ services:
       ELASTIC_PASSWORD: admin
       ELASTICSEARCH_IRI: http://elastic:admin@elasticsearch:9200
       SYNCHRO_SECRET_KEY: "secret"
+      ROLE: api
   cli:
     extra_hosts: *default-extra_hosts
     container_name: openchurch_backend_cli
@@ -91,11 +92,17 @@ services:
       ELASTIC_PASSWORD: admin
       SYNCHRO_SECRET_KEY: secret
       REDIS_URL: redis://redis:6379
+      ROLE: cli
     depends_on:
       - db
       - redis
       - elasticsearch
     user: root
+    healthcheck:
+      test: if [ $$(pgrep -F /var/run/crond.pid -r S,R --count) -eq 1 ]; then exit 0; else exit 1; fi
+      interval: 5s
+      timeout: 5s
+      retries: 55
     networks:
       - app-network
   python:

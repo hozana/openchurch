@@ -77,9 +77,6 @@ if [[ ! "$@" == *"frankenphp"* ]] || [ "$APP_ENV" != "prod" ]; then
 		sleep 10
 	fi
 	echo "\n db is UP!"
-
-	# Run database migrations
-	# bin/console -n doctrine:migrations:migrate -vvv
 fi
 
 nice php -d memory_limit=256M bin/console -n cache:clear --no-warmup
@@ -87,5 +84,18 @@ nice php -d memory_limit=256M bin/console -n cache:warmup
 
 # Restore correct access rights to all project files exept for node_modules and vendor (they are not writable and do not belong to us):
 chown -R www-data:www-data $(ls -A1 | grep -Ev 'vendor|node_modules|.git')
+
+if [ "$ROLE" == 'cli' ]; then
+	# Run database migrations
+	bin/console -n doctrine:migrations:migrate -vvv
+
+	# Merge docker env variables and cron.d/rosario
+	env > /etc/cron.d/openchurch_env
+	cat /etc/cron.d/backend >> /etc/cron.d/openchurch_env
+	mv /etc/cron.d/openchurch_env /etc/cron.d/backend
+
+	# Initialize elastic indexes
+	bin/console -vvv app:write:indexes
+fi
 
 exec "$@"
