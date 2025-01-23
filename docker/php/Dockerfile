@@ -30,6 +30,7 @@ RUN docker-php-ext-install \
     xsl \
     pcntl \
     opcache \
+    intl \
     gmp
 
 # add PECL extensions

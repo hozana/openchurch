@@ -18,6 +18,8 @@
                     green
                 {% elseif data.status == 'processing' %}
                     orange
+                {% elseif data.status == 'skipped' %}
+                    blue
                 {% else %}
                     red
                 {% endif %}">

@@ -35,6 +35,11 @@ services:
       - bootstrap.memory_lock=true
       - ES_JAVA_OPTS=-Xms512m -Xmx512m # 512mo HEAP
       - ELASTIC_PASSWORD=admin
+    healthcheck:
+      test: "curl -s -u elastic:$$ELASTIC_PASSWORD -f -X GET localhost:9200/_cluster/health || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 30
     networks:
       - app-network
     ports:
@@ -65,7 +70,7 @@ services:
       SERVER_NAME: localhost api.openchurch.local admin.openchurch.local
       APP_ENV: dev
       APP_SECRET: "secret"
-      DATABASE_URL: mysql://root:openchurch@db:3306/openchurch?serverVersion=11.5.2-MariaDB&charset=utf8mb4
+      DATABASE_URL: mysql://root:openchurch@db:3306/openchurch?serverVersion=10.11.6-MariaDB&charset=utf8mb4
       REDIS_URL: redis://redis:6379
       HOST_API: https://api.openchurch.local/api
       HOST_ADMIN: admin.openchurch.local
@@ -83,7 +88,7 @@ services:
     environment:
       SERVER_NAME: :80
       APP_ENV: prod
-      DATABASE_URL: "mysql://openchurch:openchurch@db:3306/openchurch?serverVersion=8.0&charset=utf8mb4"
+      DATABASE_URL: mysql://root:openchurch@db:3306/openchurch?serverVersion=10.11.6-MariaDB&charset=utf8mb4
       HOST_API: api-preprod-openchurch.hozana.org
       APP_SECRET: JK6nAUJQhFXMwiBvqHE_3UX8RyCeFEec
       JWT_TOKEN_TTL: 120

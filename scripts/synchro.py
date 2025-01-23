@@ -332,6 +332,7 @@ class Query(object):
             response = client.upsert_wikidata_entities('/communities/upsert', wikidataEntities)
             self.print_logs(response, 1)
             return response
+        return "skipped"
 
     def update_parishes(self, sparqlData, client):
         wikidataEntities = {'wikidataEntities': []}
@@ -344,6 +345,7 @@ class Query(object):
             response = client.upsert_wikidata_entities('/communities/upsert', wikidataEntities)
             self.print_logs(response, 1)
             return response
+        return "skipped"
 
     def update_churches(self, sparqlData, client):
         wikidataEntities = {'wikidataEntities': []}
@@ -356,6 +358,7 @@ class Query(object):
             response = client.upsert_wikidata_entities('/places/upsert', wikidataEntities)
             self.print_logs(response, 1)
             return response
+        return "skipped"
 
     def print_logs(self, data, required_level):
         if self.verbosity_level >= required_level:
@@ -448,7 +451,11 @@ class Processor(object):
                 self.redis_client.hset(key_batch, "runId", run_id)
                 print("Processing batch %s/%s" % (iteration, len(batches)))
                 res = getattr(self.q, method)(batch, self.client)
-                if res:
+                if res == "skipped":
+                    self.redis_client.hset(key_batch, "successCount", "skipped")
+                    self.redis_client.hset(key_batch, "failureCount", "skipped")
+                    self.redis_client.hset(key_batch, "status", "skipped")
+                elif res:
                     success_count = sum(1 for value in res.values() if value in {'Updated', 'Inserted'})
                     self.redis_client.hset(key_batch, "successCount", success_count)
                     self.redis_client.hset(key_batch, "failureCount", len(res) - success_count)

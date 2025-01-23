@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Field\Integration\Doctrine;
+namespace App\Tests\Field\Integration;
 
 use App\Core\Domain\Search\Helper\SearchHelperInterface;
 use App\Core\Domain\Search\Service\SearchServiceInterface;

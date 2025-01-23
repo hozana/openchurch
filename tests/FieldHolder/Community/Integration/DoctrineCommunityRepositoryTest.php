@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\FieldHolder\Community\Integration\Doctrine;
+namespace App\Tests\FieldHolder\Community\Integration;
 
 use App\Field\Domain\Enum\FieldCommunity;
 use App\FieldHolder\Community\Domain\Enum\CommunityType;

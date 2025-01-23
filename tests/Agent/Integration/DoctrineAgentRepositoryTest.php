@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\FieldHolder\Community\Integration\Doctrine;
+namespace App\Tests\Agent\Integration;
 
 use App\Agent\Infrastructure\Doctrine\DoctrineAgentRepository;
 use App\Tests\Agent\DummyFactory\DummyAgentFactory;

@@ -95,6 +95,10 @@ if [ "$ROLE" == 'cli' ]; then
 	mv /etc/cron.d/openchurch_env /etc/cron.d/backend
 
 	# Initialize elastic indexes
+	until curl -s -u elastic:$ELASTIC_PASSWORD -f -X GET $ELASTICSEARCH_IRI/_cluster/health > /dev/null; do
+		echo "Waiting for elasticsearch to be ready..."
+		sleep 5
+	done
 	bin/console -vvv app:write:indexes
 fi
 
