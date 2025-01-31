@@ -78,21 +78,25 @@ class Field
     public ?\DateTimeImmutable $dateVal = null;
 
     #[ORM\ManyToOne(targetEntity: Community::class, inversedBy: 'fieldsAsCommunityVal')]
+    #[Groups(['communities'])]
     public ?Community $communityVal = null;
 
     /**
      * @var Collection<int, Community>
      */
     #[ORM\ManyToMany(targetEntity: Community::class, inversedBy: 'fieldsAsCommunitiesVal')]
+    #[Groups(['communities'])]
     public Collection $communitiesVal;
 
     #[ORM\ManyToOne(targetEntity: Place::class, inversedBy: 'fieldsAsPlaceVal')]
+    #[Groups(['places'])]
     public ?Place $placeVal = null;
 
     /**
      * @var Collection<int, Place>
      */
     #[ORM\ManyToMany(targetEntity: Place::class, inversedBy: 'fieldsAsPlacesVal')]
+    #[Groups(['places'])]
     public Collection $placesVal;
 
     #[ORM\ManyToOne(targetEntity: Agent::class, inversedBy: 'fields')]

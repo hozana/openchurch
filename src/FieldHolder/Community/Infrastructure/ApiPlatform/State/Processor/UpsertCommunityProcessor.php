@@ -69,7 +69,6 @@ final class UpsertCommunityProcessor implements ProcessorInterface
             foreach ($wikidataIdFields as $wikidataId => $fields) {
                 $community = null;
                 try {
-                    // var_dump($wikidataId);
                     $community = new Community();
                     $this->communityRepo->add($community);
 
