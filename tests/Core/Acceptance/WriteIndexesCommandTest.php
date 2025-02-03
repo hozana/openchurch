@@ -12,9 +12,12 @@ use App\Shared\Domain\Enum\SearchIndex;
 use App\Tests\Field\DummyFactory\DummyFieldFactory;
 use App\Tests\FieldHolder\Community\DummyFactory\DummyCommunityFactory;
 use App\Tests\Helper\AcceptanceTestHelper;
+use Zenstruck\Foundry\Test\Factories;
 
 class WriteIndexesCommandTest extends AcceptanceTestHelper
 {
+    use Factories;
+
     protected Client $client;
     private SearchHelperInterface $searchHelper;
     private SearchServiceInterface $searchService;

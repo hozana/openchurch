@@ -13,8 +13,6 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Zenstruck\Foundry\Test\Factories;
 
-use function Zenstruck\Foundry\Persistence\flush_after;
-
 class PlaceUnitTest extends KernelTestCase
 {
     use Factories;
@@ -58,25 +56,20 @@ class PlaceUnitTest extends KernelTestCase
 
     public function testGetFieldsByName(): void
     {
-        [$place, $field] = flush_after(function () {
-            $field = DummyFieldFactory::new()->withoutPersisting()->create([
-                'name' => FieldPlace::MESSESINFO_ID->value,
-                Field::getPropertyName(FieldPlace::MESSESINFO_ID) => 123456,
-            ]);
+        $field = DummyFieldFactory::new()->withoutPersisting()->create([
+            'name' => FieldPlace::MESSESINFO_ID->value,
+            Field::getPropertyName(FieldPlace::MESSESINFO_ID) => 123456,
+        ]);
 
-            return [
-                DummyPlaceFactory::new()->withoutPersisting()->create([
-                    'fields' => [
-                        $field,
-                        DummyFieldFactory::new()->withoutPersisting()->create([
-                            'name' => FieldPlace::NAME->value,
-                            Field::getPropertyName(FieldPlace::NAME) => 'mon nom',
-                        ]),
-                    ],
-                ])->_real(),
+        $place = DummyPlaceFactory::new()->withoutPersisting()->create([
+            'fields' => [
                 $field,
-            ];
-        });
+                DummyFieldFactory::new()->withoutPersisting()->create([
+                    'name' => FieldPlace::NAME->value,
+                    Field::getPropertyName(FieldPlace::NAME) => 'mon nom',
+                ]),
+            ],
+        ])->_real();
 
         $result = $place->getFieldsByName(FieldPlace::MESSESINFO_ID);
         static::assertEquals(new ArrayCollection([$field->_real()]), $result);
@@ -85,7 +78,7 @@ class PlaceUnitTest extends KernelTestCase
     public function testGetFieldByNameAndAgent(): void
     {
         $agent = DummyAgentFactory::new()->withoutPersisting()->create();
-        $place = flush_after(fn () => DummyPlaceFactory::new()->withoutPersisting()->create([
+        $place = DummyPlaceFactory::new()->withoutPersisting()->create([
             'fields' => [
                 DummyFieldFactory::new()->withoutPersisting()->create([
                     'name' => FieldPlace::NAME->value,
@@ -102,8 +95,7 @@ class PlaceUnitTest extends KernelTestCase
                     'agent' => DummyAgentFactory::new()->withoutPersisting()->create(),
                 ]),
             ],
-        ]),
-        )->_real();
+        ])->_real();
 
         $result = $place->getFieldByNameAndAgent(FieldPlace::MESSESINFO_ID, $agent->_real());
         static::assertEquals($result->getValue(), 789456);
@@ -127,19 +119,14 @@ class PlaceUnitTest extends KernelTestCase
 
     public function testRemoveField(): void
     {
-        [$place, $field] = flush_after(function () {
-            $field = DummyFieldFactory::new()->withoutPersisting()->create([
-                'name' => FieldPlace::NAME->value,
-                Field::getPropertyName(FieldPlace::NAME) => 'mon nom',
-            ])->_real();
+        $field = DummyFieldFactory::new()->withoutPersisting()->create([
+            'name' => FieldPlace::NAME->value,
+            Field::getPropertyName(FieldPlace::NAME) => 'mon nom',
+        ])->_real();
 
-            return [
-                DummyPlaceFactory::new()->withoutPersisting()->create([
-                    'fields' => [$field],
-                ])->_real(),
-                $field,
-            ];
-        });
+        $place = DummyPlaceFactory::new()->withoutPersisting()->create([
+            'fields' => [$field],
+        ])->_real();
 
         static::assertCount(1, $place->fields);
         $place->removeField($field);
