@@ -12,6 +12,12 @@ RUN pip install -Ur requirements.txt
 
 FROM python:3.9-slim as runner
 WORKDIR /app/
+
+RUN apt update && apt install -y \
+    curl \
+    jq \
+    && apt clean
+
 COPY --from=compiler /opt/venv /opt/venv
 
 COPY usr/local/bin/docker-python-entrypoint /usr/local/bin/docker-python-entrypoint

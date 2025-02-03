@@ -48,13 +48,13 @@ use Symfony\Component\Uid\Uuid;
             normalizationContext: ['groups' => ['communities']],
         ),
         new Put(
-            security: 'is_granted("ROLE_AGENT")',
             uriTemplate: '/communities/upsert',
             status: 200,
             processor: UpsertCommunityProcessor::class,
             input: CommunityWikidataInput::class,
         ),
         new GetCollection(
+            security: 'is_granted("ROLE_AGENT")',
             filters: [
                 FieldTypeFilter::class,
                 FieldWikidataIdFilter::class,

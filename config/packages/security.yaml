@@ -29,7 +29,6 @@ security:
   # Easy way to control access for large sections of your site
   # Note: Only the *first* access control that matches will be used
   access_control:
-    - { host: '%host_api%', path: ^/system/healthcheck, roles: PUBLIC_ACCESS, ips: ['127.0.0.1'] }
     # - { path: ^/admin, roles: ROLE_ADMIN }
     # - { path: ^/, roles: ROLE_USER }
 

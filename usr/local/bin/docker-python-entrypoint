@@ -4,6 +4,39 @@ set -e
 env > /etc/environment
 echo -------------------; echo Versions: ; python --version ; pip --version ; echo -------------------
 
+MAX_RETRIES=150
+RETRY_INTERVAL=10
+
+check_health() {
+    response=$(curl -k $OPENCHURCH_HOST/system/health-check)
+    if ! echo "$response" | jq -e . >/dev/null 2>&1; then
+        return 1
+    fi
+    
+    mysql_status=$(echo "$response" | jq -r '.mysql')
+    redis_status=$(echo "$response" | jq -r '.redis')
+
+    if [ "$mysql_status" = "true" ] && [ "$redis_status" = "true" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+counter=0
+until check_health; do
+    counter=$((counter + 1))
+    if [ $counter -eq $MAX_RETRIES ]; then
+        echo "api backend service unavailble after $MAX_RETRIES attemps"
+        exit 1
+    fi
+
+    echo "Attempt $counter/$MAX_RETRIES - api backend unavailable. New attempt in $RETRY_INTERVAL seconds..."
+    sleep $RETRY_INTERVAL
+done
+
+echo "api backend service is now available"
+
 while true; do
     /opt/venv/bin/python /app/synchro.py --entity-only diocese
     /opt/venv/bin/python /app/synchro.py --entity-only parish
