@@ -113,7 +113,7 @@ class UpsertCommunityTest extends AcceptanceTestHelper
         ]);
     }
 
-    public function testShouldPassWhenProvidingParentWikidataId(): void
+    public function testShouldInsertWhenProvidingParentWikidataId(): void
     {
         /** @var CommunityRepositoryInterface $communityRepository */
         $communityRepository = static::getContainer()->get(CommunityRepositoryInterface::class);
@@ -185,6 +185,203 @@ class UpsertCommunityTest extends AcceptanceTestHelper
         self::assertEquals($response, [880099 => 'Inserted']);
         self::assertEquals($insertedField->name, FieldCommunity::PARENT_COMMUNITY_ID->value);
         self::assertEquals($insertedField->getValue(), $parentCommunity);
+    }
+
+    public function testShouldUpdateWhenProvidingParentWikidataId(): void
+    {
+        /** @var CommunityRepositoryInterface $communityRepository */
+        $communityRepository = static::getContainer()->get(CommunityRepositoryInterface::class);
+
+        self::assertCount(0, $communityRepository);
+        $agent = DummyAgentFactory::createOne()->_real();
+
+        [$parentCommunity, $fieldParentWikidata, $fieldWikidata] = flush_after(function () use ($agent) {
+            $fieldInitialWikidata = DummyFieldFactory::createOne([
+                'name' => FieldCommunity::WIKIDATA_ID->value,
+                Field::getPropertyName(FieldCommunity::WIKIDATA_ID) => 0114521,
+                'reliability' => FieldReliability::LOW,
+                'agent' => $agent,
+            ]);
+            $initialParentCommunity = DummyCommunityFactory::createOne([
+                'fields' => [
+                    $fieldInitialWikidata->_real(),
+                    DummyFieldFactory::createOne([
+                        'name' => FieldCommunity::TYPE->value,
+                        Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::DIOCESE->value,
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                        'agent' => $agent,
+                    ]),
+                ],
+            ])->_real();
+
+            $fieldWikidata = DummyFieldFactory::createOne([
+                'name' => FieldCommunity::WIKIDATA_ID->value,
+                Field::getPropertyName(FieldCommunity::WIKIDATA_ID) => 9999999,
+                'reliability' => FieldReliability::LOW,
+                'agent' => $agent,
+            ]);
+            $community = DummyCommunityFactory::createOne([
+                'fields' => [
+                    $fieldWikidata->_real(),
+                    DummyFieldFactory::createOne([
+                        'name' => FieldCommunity::TYPE->value,
+                        Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::PARISH->value,
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                        'agent' => $agent,
+                    ]),
+                    DummyFieldFactory::createOne([
+                        'name' => FieldCommunity::PARENT_COMMUNITY_ID->value,
+                        Field::getPropertyName(FieldCommunity::PARENT_COMMUNITY_ID) => $initialParentCommunity,
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                        'agent' => $agent,
+                    ]),
+                ],
+            ])->_real();
+
+            $fieldParentWikidata = DummyFieldFactory::createOne([
+                'name' => FieldCommunity::WIKIDATA_ID->value,
+                Field::getPropertyName(FieldCommunity::WIKIDATA_ID) => 111111,
+                'reliability' => FieldReliability::LOW,
+                'agent' => $agent,
+            ]);
+
+            return [
+                DummyCommunityFactory::createOne([
+                    'fields' => [
+                        $fieldParentWikidata->_real(),
+                        DummyFieldFactory::createOne([
+                            'name' => FieldCommunity::TYPE->value,
+                            Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::DIOCESE->value,
+                            'reliability' => FieldReliability::HIGH,
+                            'source' => 'custom_source',
+                            'explanation' => 'yolo',
+                            'engine' => FieldEngine::AI,
+                            'agent' => $agent,
+                        ]),
+                    ],
+                ])->_real(),
+                $fieldParentWikidata,
+                $fieldWikidata,
+                $initialParentCommunity,
+            ];
+        });
+
+        $response = self::assertResponse($this->put('/communities/upsert', $agent->apiKey, body: [
+            'wikidataEntities' => [
+                [
+                    [
+                        'name' => FieldCommunity::WIKIDATA_ID,
+                        'value' => $fieldWikidata->getValue(),
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                    ],
+                    [
+                        'name' => FieldCommunity::TYPE,
+                        'value' => CommunityType::PARISH->value,
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                    ],
+                    [
+                        'name' => FieldCommunity::PARENT_WIKIDATA_ID,
+                        'value' => $fieldParentWikidata->getValue(),
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                    ],
+                ],
+            ],
+        ]), HttpFoundationResponse::HTTP_OK);
+
+        self::assertCount(3, $communityRepository);
+        $updatedCommunity = $communityRepository->withWikidataId($fieldWikidata->getValue())->asCollection()[0];
+        $parentCommunityFields = $updatedCommunity->getFieldsByName(FieldCommunity::PARENT_COMMUNITY_ID);
+        $parentCommunityField = $updatedCommunity->getFieldByNameAndAgent(FieldCommunity::PARENT_COMMUNITY_ID, $agent);
+
+        self::assertEquals($response, [$fieldWikidata->getValue() => 'Updated']);
+        self::assertCount(1, $parentCommunityFields);
+        self::assertEquals($parentCommunityField->getValue()->id, $parentCommunity->id);
+    }
+
+    public function testShouldErrorIfParentWikidataIdNotFound(): void
+    {
+        /** @var CommunityRepositoryInterface $communityRepository */
+        $communityRepository = static::getContainer()->get(CommunityRepositoryInterface::class);
+
+        self::assertCount(0, $communityRepository);
+        $agent = DummyAgentFactory::createOne();
+
+        [$fieldWikidata1] = flush_after(function () use ($agent) {
+            $fieldWikidata1 = DummyFieldFactory::createOne([
+                'name' => FieldCommunity::WIKIDATA_ID->value,
+                Field::getPropertyName(FieldCommunity::WIKIDATA_ID) => 9999999,
+                'reliability' => FieldReliability::LOW,
+                'agent' => $agent,
+            ]);
+            DummyCommunityFactory::createOne([
+                'fields' => [
+                    $fieldWikidata1->_real(),
+                    DummyFieldFactory::createOne([
+                        'name' => FieldCommunity::TYPE->value,
+                        Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::DIOCESE->value,
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                        'agent' => $agent,
+                    ]),
+                ],
+            ])->_real();
+
+            return [$fieldWikidata1];
+        });
+
+        $response = self::assertResponse($this->put('/communities/upsert', 'secret', body: [
+            'wikidataEntities' => [
+                [
+                    [
+                        'name' => FieldCommunity::PARENT_WIKIDATA_ID,
+                        'value' => 123,
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                    ],
+                    [
+                        'name' => FieldCommunity::WIKIDATA_ID,
+                        'value' => $fieldWikidata1->getValue(),
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                    ],
+                    [
+                        'name' => FieldCommunity::TYPE,
+                        'value' => CommunityType::DIOCESE->value,
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                    ],
+                ],
+            ],
+        ]), HttpFoundationResponse::HTTP_OK);
+
+        self::assertCount(1, $communityRepository);
+        self::assertEquals($response, [$fieldWikidata1->getValue() => 'Field parentWikidataId 123 not found']);
     }
 
     public function testShouldErrorIfFieldNameNotValid(): void

@@ -9,6 +9,7 @@ use App\Field\Domain\Repository\FieldRepositoryInterface;
 use App\Shared\Infrastructure\Doctrine\DoctrineRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\Expr\Comparison;
+use Doctrine\ORM\Query\Expr\Func;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\Uid\Uuid;
 
@@ -31,11 +32,27 @@ class DoctrineFieldRepository extends DoctrineRepository implements FieldReposit
     }
 
     /**
-     * Checks if the specific field exists across the database. If it is, will return the UUID.
+     * @return Field[]
      */
-    public function exists(Uuid $id, FieldPlace|FieldCommunity $fieldName, mixed $fieldValue): ?string
+    public function getNameValueFields(FieldPlace|FieldCommunity $fieldName, mixed $fieldValue): array
     {
         $qb = $this->query();
+
+        return $qb->where($this->whereFieldEquals(
+            $qb,
+            $fieldName,
+            $fieldValue,
+        ))
+            ->andWhere($qb->expr()->eq('field.name', ':fieldName'))
+            ->setParameter('fieldName', $fieldName)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function existOusideOf(Uuid $id, FieldPlace|FieldCommunity $fieldName, mixed $fieldValue): bool
+    {
+        $qb = $this->query();
+
         $row = $qb->select('COALESCE(IDENTITY(field.community), IDENTITY(field.place)) as attachedToId')
             ->where($this->whereFieldEquals(
                 $qb,
@@ -52,15 +69,19 @@ class DoctrineFieldRepository extends DoctrineRepository implements FieldReposit
             ->getQuery()
             ->getOneOrNullResult();
 
-        return $row['attachedToId'] ?? null;
+        return isset($row['attachedToId']);
     }
 
-    private function whereFieldEquals(QueryBuilder $qb, FieldPlace|FieldCommunity $fieldName, mixed $fieldValue, string $alias = 'field'): Comparison
+    private function whereFieldEquals(QueryBuilder $qb, FieldPlace|FieldCommunity $fieldName, mixed $fieldValue, string $alias = 'field'): Comparison|Func
     {
         $propertyName = Field::getPropertyName($fieldName);
         $parameterName = "{$alias}_value";
 
         $qb->setParameter($parameterName, $fieldValue);
+
+        if (is_array($fieldValue)) {
+            return $qb->expr()->in("$alias.$propertyName", ":$parameterName");
+        }
 
         return $qb->expr()->eq("$alias.$propertyName", ":$parameterName");
     }

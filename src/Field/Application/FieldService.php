@@ -8,6 +8,7 @@ use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Enum\FieldPlace;
 use App\Field\Domain\Exception\FieldEntityNotFoundException;
 use App\Field\Domain\Exception\FieldInvalidNameException;
+use App\Field\Domain\Exception\FieldParentWikidataIdNotFoundException;
 use App\Field\Domain\Exception\FieldUnicityViolationException;
 use App\Field\Domain\Model\Field;
 use App\Field\Domain\Repository\FieldRepositoryInterface;
@@ -48,14 +49,12 @@ final class FieldService
                 Community::class => FieldCommunity::tryFrom($fieldPayload->name),
                 default => null,
             };
-            $aliases = match ($entity::class) {
-                Place::class => FieldPlace::ALIASES,
-                Community::class => FieldCommunity::ALIASES,
-                default => null,
-            };
+
             if (null === $enumValue) {
                 throw new FieldInvalidNameException($fieldPayload->name);
             }
+
+            $this->maybeTransformAlias($entity, $enumValue, $fieldPayload);
 
             $field = $this->getOrCreate(
                 $entity,
@@ -69,9 +68,6 @@ final class FieldService
                 $field->place = $entity;
             }
 
-            if (in_array($enumValue->name, array_keys($aliases))) {
-                $fieldPayload->name = $aliases[$enumValue->name]->value;
-            }
             $field->name = $fieldPayload->name;
             $field->value = $value;
             $field->engine = $fieldPayload->engine;
@@ -83,8 +79,7 @@ final class FieldService
             // Unique constraints validation (TODO use custom Assert instead)
             if (null !== $field->value
                 && in_array($field->name, Field::UNIQUE_CONSTRAINTS, true)
-                && (null !== $attachedToId = $this->fieldRepo->exists($entity->id, $enumValue, $field->value))
-                && $attachedToId !== $entity->id->toString()
+                && $this->fieldRepo->existOusideOf($entity->id, $enumValue, $field->value)
             ) {
                 throw new FieldUnicityViolationException($field->name, $field->value);
             }
@@ -163,14 +158,9 @@ final class FieldService
             return $instances->toArray();
         } else {
             $instance = null;
-            if ($nameEnum->name === FieldCommunity::PARENT_WIKIDATA_ID->name) {
-                assert(is_int($value));
-                $instance = $repo->withWikidataId($value)->asCollection()[0];
-            } else {
-                // That's an object
-                assert(is_string($value));
-                $instance = $repo->ofId(Uuid::fromString($value));
-            }
+            // That's an object
+            assert(is_string($value));
+            $instance = $repo->ofId(Uuid::fromString($value));
 
             if (!$instance) {
                 throw new FieldEntityNotFoundException($value);
@@ -178,5 +168,53 @@ final class FieldService
 
             return $instance;
         }
+    }
+
+    private function maybeTransformAlias(Place|Community $entity, FieldCommunity|FieldPlace &$enumValue, Field &$fieldPayload): void
+    {
+        $aliases = match ($entity::class) {
+            Place::class => FieldPlace::ALIASES,
+            Community::class => FieldCommunity::ALIASES,
+            default => null,
+        };
+
+        if (!in_array($enumValue->name, array_keys($aliases))) {
+            return;
+        }
+
+        $enumValue = $aliases[$enumValue->name];
+        $fieldPayload->value = match ($fieldPayload->name) {
+            FieldCommunity::PARENT_WIKIDATA_ID->value => $this->wikidataIdToCommunityId($fieldPayload->value),
+            FieldPlace::PARENT_WIKIDATA_IDS->value => $this->wikidataIdsToCommunityIds($fieldPayload->value),
+            default => null,
+        };
+        $fieldPayload->name = $enumValue->value;
+    }
+
+    private function wikidataIdToCommunityId(int $wikidataId): string
+    {
+        $fields = $this->fieldRepo->getNameValueFields(FieldCommunity::WIKIDATA_ID, $wikidataId);
+        if (0 === count($fields)) {
+            throw new FieldParentWikidataIdNotFoundException([$wikidataId]);
+        }
+
+        return $fields[0]->community->id->toString() ?? $fields[0]->place->id->toString();
+    }
+
+    /**
+     * @param int[] $wikidataIds
+     *
+     * @return string[]
+     */
+    private function wikidataIdsToCommunityIds(array $wikidataIds): array
+    {
+        $fields = $this->fieldRepo->getNameValueFields(FieldCommunity::WIKIDATA_ID, $wikidataIds);
+        $foundWikidataIds = array_map(fn (Field $field) => $field->getValue(), $fields);
+        $missingWikidataIds = array_diff($wikidataIds, $foundWikidataIds);
+        if (count($fields) !== count($wikidataIds)) {
+            throw new FieldParentWikidataIdNotFoundException($missingWikidataIds);
+        }
+
+        return array_map(fn (Field $field) => $field->community->id->toString() ?? $field->place->id->toString(), $fields);
     }
 }

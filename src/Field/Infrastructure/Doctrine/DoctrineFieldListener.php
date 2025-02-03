@@ -92,7 +92,7 @@ final class DoctrineFieldListener
             $parent = $this->communityRepo->addSelectField()->ofId($field->getValue()->id);
             $parentTypeField = $parent->getMostTrustableFieldByName(FieldCommunity::TYPE);
             if ($parentTypeField->getValue() === CommunityType::DIOCESE->value) {
-                $dioceseName = $parent->getMostTrustableFieldByName(FieldCommunity::NAME)->getValue();
+                $dioceseName = $parent->getMostTrustableFieldByName(FieldCommunity::NAME)?->getValue();
                 $this->searchHelper->upsertElement(
                     SearchIndex::PARISH,
                     $community->id->toString(),

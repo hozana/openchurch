@@ -25,13 +25,13 @@ class Community extends FieldHolder
     #[ORM\Column(type: 'uuid', unique: true)]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
-    #[Groups(['communities'])]
     public ?Uuid $id = null;
 
     /**
      * @var Collection<int, Field>
      */
     #[ORM\OneToMany(targetEntity: Field::class, mappedBy: 'community')]
+    #[Groups(['communities'])]
     public Collection $fields;
 
     /**

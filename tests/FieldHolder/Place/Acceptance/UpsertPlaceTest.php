@@ -205,7 +205,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
         self::assertEquals($insertedField->getValue(), [$parentCommunity]);
     }
 
-    public function testShouldPassWhenProvidingParentWikidataIds(): void
+    public function testShouldInsertWhenProvidingParentWikidataIds(): void
     {
         /** @var PlaceRepositoryInterface $placeRepository */
         $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
@@ -301,6 +301,170 @@ class UpsertPlaceTest extends AcceptanceTestHelper
         self::assertEquals($response, [$fieldWikidataPlace->getValue() => 'Inserted']);
         self::assertEquals($insertedField->name, FieldPlace::PARENT_COMMUNITIES->value);
         self::assertEquals($insertedField->getValue(), $parentCommunities);
+    }
+
+    public function testShouldUpdateWhenProvidingParentWikidataIds(): void
+    {
+        /** @var PlaceRepositoryInterface $placeRepository */
+        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
+
+        self::assertCount(0, $placeRepository);
+        $agent = DummyAgentFactory::createOne();
+
+        [$fieldWikidataPlace, $fieldWikidataCommunity, $community] = flush_after(function () use ($agent) {
+            $fieldWikidataPlace = DummyFieldFactory::createOne([
+                'name' => FieldPlace::WIKIDATA_ID->value,
+                Field::getPropertyName(FieldPlace::WIKIDATA_ID) => 00011225,
+                'reliability' => FieldReliability::LOW,
+                'agent' => $agent,
+            ]);
+            DummyPlaceFactory::createOne([
+                'fields' => [
+                    $fieldWikidataPlace->_real(),
+                    DummyFieldFactory::createOne([
+                        'name' => FieldPlace::TYPE->value,
+                        Field::getPropertyName(FieldPlace::TYPE) => PlaceType::ABBEY->value,
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                        'agent' => $agent,
+                    ]),
+                ],
+            ])->_real();
+            $fieldWikidataCommunity = DummyFieldFactory::createOne([
+                'name' => FieldCommunity::WIKIDATA_ID->value,
+                Field::getPropertyName(FieldCommunity::WIKIDATA_ID) => 9999999,
+                'reliability' => FieldReliability::LOW,
+                'agent' => $agent,
+            ]);
+            $community = DummyCommunityFactory::createOne([
+                'fields' => [
+                    $fieldWikidataCommunity->_real(),
+                    DummyFieldFactory::createOne([
+                        'name' => FieldPlace::TYPE->value,
+                        Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::PARISH->value,
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                        'agent' => $agent,
+                    ]),
+                ],
+            ])->_real();
+
+            return [$fieldWikidataPlace, $fieldWikidataCommunity, $community];
+        });
+        self::assertCount(1, $placeRepository);
+
+        $response = self::assertResponse($this->put('/places/upsert', 'secret', body: [
+            'wikidataEntities' => [
+                [
+                    [
+                        'name' => FieldPlace::PARENT_WIKIDATA_IDS,
+                        'value' => [$fieldWikidataCommunity->getValue()],
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                    ],
+                    [
+                        'name' => FieldPlace::WIKIDATA_ID,
+                        'value' => $fieldWikidataPlace->getValue(),
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                    ],
+                    [
+                        'name' => FieldPlace::TYPE,
+                        'value' => PlaceType::CHURCH->value,
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                    ],
+                ],
+            ],
+        ]), HttpFoundationResponse::HTTP_OK);
+
+        self::assertCount(1, $placeRepository);
+        $place = $placeRepository->withWikidataId($fieldWikidataPlace->getValue())->asCollection()[0];
+        $updatedField = $place->getMostTrustableFieldByName(FieldPlace::PARENT_COMMUNITIES);
+        $parentCommunities = $place->getFieldsByName(FieldPlace::PARENT_COMMUNITIES)->toArray();
+
+        self::assertEquals($response, [$fieldWikidataPlace->getValue() => 'Updated']);
+        self::assertCount(1, $parentCommunities);
+        self::assertEquals($updatedField->getValue(), [$community]);
+    }
+
+    public function testShouldErrorIfParentWikidataIdsNotFound(): void
+    {
+        /** @var PlaceRepositoryInterface $placeRepository */
+        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
+
+        self::assertCount(0, $placeRepository);
+        $agent = DummyAgentFactory::createOne();
+
+        [$fieldWikidata1] = flush_after(function () use ($agent) {
+            $fieldWikidata1 = DummyFieldFactory::createOne([
+                'name' => FieldCommunity::WIKIDATA_ID->value,
+                Field::getPropertyName(FieldCommunity::WIKIDATA_ID) => 9999999,
+                'reliability' => FieldReliability::LOW,
+                'agent' => $agent,
+            ]);
+            DummyCommunityFactory::createOne([
+                'fields' => [
+                    $fieldWikidata1->_real(),
+                    DummyFieldFactory::createOne([
+                        'name' => FieldPlace::TYPE->value,
+                        Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::PARISH->value,
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                        'agent' => $agent,
+                    ]),
+                ],
+            ])->_real();
+
+            return [$fieldWikidata1];
+        });
+
+        $response = self::assertResponse($this->put('/places/upsert', 'secret', body: [
+            'wikidataEntities' => [
+                [
+                    [
+                        'name' => FieldPlace::PARENT_WIKIDATA_IDS,
+                        'value' => [$fieldWikidata1->getValue(), 999778],
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                    ],
+                    [
+                        'name' => FieldPlace::WIKIDATA_ID,
+                        'value' => 147258369,
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                    ],
+                    [
+                        'name' => FieldPlace::TYPE,
+                        'value' => PlaceType::CHURCH->value,
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                    ],
+                ],
+            ],
+        ]), HttpFoundationResponse::HTTP_OK);
+
+        self::assertNull($placeRepository->withWikidataId(147258369)->asCollection()[0]);
+        self::assertCount(0, $placeRepository);
+        self::assertEquals($response, [147258369 => 'Field parentWikidataId 999778 not found']);
     }
 
     public function testShouldErrorIfFieldNameNotValid(): void
