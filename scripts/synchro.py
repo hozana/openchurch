@@ -516,5 +516,5 @@ if __name__ == '__main__':
     parser.add_argument("-v", "--verbose", action="count", default=0, help="Augmente le niveau de verbosité (utilisez -vvv pour plus de détails).")
     args = parser.parse_args()
 
-    processor = Processor(verbosity_level=args.verbose, type=args.entity_only, batch_size=50)
+    processor = Processor(verbosity_level=args.verbose, type=args.entity_only, batch_size=30)
     processor.process_entity()
