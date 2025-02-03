@@ -54,7 +54,6 @@ use Symfony\Component\Uid\Uuid;
             input: CommunityWikidataInput::class,
         ),
         new GetCollection(
-            security: 'is_granted("ROLE_AGENT")',
             filters: [
                 FieldTypeFilter::class,
                 FieldWikidataIdFilter::class,
