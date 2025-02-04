@@ -36,6 +36,7 @@ final class CommunityCollectionProvider implements ProviderInterface
         /** @var string|null $type */
         $type = $context['filters'][FieldCommunity::TYPE->value] ?? null;
         $wikidataId = $context['filters'][FieldCommunity::WIKIDATA_ID->value] ?? null;
+        $parentWikidataId = $context['filters'][FieldCommunity::PARENT_WIKIDATA_ID->value] ?? null;
 
         $name = $context['filters'][FieldCommunity::NAME->value] ?? null;
         $page = $itemsPerPage = null;
@@ -61,11 +62,16 @@ final class CommunityCollectionProvider implements ProviderInterface
                 return [];
             }
         }
+        
+        if ($parentWikidataId) {
+            $parentCommunity = $this->communityRepo->withWikidataId(intval($parentWikidataId))->asCollection()->first();
+        }
 
         $models = $this->communityRepo
             ->ofIds(array_map(fn (string $entityId) => Uuid::fromString($entityId), $entityIds ?? []))
             ->withType($type)
             ->withWikidataId(intval($wikidataId))
+            ->withParentCommunityId($parentCommunity->id ?? null)
             ->withPagination($page, $itemsPerPage);
 
         $resources = [];

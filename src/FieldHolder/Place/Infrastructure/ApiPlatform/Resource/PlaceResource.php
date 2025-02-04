@@ -7,15 +7,18 @@ namespace App\FieldHolder\Place\Infrastructure\ApiPlatform\Resource;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Field\Domain\Model\Field;
+use App\Field\Infrastructure\ApiPlatform\Filter\FieldParentCommunityIdFilter;
 use App\FieldHolder\Place\Domain\Model\Place;
 use App\FieldHolder\Place\Infrastructure\ApiPlatform\Input\PlaceWikidataInput;
 use App\FieldHolder\Place\Infrastructure\ApiPlatform\State\Processor\CreatePlaceProcessor;
 use App\FieldHolder\Place\Infrastructure\ApiPlatform\State\Processor\UpdatePlaceProcessor;
 use App\FieldHolder\Place\Infrastructure\ApiPlatform\State\Processor\UpsertPlaceProcessor;
+use App\FieldHolder\Place\Infrastructure\ApiPlatform\State\Provider\PlaceCollectionProvider;
 use App\FieldHolder\Place\Infrastructure\ApiPlatform\State\Provider\PlaceItemProvider;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
@@ -52,6 +55,14 @@ use Symfony\Component\Uid\Uuid;
             status: 200,
             processor: UpsertPlaceProcessor::class,
             input: PlaceWikidataInput::class,
+        ),
+        new GetCollection(
+            uriTemplate: '/places',
+            filters: [
+                FieldParentCommunityIdFilter::class,
+            ],
+            provider: PlaceCollectionProvider::class,
+            normalizationContext: ['groups' => ['places']],
         ),
     ],
 )]

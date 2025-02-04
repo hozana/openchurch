@@ -32,6 +32,7 @@ class Place extends FieldHolder
      * @var Collection<int, Field>
      */
     #[ORM\OneToMany(targetEntity: Field::class, mappedBy: 'place')]
+    #[Groups(['places'])]
     public Collection $fields;
 
     /**

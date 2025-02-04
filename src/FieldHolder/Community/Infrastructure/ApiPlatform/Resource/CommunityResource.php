@@ -13,6 +13,7 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Field\Domain\Model\Field;
 use App\Field\Infrastructure\ApiPlatform\Filter\FieldNameFilter;
+use App\Field\Infrastructure\ApiPlatform\Filter\FieldParentWikidataIdFilter;
 use App\Field\Infrastructure\ApiPlatform\Filter\FieldTypeFilter;
 use App\Field\Infrastructure\ApiPlatform\Filter\FieldWikidataIdFilter;
 use App\FieldHolder\Community\Domain\Model\Community;
@@ -57,6 +58,7 @@ use Symfony\Component\Uid\Uuid;
             filters: [
                 FieldTypeFilter::class,
                 FieldWikidataIdFilter::class,
+                FieldParentWikidataIdFilter::class,
                 FieldNameFilter::class,
             ],
             provider: CommunityCollectionProvider::class,

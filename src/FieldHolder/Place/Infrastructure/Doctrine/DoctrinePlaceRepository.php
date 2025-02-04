@@ -92,4 +92,25 @@ final class DoctrinePlaceRepository extends DoctrineRepository implements PlaceR
                     ->setParameter('valueWikidataIds', $wikidataIds);
             });
     }
+
+    public function withParentCommunityId(?Uuid $parentId): static
+    {
+        if (!$parentId) {
+            return $this;
+        }
+
+        return
+            $this->filter(static function (QueryBuilder $qb) use ($parentId): void {
+                $qb->andWhere("
+                        EXISTS (
+                            SELECT 1 FROM App\Field\Domain\Model\Field f_community_parent_id
+                            JOIN f_community_parent_id.communitiesVal communities
+                            WHERE f_community_parent_id.place = place AND 
+                            f_community_parent_id.name = 'parentCommunities' AND 
+                            communities.id = :valueParentCommunity
+                        )
+                    ")
+                    ->setParameter('valueParentCommunity', $parentId->toBinary());
+            });
+    }
 }
