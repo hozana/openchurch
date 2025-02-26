@@ -50,6 +50,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Create version.json file
+        run: |
+          echo "{ \"version\": \"$(git rev-parse --short HEAD)\", \"build\": \"$(date)\", \"branch\": \"$(git rev-parse --abbrev-ref HEAD)\", \"tag\": \"$(git name-rev --tags --name-only $(git rev-parse HEAD))\" } " > public/version.json
       - name: Publish latest tag for docker image to DockerHub
         run: |
           echo "$DOCKER_PASSWORD" | docker login $DOCKER_REPOSITORY -u $DOCKER_USERNAME --password-stdin
