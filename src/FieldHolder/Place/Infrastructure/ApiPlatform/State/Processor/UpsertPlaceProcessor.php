@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\FieldHolder\Place\Infrastructure\ApiPlatform\State\Processor;
 
+use ApiPlatform\Metadata\Exception\ProblemExceptionInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
+use ApiPlatform\Validator\Exception\ValidationException;
 use App\Field\Application\FieldService;
 use App\Field\Domain\Enum\FieldPlace;
 use App\Field\Domain\Exception\FieldWikidataIdMissingException;
@@ -60,8 +62,8 @@ final class UpsertPlaceProcessor implements ProcessorInterface
                 try {
                     $this->fieldService->upsertFields($place, $wikidataIdFields[$wikidataId]);
                     $result[$wikidataId] = 'Updated';
-                } catch (\Exception $e) {
-                    $result[$wikidataId] = $this->fieldHolderUpsertService->handleError($place, $e, [$this->placeRepo, 'detach']);
+                } catch (ProblemExceptionInterface|ValidationException $e) {
+                    $result[$wikidataId] = $this->fieldHolderUpsertService->handleError($place, $e);
                 }
                 unset($wikidataIdFields[$wikidataId]);
             }
@@ -75,8 +77,8 @@ final class UpsertPlaceProcessor implements ProcessorInterface
 
                     $this->fieldService->upsertFields($place, $fields);
                     $result[$wikidataId] = 'Inserted';
-                } catch (\Exception $e) {
-                    $result[$wikidataId] = $this->fieldHolderUpsertService->handleError($place, $e, [$this->placeRepo, 'detach']);
+                } catch (ProblemExceptionInterface|ValidationException $e) {
+                    $result[$wikidataId] = $this->fieldHolderUpsertService->handleError($place, $e);
                 }
             }
 

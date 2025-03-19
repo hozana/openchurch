@@ -11,6 +11,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Tools\Pagination\Paginator;
+use Iterator;
 use Webmozart\Assert\Assert;
 
 /**
@@ -51,7 +52,7 @@ abstract class DoctrineRepository implements RepositoryInterface
         return $cloned;
     }
 
-    public function getIterator(): \Iterator
+    public function getIterator(): Iterator
     {
         if (null !== $paginator = $this->paginator()) {
             yield from $paginator;

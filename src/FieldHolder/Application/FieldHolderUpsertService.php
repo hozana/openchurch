@@ -5,35 +5,46 @@ namespace App\FieldHolder\Application;
 use ApiPlatform\Metadata\Exception\ProblemExceptionInterface;
 use ApiPlatform\Validator\Exception\ValidationException;
 use App\Field\Domain\Model\Field;
+use App\FieldHolder\Community\Domain\Model\Community;
+use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
+use App\FieldHolder\Place\Domain\Model\Place;
+use App\FieldHolder\Place\Domain\Repository\PlaceRepositoryInterface;
+use Doctrine\ORM\EntityManagerInterface;
+use RuntimeException;
 
 final class FieldHolderUpsertService
 {
+    public function __construct(
+        private readonly EntityManagerInterface $fieldRepo,
+        private readonly CommunityRepositoryInterface $communityRepo,
+        private readonly PlaceRepositoryInterface $placeRepo,
+    ) {
+    }
+
     /**
      * @param Field[] $fields
      */
     public function getFieldByName(array $fields, string $fieldName): ?Field
     {
-        $result = array_values(array_filter($fields,
-            fn (Field $field) => $field->name === $fieldName
-        ));
-
-        return count($result) > 0 ? $result[0] : null;
+        return array_find($fields, fn (Field $field) => $field->name === $fieldName);
     }
 
-    public function handleError(object $entity, \Exception $e, callable $detachCallback): string
+    public function handleError(Community|Place $entity, ProblemExceptionInterface|ValidationException $e): string
     {
         foreach ($entity->fields as $field) {
-            call_user_func($detachCallback, $field);
+            $this->fieldRepo->detach($field);
         }
-        call_user_func($detachCallback, $entity);
+
+        match ($entity::class) {
+            Community::class => $this->communityRepo->detach($entity),
+            Place::class => $this->placeRepo->detach($entity),
+            default => throw new RuntimeException(sprintf('Unknown entity class %s', $entity::class)),
+        };
 
         if ($e instanceof ValidationException) {
             return $e->getMessage();
         }
-        if ($e instanceof ProblemExceptionInterface) {
-            return $e->getDetail();
-        }
 
-        return $e->getMessage();
+        return $e->getDetail();
     }
 }

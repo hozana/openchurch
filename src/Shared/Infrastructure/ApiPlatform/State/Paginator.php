@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Shared\Infrastructure\ApiPlatform\State;
 
 use ApiPlatform\State\Pagination\PaginatorInterface;
+use IteratorAggregate;
+use Traversable;
 
 /**
  * @template T of object
@@ -12,13 +14,13 @@ use ApiPlatform\State\Pagination\PaginatorInterface;
  * @implements PaginatorInterface<T>
  * @implements \IteratorAggregate<T>
  */
-final class Paginator implements PaginatorInterface, \IteratorAggregate
+final class Paginator implements PaginatorInterface, IteratorAggregate
 {
     /**
-     * @param \Traversable<T> $items
+     * @param Traversable<T> $items
      */
     public function __construct(
-        private \Traversable $items,
+        private Traversable $items,
         private float $currentPage,
         private float $itemsPerPage,
         private float $lastPage,
@@ -52,9 +54,9 @@ final class Paginator implements PaginatorInterface, \IteratorAggregate
     }
 
     /**
-     * @return \Traversable<T>
+     * @return Traversable<T>
      */
-    public function getIterator(): \Traversable
+    public function getIterator(): Traversable
     {
         return $this->items;
     }

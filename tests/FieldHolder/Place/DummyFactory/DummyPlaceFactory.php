@@ -3,6 +3,7 @@
 namespace App\Tests\FieldHolder\Place\DummyFactory;
 
 use App\FieldHolder\Place\Domain\Model\Place;
+use DateTimeImmutable;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
@@ -32,7 +33,7 @@ final class DummyPlaceFactory extends PersistentProxyObjectFactory
     protected function defaults(): array
     {
         return [
-            'createdAt' => \DateTimeImmutable::createFromMutable(self::faker()->dateTime()),
+            'createdAt' => DateTimeImmutable::createFromMutable(self::faker()->dateTime()),
         ];
     }
 

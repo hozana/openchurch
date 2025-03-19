@@ -12,6 +12,7 @@ use App\Tests\Agent\DummyFactory\DummyAgentFactory;
 use App\Tests\Field\DummyFactory\DummyFieldFactory;
 use App\Tests\FieldHolder\Community\DummyFactory\DummyCommunityFactory;
 use App\Tests\Helper\AcceptanceTestHelper;
+use DateTime;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Zenstruck\Foundry\Test\Factories;
 
@@ -96,7 +97,7 @@ class UpsertCommunityTest extends AcceptanceTestHelper
                     ],
                     [
                         'name' => FieldCommunity::WIKIDATA_UPDATED_AT,
-                        'value' => (new \DateTime())->format('Y-m-d H:i:s'),
+                        'value' => (new DateTime())->format('Y-m-d H:i:s'),
                         'reliability' => FieldReliability::HIGH,
                         'source' => 'custom_source',
                         'explanation' => 'yolo',
@@ -279,6 +280,14 @@ class UpsertCommunityTest extends AcceptanceTestHelper
             'wikidataEntities' => [
                 [
                     [
+                        'name' => FieldCommunity::PARENT_WIKIDATA_ID,
+                        'value' => $fieldParentWikidata->getValue(),
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                    ],
+                    [
                         'name' => FieldCommunity::WIKIDATA_ID,
                         'value' => $fieldWikidata->getValue(),
                         'reliability' => FieldReliability::HIGH,
@@ -289,14 +298,6 @@ class UpsertCommunityTest extends AcceptanceTestHelper
                     [
                         'name' => FieldCommunity::TYPE,
                         'value' => CommunityType::PARISH->value,
-                        'reliability' => FieldReliability::HIGH,
-                        'source' => 'custom_source',
-                        'explanation' => 'yolo',
-                        'engine' => FieldEngine::AI,
-                    ],
-                    [
-                        'name' => FieldCommunity::PARENT_WIKIDATA_ID,
-                        'value' => $fieldParentWikidata->getValue(),
                         'reliability' => FieldReliability::HIGH,
                         'source' => 'custom_source',
                         'explanation' => 'yolo',

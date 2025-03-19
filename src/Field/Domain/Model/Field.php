@@ -10,10 +10,13 @@ use App\Field\Domain\Enum\FieldReliability;
 use App\FieldHolder\Community\Domain\Model\Community;
 use App\FieldHolder\Place\Domain\Model\Place;
 use App\Shared\Infrastructure\Doctrine\Trait\DoctrineTimestampableTrait;
+use DateTime;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use RuntimeException;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\SerializedName;
@@ -72,10 +75,10 @@ class Field
     public ?float $floatVal = null;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    public ?\DateTimeImmutable $datetimeVal = null;
+    public ?DateTimeImmutable $datetimeVal = null;
 
     #[ORM\Column(type: 'date_immutable', nullable: true)]
-    public ?\DateTimeImmutable $dateVal = null;
+    public ?DateTimeImmutable $dateVal = null;
 
     #[ORM\ManyToOne(targetEntity: Community::class, inversedBy: 'fieldsAsCommunityVal')]
     public ?Community $communityVal = null;
@@ -135,7 +138,7 @@ class Field
 
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = new DateTimeImmutable();
         $this->communitiesVal = new ArrayCollection();
         $this->placesVal = new ArrayCollection();
     }
@@ -194,10 +197,10 @@ class Field
                     Types::STRING => is_string($this->value),
                     Types::FLOAT => is_float($this->value),
                     Types::INTEGER => is_int($this->value),
-                    Types::DATETIME_MUTABLE => (bool) \DateTime::createFromFormat('Y-m-d H:i:s', $this->value),
-                    Types::DATE_MUTABLE => (bool) \DateTime::createFromFormat('Y-m-d', $this->value),
-                    Types::DATETIME_IMMUTABLE => (bool) \DateTime::createFromFormat('Y-m-d H:i:s', $this->value),
-                    Types::DATE_IMMUTABLE => (bool) \DateTime::createFromFormat('Y-m-d', $this->value),
+                    Types::DATETIME_MUTABLE => (bool) DateTime::createFromFormat('Y-m-d H:i:s', $this->value),
+                    Types::DATE_MUTABLE => (bool) DateTime::createFromFormat('Y-m-d', $this->value),
+                    Types::DATETIME_IMMUTABLE => (bool) DateTime::createFromFormat('Y-m-d H:i:s', $this->value),
+                    Types::DATE_IMMUTABLE => (bool) DateTime::createFromFormat('Y-m-d', $this->value),
                     'Community' => $this->value instanceof Community,
                     'Community[]' => is_array($this->value) && count($this->value) === count(array_filter($this->value, fn (mixed $item) => $item instanceof Community)),
                     'Place' => $this->value instanceof Place,
@@ -243,7 +246,7 @@ class Field
             'Community[]' => 'communitiesVal',
             'Place' => 'placeVal',
             'Place[]' => 'placesVal',
-            default => throw new \RuntimeException('Unknown type '.$type),
+            default => throw new RuntimeException('Unknown type '.$type),
         };
     }
 
@@ -251,7 +254,7 @@ class Field
     {
         $typeEnum = $this->getTypeEnum();
         if (false === $typeEnum) {
-            throw new \RuntimeException('You must attach this Field to a Community or Place before attempting to call '.__METHOD__);
+            throw new RuntimeException('You must attach this Field to a Community or Place before attempting to call '.__METHOD__);
         }
         $propertyName = self::getPropertyName($typeEnum);
         $value = $this->value;
@@ -261,10 +264,10 @@ class Field
         }
 
         if ('datetimeVal' === $propertyName) {
-            $value = \DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $value);
+            $value = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $value);
         }
         if ('dateVal' === $propertyName) {
-            $value = \DateTimeImmutable::createFromFormat('Y-m-d', $value);
+            $value = DateTimeImmutable::createFromFormat('Y-m-d', $value);
         }
 
         $propertyAccessor = new PropertyAccessor();

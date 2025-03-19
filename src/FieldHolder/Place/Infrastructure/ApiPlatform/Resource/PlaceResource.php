@@ -81,7 +81,7 @@ final class PlaceResource
     ) {
     }
 
-    public static function fromModel(Place $place): PlaceResource
+    public static function fromModel(Place $place): self
     {
         return new self(
             $place->id,

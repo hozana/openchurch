@@ -5,3 +5,5 @@ parameters:
         - public/
         - src/
     treatPhpDocTypesAsCertain: false
+    ignoreErrors:
+        - '#Offset index (list) does not accept type diocese|parish.+#'

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Shared\Unit\Infrastructure\InMemory;
 
 use App\Shared\Infrastructure\InMemory\InMemoryPaginator;
+use ArrayIterator;
 use PHPUnit\Framework\TestCase;
 
 final class InMemoryPaginatorTest extends TestCase
@@ -17,7 +18,7 @@ final class InMemoryPaginatorTest extends TestCase
         $items = [1, 2, 3];
 
         $paginator = new InMemoryPaginator(
-            items: new \ArrayIterator($items),
+            items: new ArrayIterator($items),
             totalItems: count($items),
             currentPage: 1,
             itemsPerPage: $itemsPerPage,
@@ -46,7 +47,7 @@ final class InMemoryPaginatorTest extends TestCase
         $items = [1, 2, 3];
 
         $paginator = new InMemoryPaginator(
-            items: new \ArrayIterator($items),
+            items: new ArrayIterator($items),
             totalItems: count($items),
             currentPage: $currentPage,
             itemsPerPage: $itemsPerPage,

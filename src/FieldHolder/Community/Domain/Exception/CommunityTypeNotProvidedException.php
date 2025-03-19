@@ -6,10 +6,11 @@ namespace App\FieldHolder\Community\Domain\Exception;
 
 use ApiPlatform\Metadata\ErrorResource;
 use ApiPlatform\Metadata\Exception\ProblemExceptionInterface;
+use Exception;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ErrorResource]
-class CommunityTypeNotProvidedException extends \Exception implements ProblemExceptionInterface
+class CommunityTypeNotProvidedException extends Exception implements ProblemExceptionInterface
 {
     #[Groups(['communities'])]
     public function getType(): string
@@ -31,7 +32,7 @@ class CommunityTypeNotProvidedException extends \Exception implements ProblemExc
     #[Groups(['communities'])]
     public function getDetail(): ?string
     {
-        return sprintf('You must provide a community type when filtering by name');
+        return 'You must provide a community type when filtering by name';
     }
 
     /**

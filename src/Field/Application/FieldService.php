@@ -16,6 +16,7 @@ use App\FieldHolder\Community\Domain\Model\Community;
 use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\FieldHolder\Place\Domain\Model\Place;
 use App\FieldHolder\Place\Domain\Repository\PlaceRepositoryInterface;
+use RuntimeException;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Uid\Uuid;
@@ -30,8 +31,8 @@ final class FieldService
         private readonly CommunityRepositoryInterface $communityRepository,
         private readonly PlaceRepositoryInterface $placeRepository,
         private readonly FieldRepositoryInterface $fieldRepo,
-        private ValidatorInterface $validator,
-        private Security $security,
+        private readonly ValidatorInterface $validator,
+        private readonly Security $security,
     ) {
     }
 
@@ -55,7 +56,6 @@ final class FieldService
             }
 
             $this->maybeTransformAlias($entity, $enumValue, $fieldPayload);
-
             $field = $this->getOrCreate(
                 $entity,
                 $enumValue,
@@ -89,7 +89,7 @@ final class FieldService
                 throw new ValidationException($violations);
             }
 
-            $field->applyValue(); // Dynamycally set the value to the correct property (intVal, stringVal, ...)
+            $field->applyValue(); // Dynamically set the value to the correct property (intVal, stringVal, ...)
         }
     }
 
@@ -136,7 +136,7 @@ final class FieldService
         $repo = match ($targetEntityClassName) {
             Community::class => $this->communityRepository,
             Place::class => $this->placeRepository,
-            default => throw new \RuntimeException('Unknown type '.$type),
+            default => throw new RuntimeException('Unknown type '.$type),
         };
 
         if (str_ends_with($type, '[]')) {
@@ -145,11 +145,7 @@ final class FieldService
                 throw new BadRequestHttpException($nameEnum->value.': should be an array');
             }
 
-            if ($nameEnum->name === FieldPlace::PARENT_WIKIDATA_IDS->name) {
-                $instances = $repo->withWikidataIds($value)->asCollection();
-            } else {
-                $instances = $repo->ofIds(array_map(fn (string $id) => UuidV7::fromString($id), $value))->asCollection();
-            }
+            $instances = $repo->ofIds(array_map(fn (string $id) => UuidV7::fromString($id), $value))->asCollection();
 
             if (count($instances) !== count($value)) {
                 throw new FieldEntityNotFoundException($value);
@@ -157,7 +153,6 @@ final class FieldService
 
             return $instances->toArray();
         } else {
-            $instance = null;
             // That's an object
             assert(is_string($value));
             $instance = $repo->ofId(Uuid::fromString($value));
@@ -170,7 +165,7 @@ final class FieldService
         }
     }
 
-    private function maybeTransformAlias(Place|Community $entity, FieldCommunity|FieldPlace &$enumValue, Field &$fieldPayload): void
+    private function maybeTransformAlias(Place|Community $entity, FieldCommunity|FieldPlace &$enumValue, Field $fieldPayload): void
     {
         $aliases = match ($entity::class) {
             Place::class => FieldPlace::ALIASES,
@@ -178,7 +173,7 @@ final class FieldService
             default => null,
         };
 
-        if (!in_array($enumValue->name, array_keys($aliases))) {
+        if (!array_key_exists($enumValue->name, $aliases)) {
             return;
         }
 

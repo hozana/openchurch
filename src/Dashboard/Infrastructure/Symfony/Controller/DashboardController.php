@@ -7,6 +7,7 @@ namespace App\Dashboard\Infrastructure\Symfony\Controller;
 use App\Core\Infrastructure\Redis\RedisClient;
 use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\FieldHolder\Place\Domain\Repository\PlaceRepositoryInterface;
+use DateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,40 +25,31 @@ class DashboardController extends AbstractController
     #[Route('/dashboard', name: 'dashboard')]
     public function index(): Response
     {
-        $diocesesCount = $this->communityRepository->withType('diocese')->count();
-        $parishesCount = $this->communityRepository->withType('parish')->count();
-        $churchesCount = $this->placeRepository->count();
+        $types = [
+            'diocese' => ['repository' => $this->communityRepository, 'type' => 'diocese'],
+            'parish'  => ['repository' => $this->communityRepository, 'type' => 'parish'],
+            'church'  => ['repository' => $this->placeRepository, 'type' => null],
+        ];
 
-        $dioceseData = $this->redisClient->getHash('diocese');
-        $parishData = $this->redisClient->getHash('parish');
-        $churchData = $this->redisClient->getHash('church');
+        $input = [];
 
-        // Rendu du template Twig
-        return $this->render('@dashboard/index.html.twig', [
-            'input' => [
-                'diocese' => [
-                    'count' => $diocesesCount,
-                    'status' => $dioceseData['status'] ?? 'undefined',
-                    'progress' => key_exists('currentBatch', $dioceseData) ? ceil(($dioceseData['currentBatch'] / $dioceseData['batchCount']) * 100) : 'undefined',
-                    'startDate' => key_exists('startDate', $dioceseData) ? (new \DateTime($dioceseData['startDate']))->format('Y-m-d H:i:s') : 'undefined',
-                    'endDate' => key_exists('endDate', $dioceseData) ? (new \DateTime($dioceseData['endDate']))->format('Y-m-d H:i:s') : 'undefined',
-                ],
-                'parish' => [
-                    'count' => $parishesCount,
-                    'status' => $parishData['status'] ?? 'undefined',
-                    'progress' => key_exists('currentBatch', $parishData) ? ceil(($parishData['currentBatch'] / $parishData['batchCount']) * 100) : 'undefined',
-                    'startDate' => key_exists('startDate', $parishData) ? (new \DateTime($parishData['startDate']))->format('Y-m-d H:i:s') : 'undefined',
-                    'endDate' => key_exists('endDate', $parishData) ? (new \DateTime($parishData['endDate']))->format('Y-m-d H:i:s') : 'undefined',
-                ],
-                'church' => [
-                    'count' => $churchesCount,
-                    'status' => $churchData['status'] ?? 'undefined',
-                    'progress' => key_exists('currentBatch', $churchData) ? ceil(($churchData['currentBatch'] / $churchData['batchCount']) * 100) : 'undefined',
-                    'startDate' => key_exists('startDate', $churchData) ? (new \DateTime($churchData['startDate']))->format('Y-m-d H:i:s') : 'undefined',
-                    'endDate' => key_exists('endDate', $churchData) ? (new \DateTime($churchData['endDate']))->format('Y-m-d H:i:s') : 'undefined',
-                ],
-            ],
-        ]);
+        foreach ($types as $key => $config) {
+            $count = ($config['type'] !== null)
+                ? $config['repository']->withType($config['type'])->count()
+                : $config['repository']->count();
+
+            $redisData = $this->redisClient->getHash($key);
+
+            $input[$key] = [
+                'count'     => $count,
+                'status'    => $redisData['status'] ?? 'undefined',
+                'progress'  => $this->calculateProgress($redisData),
+                'startDate' => array_key_exists('startDate', $redisData) ? (new DateTime($redisData['startDate']))->format('Y-m-d H:i:s') : 'undefined',
+                'endDate'   => array_key_exists('endDate', $redisData) ? (new DateTime($redisData['endDate']))->format('Y-m-d H:i:s') : 'undefined',
+            ];
+        }
+
+        return $this->render('@dashboard/index.html.twig', compact('input'));
     }
 
     #[Route('/dashboard/{type}', name: 'dashboard_detail', requirements: ['type' => 'diocese|parish|church'])]
@@ -81,5 +73,17 @@ class DashboardController extends AbstractController
         }
 
         return $this->render('@dashboard/detail.html.twig', ['input' => $result]);
+    }
+
+    /**
+     * @param array<mixed> $data
+     */
+    private function calculateProgress(array $data): float
+    {
+        if (array_key_exists('currentBatch', $data)) {
+            return ceil($data['currentBatch'] / $data['batchCount']) * 100;
+        }
+
+        return 0;
     }
 }

@@ -6,10 +6,11 @@ namespace App\Field\Domain\Exception;
 
 use ApiPlatform\Metadata\ErrorResource;
 use ApiPlatform\Metadata\Exception\ProblemExceptionInterface;
+use Exception;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ErrorResource]
-class FieldInvalidNameException extends \Exception implements ProblemExceptionInterface
+class FieldInvalidNameException extends Exception implements ProblemExceptionInterface
 {
     public function __construct(
         private readonly string $name,

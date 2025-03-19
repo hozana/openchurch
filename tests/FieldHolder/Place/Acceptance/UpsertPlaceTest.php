@@ -15,6 +15,7 @@ use App\Tests\Field\DummyFactory\DummyFieldFactory;
 use App\Tests\FieldHolder\Community\DummyFactory\DummyCommunityFactory;
 use App\Tests\FieldHolder\Place\DummyFactory\DummyPlaceFactory;
 use App\Tests\Helper\AcceptanceTestHelper;
+use DateTime;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Zenstruck\Foundry\Test\Factories;
 
@@ -99,7 +100,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
                     ],
                     [
                         'name' => FieldPlace::WIKIDATA_UPDATED_AT,
-                        'value' => (new \DateTime())->format('Y-m-d H:i:s'),
+                        'value' => (new DateTime())->format('Y-m-d H:i:s'),
                         'reliability' => FieldReliability::HIGH,
                         'source' => 'custom_source',
                         'explanation' => 'yolo',
@@ -393,7 +394,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
         $updatedField = $place->getMostTrustableFieldByName(FieldPlace::PARENT_COMMUNITIES);
         $parentCommunities = $place->getFieldsByName(FieldPlace::PARENT_COMMUNITIES)->toArray();
 
-        self::assertEquals($response, [$fieldWikidataPlace->getValue() => 'Updated']);
+        self::assertEquals([$fieldWikidataPlace->getValue() => 'Updated'], $response);
         self::assertCount(1, $parentCommunities);
         self::assertEquals($updatedField->getValue(), [$community]);
     }

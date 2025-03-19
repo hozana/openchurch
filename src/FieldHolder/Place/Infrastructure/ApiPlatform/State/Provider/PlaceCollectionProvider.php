@@ -12,6 +12,7 @@ use App\Field\Domain\Enum\FieldCommunity;
 use App\FieldHolder\Place\Domain\Repository\PlaceRepositoryInterface;
 use App\FieldHolder\Place\Infrastructure\ApiPlatform\Resource\PlaceResource;
 use App\Shared\Infrastructure\ApiPlatform\State\Paginator;
+use ArrayIterator;
 use Symfony\Component\Uid\Uuid;
 
 /**
@@ -53,7 +54,7 @@ final class PlaceCollectionProvider implements ProviderInterface
 
         if (null !== $paginator = $models->paginator()) {
             $resources = new Paginator(
-                new \ArrayIterator($resources),
+                new ArrayIterator($resources),
                 (float) $paginator->getCurrentPage(),
                 (float) $paginator->getItemsPerPage(),
                 (float) $paginator->getLastPage(),

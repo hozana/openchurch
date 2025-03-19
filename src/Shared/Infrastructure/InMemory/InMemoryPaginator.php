@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace App\Shared\Infrastructure\InMemory;
 
 use App\Shared\Domain\Repository\PaginatorInterface;
+use EmptyIterator;
+use IteratorIterator;
+use LimitIterator;
+use Traversable;
 use Webmozart\Assert\Assert;
 
 /**
@@ -19,10 +23,10 @@ final class InMemoryPaginator implements PaginatorInterface
     private int $lastPage;
 
     /**
-     * @param \Traversable<T> $items
+     * @param Traversable<T> $items
      */
     public function __construct(
-        private \Traversable $items,
+        private Traversable $items,
         private int $totalItems,
         private int $currentPage,
         private int $itemsPerPage,
@@ -61,12 +65,12 @@ final class InMemoryPaginator implements PaginatorInterface
         return iterator_count($this->getIterator());
     }
 
-    public function getIterator(): \Traversable
+    public function getIterator(): Traversable
     {
         if ($this->currentPage > $this->lastPage) {
-            return new \EmptyIterator();
+            return new EmptyIterator();
         }
 
-        return new \LimitIterator(new \IteratorIterator($this->items), $this->offset, $this->limit);
+        return new LimitIterator(new IteratorIterator($this->items), $this->offset, $this->limit);
     }
 }

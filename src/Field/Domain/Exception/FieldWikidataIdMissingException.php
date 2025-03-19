@@ -6,10 +6,11 @@ namespace App\Field\Domain\Exception;
 
 use ApiPlatform\Metadata\ErrorResource;
 use ApiPlatform\Metadata\Exception\ProblemExceptionInterface;
+use Exception;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ErrorResource]
-class FieldWikidataIdMissingException extends \Exception implements ProblemExceptionInterface
+class FieldWikidataIdMissingException extends Exception implements ProblemExceptionInterface
 {
     #[Groups(['communities', 'places'])]
     public function getType(): string
@@ -32,7 +33,7 @@ class FieldWikidataIdMissingException extends \Exception implements ProblemExcep
     #[Groups(['communities', 'places'])]
     public function getDetail(): ?string
     {
-        return sprintf('Field wikidataId is missing');
+        return 'Field wikidataId is missing';
     }
 
     /**

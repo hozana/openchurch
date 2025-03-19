@@ -2,6 +2,9 @@
 
 namespace App\Shared\Domain\Enum;
 
+use InvalidArgumentException;
+use ReflectionClass;
+
 /**
  * Inspired and adapted from @see NamedEnum
  * getName method is used by EnumType (Doctrine type name), so name was renamed into label:
@@ -21,7 +24,7 @@ trait EnumTrait
      */
     public static function constants(): array
     {
-        return (new \ReflectionClass(static::class))->getConstants();
+        return (new ReflectionClass(static::class))->getConstants();
     }
 
     /**
@@ -85,7 +88,7 @@ trait EnumTrait
                 ? $callerContext['class'].$callerContext['type'].$callerContext['function']
                 : $callerContext['file'].'::'.$callerContext['function'];
 
-            throw new \InvalidArgumentException(sprintf('Invalid argument provided to %s - expected one of "%s", got "%s"', $callerMethod, implode(', ', self::constants()), var_export($value, true)));
+            throw new InvalidArgumentException(sprintf('Invalid argument provided to %s - expected one of "%s", got "%s"', $callerMethod, implode(', ', self::constants()), var_export($value, true)));
         }
     }
 }

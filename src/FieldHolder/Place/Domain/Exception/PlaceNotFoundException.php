@@ -6,11 +6,12 @@ namespace App\FieldHolder\Place\Domain\Exception;
 
 use ApiPlatform\Metadata\ErrorResource;
 use ApiPlatform\Metadata\Exception\ProblemExceptionInterface;
+use Exception;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
 
 #[ErrorResource]
-class PlaceNotFoundException extends \Exception implements ProblemExceptionInterface
+class PlaceNotFoundException extends Exception implements ProblemExceptionInterface
 {
     public function __construct(
         private Uuid $placeId,

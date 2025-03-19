@@ -6,6 +6,7 @@ namespace DoctrineMigrations;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
+use RuntimeException;
 use Symfony\Component\Uid\Uuid;
 
 final class Version20241220160327 extends AbstractMigration
@@ -15,7 +16,7 @@ final class Version20241220160327 extends AbstractMigration
         $syncroSecretKey = getenv('SYNCHRO_SECRET_KEY') ?? null;
 
         if (!$syncroSecretKey) {
-            throw new \RuntimeException('The environment variable SYNCHRO_SECRET_KEY is not defined.');
+            throw new RuntimeException('The environment variable SYNCHRO_SECRET_KEY is not defined.');
         }
 
         $this->addSql(

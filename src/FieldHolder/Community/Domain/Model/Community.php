@@ -6,6 +6,7 @@ use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Model\Field;
 use App\FieldHolder\Domain\Model\FieldHolder;
 use App\Shared\Infrastructure\Doctrine\Trait\DoctrineTimestampableTrait;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -48,7 +49,7 @@ class Community extends FieldHolder
 
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = new DateTimeImmutable();
         $this->fields = new ArrayCollection();
         $this->fieldsAsCommunityVal = new ArrayCollection();
         $this->fieldsAsCommunitiesVal = new ArrayCollection();

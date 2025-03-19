@@ -8,6 +8,8 @@ use Elastic\Elasticsearch\Client;
 use Elastic\Elasticsearch\ClientBuilder;
 use Elastic\Elasticsearch\Response\Elasticsearch;
 use Http\Promise\Promise;
+use InvalidArgumentException;
+use stdClass;
 
 class OfficialElasticSearchHelper implements SearchHelperInterface
 {
@@ -118,7 +120,7 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
     public function bulkIndex(SearchIndex $index, array $ids, array $bodies): void
     {
         if (count($ids) !== count($bodies)) {
-            throw new \InvalidArgumentException('ids and bodies should be of same size');
+            throw new InvalidArgumentException('ids and bodies should be of same size');
         }
 
         $params = ['body' => []];
@@ -234,7 +236,7 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             'index' => $index->value,
             'body' => [
                 'query' => [
-                    'match_all' => new \stdClass(),
+                    'match_all' => new stdClass(),
                 ],
             ],
             'size' => 100,

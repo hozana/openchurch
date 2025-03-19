@@ -6,6 +6,7 @@ use App\Field\Domain\Enum\FieldPlace;
 use App\Field\Domain\Model\Field;
 use App\FieldHolder\Domain\Model\FieldHolder;
 use App\Shared\Infrastructure\Doctrine\Trait\DoctrineTimestampableTrait;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -49,7 +50,7 @@ class Place extends FieldHolder
 
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = new DateTimeImmutable();
         $this->fieldsAsPlaceVal = new ArrayCollection();
         $this->fieldsAsPlacesVal = new ArrayCollection();
         $this->fields = new ArrayCollection();

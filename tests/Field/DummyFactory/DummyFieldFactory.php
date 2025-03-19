@@ -6,6 +6,7 @@ use App\Field\Domain\Enum\FieldEngine;
 use App\Field\Domain\Enum\FieldReliability;
 use App\Field\Domain\Model\Field;
 use App\Tests\Agent\DummyFactory\DummyAgentFactory;
+use DateTimeImmutable;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
@@ -36,7 +37,7 @@ final class DummyFieldFactory extends PersistentProxyObjectFactory
     {
         return [
             'agent' => DummyAgentFactory::new(),
-            'createdAt' => \DateTimeImmutable::createFromMutable(self::faker()->dateTime()),
+            'createdAt' => DateTimeImmutable::createFromMutable(self::faker()->dateTime()),
             'engine' => FieldEngine::AI,
             'name' => self::faker()->text(),
             'reliability' => FieldReliability::LOW,

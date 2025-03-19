@@ -14,6 +14,8 @@ use App\FieldHolder\Community\Domain\Exception\CommunityTypeNotProvidedException
 use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\FieldHolder\Community\Infrastructure\ApiPlatform\Resource\CommunityResource;
 use App\Shared\Infrastructure\ApiPlatform\State\Paginator;
+use ArrayIterator;
+use InvalidArgumentException;
 use Symfony\Component\Uid\Uuid;
 
 /**
@@ -55,22 +57,22 @@ final class CommunityCollectionProvider implements ProviderInterface
             $entityIds = match ($type) {
                 CommunityType::PARISH->value => $this->searchService->searchParishIds($name, $itemsPerPage, $page - 1),
                 CommunityType::DIOCESE->value => $this->searchService->searchDioceseIds($name, $itemsPerPage, $page - 1),
-                default => throw new \InvalidArgumentException(sprintf('Invalid type %s', $type)),
+                default => throw new InvalidArgumentException(sprintf('Invalid type %s', $type)),
             };
 
             if (0 === count($entityIds)) {
                 return [];
             }
         }
-        
+
         if ($parentWikidataId) {
-            $parentCommunity = $this->communityRepo->withWikidataId(intval($parentWikidataId))->asCollection()->first();
+            $parentCommunity = $this->communityRepo->withWikidataId((int) $parentWikidataId)->asCollection()->first();
         }
 
         $models = $this->communityRepo
             ->ofIds(array_map(fn (string $entityId) => Uuid::fromString($entityId), $entityIds ?? []))
             ->withType($type)
-            ->withWikidataId(intval($wikidataId))
+            ->withWikidataId((int) $wikidataId)
             ->withParentCommunityId($parentCommunity->id ?? null)
             ->withPagination($page, $itemsPerPage);
 
@@ -81,7 +83,7 @@ final class CommunityCollectionProvider implements ProviderInterface
 
         if (null !== $paginator = $models->paginator()) {
             $resources = new Paginator(
-                new \ArrayIterator($resources),
+                new ArrayIterator($resources),
                 (float) $paginator->getCurrentPage(),
                 (float) $paginator->getItemsPerPage(),
                 (float) $paginator->getLastPage(),

@@ -5,6 +5,7 @@ namespace App\Tests\Helper;
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use ApiPlatform\Symfony\Bundle\Test\Client;
 use Doctrine\ORM\EntityManagerInterface;
+use InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -20,8 +21,8 @@ abstract class AcceptanceTestHelper extends ApiTestCase
     protected function setUp(): void
     {
         parent::setUp();
+        parent::$alwaysBootKernel = false;
 
-        // Create client before booting kernel
         $this->client = static::createClient();
         $this->em = static::getContainer()->get('doctrine.orm.entity_manager');
     }
@@ -70,7 +71,7 @@ abstract class AcceptanceTestHelper extends ApiTestCase
     {
         if (count($querystring)) {
             if (str_contains($endpoint, '?')) {
-                throw new \InvalidArgumentException("$endpoint already contains a querystring, don't use both \$querystring argument and a hardcoded one!");
+                throw new InvalidArgumentException("$endpoint already contains a querystring, don't use both \$querystring argument and a hardcoded one!");
             }
             $endpoint .= '?'.http_build_query($querystring);
         }

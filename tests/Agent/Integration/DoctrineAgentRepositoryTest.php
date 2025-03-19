@@ -16,11 +16,6 @@ final class DoctrineAgentRepositoryTest extends KernelTestCase
 
     private static EntityManagerInterface $em;
 
-    public static function setUpBeforeClass(): void
-    {
-        static::bootKernel();
-    }
-
     protected function setUp(): void
     {
         static::$em = static::getContainer()->get(EntityManagerInterface::class);

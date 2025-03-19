@@ -46,9 +46,9 @@ class WriteIndexesCommand extends Command
             ->withType(CommunityType::DIOCESE->value)
             ->asCollection();
 
-        $output->writeln(sprintf('Indexing dioceses...'));
+        $output->writeln('Indexing dioceses...');
         $this->createDioceseIndexes($dioceses);
-        $output->writeln(sprintf('Indexing parishes...'));
+        $output->writeln('Indexing parishes...');
         $this->createParishIndexes($dioceses, $output);
 
         return Command::SUCCESS;

@@ -28,11 +28,6 @@ final class DoctrineFieldListenerTest extends KernelTestCase
     public SearchServiceInterface $searchService;
     public SearchHelperInterface $searchHelper;
 
-    public static function setUpBeforeClass(): void
-    {
-        static::bootKernel();
-    }
-
     protected function setUp(): void
     {
         $this->listener = static::getContainer()->get(DoctrineCommunityListener::class);
