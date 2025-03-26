@@ -68,6 +68,7 @@ services:
       - app-network
     environment:
       ROLE: api
+      SERVER_NAME: "localhost api.openchurch.local admin.openchurch.local"
   cli:
     extra_hosts: *default-extra_hosts
     container_name: openchurch_backend_cli
@@ -77,6 +78,7 @@ services:
       dockerfile: ./docker/php/Dockerfile
     environment:
       ROLE: cli
+      SERVER_NAME: :80
     depends_on:
       - db
       - redis
