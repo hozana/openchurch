@@ -67,16 +67,6 @@ services:
     networks:
       - app-network
     environment:
-      SERVER_NAME: localhost api.openchurch.local admin.openchurch.local
-      APP_ENV: dev
-      APP_SECRET: "secret"
-      DATABASE_URL: mysql://root:openchurch@db:3306/openchurch?serverVersion=10.11.6-MariaDB&charset=utf8mb4
-      REDIS_URL: redis://redis:6379
-      HOST_API: https://api.openchurch.local/api
-      HOST_ADMIN: admin.openchurch.local
-      ELASTIC_PASSWORD: admin
-      ELASTICSEARCH_IRI: http://elastic:admin@elasticsearch:9200
-      SYNCHRO_SECRET_KEY: "secret"
       ROLE: api
   cli:
     extra_hosts: *default-extra_hosts
@@ -86,17 +76,6 @@ services:
       context: .
       dockerfile: ./docker/php/Dockerfile
     environment:
-      SERVER_NAME: :80
-      APP_ENV: prod
-      DATABASE_URL: mysql://root:openchurch@db:3306/openchurch?serverVersion=10.11.6-MariaDB&charset=utf8mb4
-      HOST_API: api-preprod-openchurch.hozana.org
-      APP_SECRET: JK6nAUJQhFXMwiBvqHE_3UX8RyCeFEec
-      JWT_TOKEN_TTL: 120
-      JWT_PASSPHRASE: b361bf0a703911722b2a1704cc002cab
-      ELASTICSEARCH_IRI: http://elastic:admin@elasticsearch:9200
-      ELASTIC_PASSWORD: admin
-      SYNCHRO_SECRET_KEY: secret
-      REDIS_URL: redis://redis:6379
       ROLE: cli
     depends_on:
       - db
@@ -123,7 +102,6 @@ services:
     extra_hosts:
       - "api.openchurch.local:host-gateway"
     environment:
-      SQLITE_DATABASE: local.sqlite
       OPENCHURCH_HOST: "https://api.openchurch.local/api"
       PYTHONWARNINGS: "ignore:Unverified HTTPS request"
       SYNCHRO_SECRET_KEY: "secret"

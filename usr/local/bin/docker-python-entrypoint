@@ -37,10 +37,7 @@ done
 
 echo "api backend service is now available"
 
-while true; do
-    /opt/venv/bin/python /app/synchro.py --entity-only diocese
-    /opt/venv/bin/python /app/synchro.py --entity-only parish
-    /opt/venv/bin/python /app/synchro.py --entity-only church
-done
+/opt/venv/bin/python /app/synchro.py --entity-only diocese
+/opt/venv/bin/python /app/synchro.py --entity-only parish
 
 exec "$@"
