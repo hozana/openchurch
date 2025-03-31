@@ -465,7 +465,7 @@ class Processor(object):
                     self.redis_client.hset(key_batch, "status", "error")
             else:
                 print("Ignore batch %s/%s" % (iteration, len(batches)))
-            sleep(int(sleep_time) * 0.01)
+            sleep(int(sleep_time) * 0.001)
             iteration += 1
 
     def process_entity(self):
