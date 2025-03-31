@@ -432,7 +432,6 @@ class Processor(object):
         self.batch_size = batch_size
 
     def process_batch(self, data, method, run_id):
-        print(self.batch_size)
         batches = Query.split_into_batches(data, self.batch_size)
         self.redis_client.hset(self.type, "batchCount", len(batches))
         iteration = 1

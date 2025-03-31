@@ -1,5 +1,3 @@
-HOME=/opt/venv/bin/python
-
 # Each task to run has to be defined through a single line
 # indicating with different fields when the task will be run
 # and what command to run for the task
@@ -22,6 +20,6 @@ HOME=/opt/venv/bin/python
 #
 # m h  dom mon dow   command
 
-0 5 * * * /usr/bin/php $HOME/app/synchro.py --entity-only diocese > /proc/1/fd/1 2>/proc/1/fd/2
-0 5 * * * /usr/bin/php $HOME/app/synchro.py --entity-only parish > /proc/1/fd/1 2>/proc/1/fd/2
-0 3 * * 7 /usr/bin/php $HOME/app/synchro.py --entity-only church > /proc/1/fd/1 2>/proc/1/fd/2
+0 5 * * * /opt/venv/bin/python /app/synchro.py --entity-only diocese > /proc/1/fd/1 2>/proc/1/fd/2
+0 5 * * * /opt/venv/bin/python /app/synchro.py --entity-only parish > /proc/1/fd/1 2>/proc/1/fd/2
+0 3 * * 7 /opt/venv/bin/python /app/synchro.py --entity-only church > /proc/1/fd/1 2>/proc/1/fd/2

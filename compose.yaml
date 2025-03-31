@@ -95,6 +95,7 @@ services:
       - app-network
   python:
     container_name: openchurch_python
+    command: /usr/sbin/cron -f -l 15
     build:
       context: .
       dockerfile: ./docker/python/Dockerfile
