@@ -79,6 +79,8 @@ services:
     environment:
       ROLE: cli
       SERVER_NAME: :80
+      ELASTIC_PASSWORD: admin
+      ELASTICSEARCH_IRI: http://elastic:admin@elasticsearch:9200
     depends_on:
       - db
       - redis
@@ -108,6 +110,7 @@ services:
       PYTHONWARNINGS: "ignore:Unverified HTTPS request"
       SYNCHRO_SECRET_KEY: "secret"
       REDIS_URL: redis://redis:6379
+      SLEEP_MS_BETWEEN_REQUESTS: 1
     volumes:
       - ./scripts:/app
   redis:

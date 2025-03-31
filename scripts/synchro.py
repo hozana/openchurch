@@ -19,9 +19,11 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from datetime import datetime, timedelta
+from time import sleep
 
 load_dotenv(dotenv_path='.env')
 sentry_sdk.init(dsn=os.getenv('SENTRY_DSN_SYNCHRO'))
+sleep_time = os.getenv('SLEEP_MS_BETWEEN_REQUESTS', 0)
 
 endpoint = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
 agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'
@@ -464,6 +466,7 @@ class Processor(object):
                     self.redis_client.hset(key_batch, "status", "error")
             else:
                 print("Ignore batch %s/%s" % (iteration, len(batches)))
+            sleep(int(sleep_time) * 0.01)
             iteration += 1
 
     def process_entity(self):
