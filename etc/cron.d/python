@@ -20,6 +20,6 @@
 #
 # m h  dom mon dow   command
 
-0 5 * * * /opt/venv/bin/python /app/synchro.py --entity-only diocese > /proc/1/fd/1 2>/proc/1/fd/2
-0 5 * * * /opt/venv/bin/python /app/synchro.py --entity-only parish > /proc/1/fd/1 2>/proc/1/fd/2
-0 3 * * 7 /opt/venv/bin/python /app/synchro.py --entity-only church > /proc/1/fd/1 2>/proc/1/fd/2
+0 5 * * * root /opt/venv/bin/python /app/synchro.py --entity-only diocese > /proc/1/fd/1 2>/proc/1/fd/2
+0 5 * * * root /opt/venv/bin/python /app/synchro.py --entity-only parish > /proc/1/fd/1 2>/proc/1/fd/2
+0 3 * * 7 root /opt/venv/bin/python /app/synchro.py --entity-only church > /proc/1/fd/1 2>/proc/1/fd/2
