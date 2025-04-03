@@ -67,8 +67,18 @@ services:
     networks:
       - app-network
     environment:
-      ROLE: api
       SERVER_NAME: "localhost api.openchurch.local admin.openchurch.local"
+      APP_ENV:
+      REDIS_URI:
+      DATABASE_URL:
+      SENTRY_DSN:
+      MONITORING_SERVER_IP:
+      HOST_API:
+      APP_SECRET:
+      ELASTICSEARCH_IRI:
+      ELASTIC_PASSWORD:
+      REDIS_URL:
+      CORS_ALLOW_ORIGIN:
   cli:
     extra_hosts: *default-extra_hosts
     container_name: openchurch_backend_cli
@@ -77,10 +87,15 @@ services:
       context: .
       dockerfile: ./docker/php/Dockerfile
     environment:
-      ROLE: cli
       SERVER_NAME: :80
-      ELASTIC_PASSWORD: admin
-      ELASTICSEARCH_IRI: http://elastic:admin@elasticsearch:9200
+      APP_ENV:
+      DATABASE_URL:
+      HOST_API:
+      APP_SECRET:
+      ELASTICSEARCH_IRI:
+      ELASTIC_PASSWORD:
+      SYNCHRO_SECRET_KEY:
+      REDIS_URL:
     depends_on:
       - db
       - redis
@@ -112,6 +127,7 @@ services:
       SYNCHRO_SECRET_KEY: "secret"
       REDIS_URL: redis://redis:6379
       SLEEP_MS_BETWEEN_REQUESTS: 1
+      SENTRY_DSN_SYNCHRO:
     volumes:
       - ./scripts:/app
   redis:

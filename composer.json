@@ -20,6 +20,7 @@
     "phpdocumentor/reflection-docblock": "^5.4",
     "phpstan/phpdoc-parser": "^1.32",
     "predis/predis": "^2.3",
+    "sentry/sentry-symfony": "^5.2",
     "symfony/asset": "7.1.*",
     "symfony/asset-mapper": "7.1.*",
     "symfony/console": "7.1.*",

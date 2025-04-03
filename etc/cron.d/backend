@@ -1,6 +1,4 @@
 HOME=/var/www/html
-LANG=nb_NO.UTF-8
-LC_ALL=nb_NO.UTF-8
 
 # Each task to run has to be defined through a single line
 # indicating with different fields when the task will be run

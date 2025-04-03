@@ -63,7 +63,7 @@ php -d memory_limit=256M bin/console -n cache:warmup
 # mysql server. Once it has a connection it disconnect and wait to allows for mysql to cold initialize and reboot a second
 # time (10 sec approx). If the database existes and is initialised the first part of the code below (ping every second)
 # will terminate faster than 3 seconds and therefore the process will continue directly to migrations.
-if [[ ! "$@" == *"frankenphp"* ]] || [ "$APP_ENV" != "prod" ]; then
+if [[ "$@" == "/usr/sbin/cron -f -l 15" ]]; then
 	# Wait for db to be ready
 	echo -n "------ Waiting for db to be ready "
 	count=0
@@ -77,15 +77,7 @@ if [[ ! "$@" == *"frankenphp"* ]] || [ "$APP_ENV" != "prod" ]; then
 		sleep 10
 	fi
 	echo "\n db is UP!"
-fi
 
-nice php -d memory_limit=256M bin/console -n cache:clear --no-warmup
-nice php -d memory_limit=256M bin/console -n cache:warmup
-
-# Restore correct access rights to all project files exept for node_modules and vendor (they are not writable and do not belong to us):
-chown -R www-data:www-data $(ls -A1 | grep -Ev 'vendor|node_modules|.git')
-
-if [ "$ROLE" == 'cli' ]; then
 	# Run database migrations
 	bin/console -n doctrine:migrations:migrate -vvv
 
@@ -101,5 +93,11 @@ if [ "$ROLE" == 'cli' ]; then
 	done
 	bin/console -vvv app:write:indexes
 fi
+
+nice php -d memory_limit=256M bin/console -n cache:clear --no-warmup
+nice php -d memory_limit=256M bin/console -n cache:warmup
+
+# Restore correct access rights to all project files exept for node_modules and vendor (they are not writable and do not belong to us):
+chown -R www-data:www-data $(ls -A1 | grep -Ev 'vendor|node_modules|.git')
 
 exec "$@"
