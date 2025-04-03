@@ -24,4 +24,4 @@ LC_ALL=nb_NO.UTF-8
 #
 # m h  dom mon dow   command
 
-30 18 * * * /usr/bin/php $HOME/bin/console app:write:indexes > /proc/1/fd/1 2>/proc/1/fd/2
+30 18 * * * www-data /usr/bin/php $HOME/bin/console app:write:indexes > /proc/1/fd/1 2>/proc/1/fd/2
