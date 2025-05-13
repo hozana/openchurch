@@ -32,7 +32,18 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             'number_of_shards' => 1, // Only one shard per index, since we don't face performance issue yet
             'number_of_replicas' => 0, // No replica of shard, since it's a mono-node cluster for the moment
             'analysis' => [
+                'normalizer' => [
+                    'french_normalizer' => [
+                        'type' => 'custom',
+                        'filter' => ['lowercase', 'asciifolding']
+                    ]
+                ],
                 'filter' => [
+                    "edge_ngram_filter" => [
+                        "type" => "edge_ngram",
+                        "min_gram" => 2,
+                        "max_gram" => 10,
+                    ],
                     'french_stemmer' => [
                         'type' => 'stemmer',
                         'language' => 'light_french',
@@ -58,6 +69,11 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                     ],
                 ],
                 'analyzer' => [
+                    "edge_ngram_analyzer" => [
+                        "tokenizer" => "pattern",
+                        "pattern" => "\\W+", // Découpe sur les non-lettres
+                        "filter" => ["lowercase", "asciifolding", "edge_ngram_filter"]
+                    ],
                     'default' => [
                         'tokenizer' => 'standard',
                         'filter' => [
@@ -87,9 +103,21 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                 ],
                 'parishName' => [
                     'type' => 'text',
+                    'fields' => [
+                        'edge_ngram' => [
+                            'type' => 'text',
+                            'analyzer' => 'edge_ngram_analyzer',
+                        ],
+                    ]
                 ],
                 'dioceseName' => [
                     'type' => 'text',
+                    'fields' => [
+                        'edge_ngram' => [
+                            'type' => 'text',
+                            'analyzer' => 'edge_ngram_analyzer',
+                        ],
+                    ]
                 ],
             ],
         ];
@@ -108,6 +136,16 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                 ],
                 'dioceseName' => [
                     'type' => 'text',
+                    'fields' => [
+                        'keyword' => [
+                            'type' => 'keyword',
+                            'normalizer' => 'french_normalizer' // Nouveau normalizer
+                        ],
+                        'edge_ngram' => [
+                            'type' => 'text',
+                            'analyzer' => 'edge_ngram_analyzer',
+                        ],
+                    ]
                 ],
             ],
         ];

@@ -78,18 +78,47 @@ class OfficialElasticSearchService implements SearchServiceInterface
      */
     private function buildQueryForDioceses(string $text, int $limit, int $offset): array
     {
+        $analyzedText = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $text);
+
         return [
             'query' => [
                 'bool' => [
                     'should' => [
-                        'match' => [
-                            'dioceseName' => [
-                                'query' => $text,
-                                'fuzziness' => 'AUTO',
-                            ],
+                        // 1. Recherche exacte avec boost
+                        [
+                            'term' => [
+                                'dioceseName.keyword' => [
+                                    'value' => $analyzedText,
+                                    'boost' => 2
+                                ]
+                            ]
+                        ],
+                        // 2. Recherche floue
+                        [
+                            'match' => [
+                                'dioceseName' => [
+                                    'query' => $analyzedText,
+                                    'fuzziness' => 'AUTO',
+                                    'prefix_length' => 2 // Force les 2 premiers caractères exacts
+                                ]
+                            ]
+                        ],
+                        // 3. Recherche par préfixe (wildcard optimisé)
+                        [
+                            'prefix' => [
+                                'dioceseName.edge_ngram' => [
+                                    'value' => $analyzedText,
+                                    'rewrite' => 'scoring_boolean'
+                                ]
+                            ]
                         ],
                     ],
                     'minimum_should_match' => 1, // At least one of the above rules should contain search text
+                ],
+            ],
+            'sort' => [
+                'dioceseName.keyword' => [ 
+                    'order' => 'asc',
                 ],
             ],
             'size' => $limit,
@@ -128,7 +157,7 @@ class OfficialElasticSearchService implements SearchServiceInterface
         );
         $results = $this->elasticSearchHelper->search(SearchIndex::DIOCESE, $body);
 
-        $entityIds = array_map(static fn (array $hit): string => $hit['_id'], $results['hits']['hits']);
+        $entityIds = array_unique(array_map(static fn (array $hit): string => $hit['_id'], $results['hits']['hits']));
 
         return $entityIds;
     }
