@@ -27,8 +27,8 @@ class DashboardController extends AbstractController
     {
         $types = [
             'diocese' => ['repository' => $this->communityRepository, 'type' => 'diocese'],
-            'parish'  => ['repository' => $this->communityRepository, 'type' => 'parish'],
-            'church'  => ['repository' => $this->placeRepository, 'type' => null],
+            'parish' => ['repository' => $this->communityRepository, 'type' => 'parish'],
+            'church' => ['repository' => $this->placeRepository, 'type' => null],
         ];
 
         $input = [];
@@ -41,11 +41,11 @@ class DashboardController extends AbstractController
             $redisData = $this->redisClient->getHash($key);
 
             $input[$key] = [
-                'count'     => $count,
-                'status'    => $redisData['status'] ?? 'undefined',
-                'progress'  => $this->calculateProgress($redisData),
+                'count' => $count,
+                'status' => $redisData['status'] ?? 'undefined',
+                'progress' => $this->calculateProgress($redisData),
                 'startDate' => array_key_exists('startDate', $redisData) ? (new DateTime($redisData['startDate']))->format('Y-m-d H:i:s') : 'undefined',
-                'endDate'   => array_key_exists('endDate', $redisData) ? (new DateTime($redisData['endDate']))->format('Y-m-d H:i:s') : 'undefined',
+                'endDate' => array_key_exists('endDate', $redisData) ? (new DateTime($redisData['endDate']))->format('Y-m-d H:i:s') : 'undefined',
             ];
         }
 

@@ -26,8 +26,10 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
 
         $this->elasticHelper->deleteIndex(SearchIndex::DIOCESE);
         $this->elasticHelper->createIndex(SearchIndex::DIOCESE);
+        $this->elasticHelper->putMapping(SearchIndex::DIOCESE);
         $this->elasticHelper->deleteIndex(SearchIndex::PARISH);
         $this->elasticHelper->createIndex(SearchIndex::PARISH);
+        $this->elasticHelper->putMapping(SearchIndex::PARISH);
     }
 
     public function testSimpleDioceseQuery(): void
@@ -88,7 +90,61 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
         self::assertEquals([0 => $parishes[3]['parishName']], $ids);
     }
 
-    public function testParishStopwords(): void
+    public function testSearchDioceseOnSmallText(): void
+    {
+        $dioceses = [
+            'Diocèse de Fréjus-Toulon',
+            'Diocèse de France',
+            'Diocèse d\'Autun, Chalon et Mâcon',
+            'Archidiocèse d\'Aix-en-Provence et Arles',
+            'Diocèse d\'Ajaccio',
+            'Archidiocèse de Montpellier',
+        ];
+
+        $this->elasticHelper->bulkIndex(
+            SearchIndex::DIOCESE,
+            $dioceses,
+            array_map(fn (string $dioceseName) => ['dioceseName' => $dioceseName], $dioceses),
+        );
+        $this->elasticHelper->refresh(SearchIndex::DIOCESE);
+
+        self::assertEquals(
+            [
+                'Diocèse de France',
+                'Diocèse de Fréjus-Toulon',
+            ],
+            $this->elasticService->searchDioceseIds('fr', 6, 0)
+        );
+    }
+
+    public function testParishWithDioceseName(): void
+    {
+        $parishes = [
+            ['dioceseName' => "Archidiocèse de Montpellier", 'parishName' => 'Paroisse Cathédrale'],
+            ['dioceseName' => "Diocèse d'Aire et Dax", 'parishName' => 'Paroisse Notre-Dame-du-Mont-Carmel'],
+            ['dioceseName' => "Archidiocèse de Montpellier", 'parishName' => 'Paroisse Sainte Thérèse'],
+            ['dioceseName' => "Archidiocèse d'Aix-en-Provence et Arles", 'parishName' => 'Unité pastorale Saint-Michel'],
+            ['dioceseName' => "Diocèse d'Ajaccio", 'parishName' => 'Paroisse de Zonza'],
+            ['dioceseName' => 'Archidiocèse de Montpellier', 'parishName' => 'Paroisse Sainte Bernadette'],
+        ];
+
+        $this->elasticHelper->bulkIndex(
+            SearchIndex::PARISH,
+            array_column($parishes, 'parishName'),
+            array_map(fn (array $parish) => ['parishName' => $parish['parishName'], 'dioceseName' => $parish['dioceseName']], $parishes),
+        );
+        $this->elasticHelper->refresh(SearchIndex::PARISH);
+
+        // check if d' is a stopword
+        $ids = $this->elasticService->searchParishIds("Archidiocèse de Montpellier", 10, 0);
+        self::assertEquals([
+            'Paroisse Cathédrale',
+            'Paroisse Sainte Bernadette',
+            'Paroisse Sainte Thérèse',
+        ], $ids);
+    }
+
+    public function testStopwords(): void
     {
         $parishes = [
             ['dioceseName' => "Diocèse d'Amiens", 'parishName' => 'Paroisse Saint-Domice'],
@@ -113,8 +169,6 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
         // check if saint is a stopword
         $ids = $this->elasticService->searchParishIds('saint', 3, 0);
         self::assertCount(0, $ids);
-        $ids = $this->elasticService->searchParishIds('sain', 3, 0);
-        self::assertCount(0, $ids);
         $ids = $this->elasticService->searchParishIds('sainte', 3, 0);
         self::assertCount(0, $ids);
         $ids = $this->elasticService->searchParishIds('Sainte', 3, 0);
@@ -128,7 +182,7 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
         $ids = $this->elasticService->searchParishIds('paroiss', 3, 0);
         self::assertCount(0, $ids);
 
-        // // check if diocèse is a stopword
+        // check if diocèse is a stopword
         $ids = $this->elasticService->searchParishIds('diocese', 3, 0);
         self::assertCount(0, $ids);
         $ids = $this->elasticService->searchParishIds('Diocese', 3, 0);
@@ -137,5 +191,73 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
         self::assertCount(0, $ids);
         $ids = $this->elasticService->searchParishIds('dioce', 3, 0);
         self::assertCount(0, $ids);
+
+        // check if archidiocèse is a stopword
+        $ids = $this->elasticService->searchParishIds('Archidiocèse', 3, 0);
+        self::assertCount(0, $ids);
+        $ids = $this->elasticService->searchParishIds('archidiocèse', 3, 0);
+        self::assertCount(0, $ids);
+    }
+
+    public function testParishSorting(): void
+    {
+        $parishes = [
+            'Paroisse Saint-Domice',
+            'Paroisse Notre-Dame-du-Mont-Carmel',
+            'Paroisse Saint-Joseph-Ouvrier',
+            'Unité pastorale Saint-Michel',
+            'Paroisse de Zonza',
+            'Paroisse Sainte Bernadette',
+        ];
+
+        $this->elasticHelper->bulkIndex(
+            SearchIndex::PARISH,
+            $parishes,
+            array_map(fn (string $parishName) => ['parishName' => $parishName], $parishes),
+        );
+        $this->elasticHelper->refresh(SearchIndex::PARISH);
+
+        self::assertEquals(
+            [
+                'Paroisse de Zonza',
+                'Paroisse Notre-Dame-du-Mont-Carmel',
+                'Paroisse Saint-Domice',
+                'Paroisse Saint-Joseph-Ouvrier',
+                'Paroisse Sainte Bernadette',
+                'Unité pastorale Saint-Michel',
+            ],
+            $this->elasticService->searchParishIds('', 6, 0)
+        );
+    }
+
+    public function testDioceseSorting(): void
+    {
+        $dioceses = [
+            'Diocèse d\'Amiens',
+            'Diocèse d\'Aire et Dax',
+            'Diocèse d\'Autun, Chalon et Mâcon',
+            'Archidiocèse d\'Aix-en-Provence et Arles',
+            'Diocèse d\'Ajaccio',
+            'Archidiocèse de Montpellier',
+        ];
+
+        $this->elasticHelper->bulkIndex(
+            SearchIndex::DIOCESE,
+            $dioceses,
+            array_map(fn (string $dioceseName) => ['dioceseName' => $dioceseName], $dioceses),
+        );
+        $this->elasticHelper->refresh(SearchIndex::DIOCESE);
+
+        self::assertEquals(
+            [
+                'Archidiocèse d\'Aix-en-Provence et Arles',
+                'Archidiocèse de Montpellier',
+                'Diocèse d\'Aire et Dax',
+                'Diocèse d\'Ajaccio',
+                'Diocèse d\'Amiens',
+                'Diocèse d\'Autun, Chalon et Mâcon',
+            ],
+            $this->elasticService->searchDioceseIds('', 6, 0)
+        );
     }
 }

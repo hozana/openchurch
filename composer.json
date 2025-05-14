@@ -11,6 +11,7 @@
     "ext-iconv": "*",
     "api-platform/doctrine-orm": "^4.0",
     "api-platform/symfony": "^4.0",
+    "beberlei/doctrineextensions": "^1.5",
     "doctrine/dbal": "^3",
     "doctrine/doctrine-bundle": "^2.13",
     "doctrine/doctrine-migrations-bundle": "^3.3",

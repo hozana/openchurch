@@ -118,6 +118,14 @@ abstract class DoctrineRepository implements RepositoryInterface
         return $cloned;
     }
 
+    protected function sort(callable $sort): static
+    {
+        $cloned = clone $this;
+        $sort($cloned->queryBuilder);
+
+        return $cloned;
+    }
+
     protected function query(): QueryBuilder
     {
         return clone $this->queryBuilder;

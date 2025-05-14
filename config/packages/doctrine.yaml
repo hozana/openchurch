@@ -42,6 +42,9 @@ doctrine:
         is_bundle: false
         dir: "%kernel.project_dir%/src/Agent/Domain/Model"
         prefix: 'App\Agent\Domain'
+    dql:
+      string_functions:
+        FIELD: DoctrineExtensions\Query\Mysql\Field
     controller_resolver:
       auto_mapping: false
 

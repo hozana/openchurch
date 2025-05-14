@@ -37,39 +37,76 @@ class OfficialElasticSearchService implements SearchServiceInterface
      */
     private function buildQueryForParishes(string $text, int $limit, int $offset): array
     {
+        $analyzedText = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $text);
+        $isMoreThan3Words = str_word_count($text) > 2;
+
         return [
             'query' => [
-                'function_score' => [
-                    'query' => [
-                        'bool' => [
-                            'should' => [
-                                [
-                                    'match' => [
-                                        'parishName' => [
-                                            'query' => $text,
-                                            'boost' => 20, // First we search in parish name
-                                            'fuzziness' => 'AUTO',
-                                        ],
-                                    ],
-                                ],
-                                [
-                                    'match' => [
-                                        'dioceseName' => [
-                                            'query' => $text,
-                                            'boost' => 50, // Then, in diocese name
-                                            'fuzziness' => 'AUTO',
-                                        ],
-                                    ],
-                                ],
-                            ],
-                            'minimum_should_match' => 1, // At least one of the above rules should contain search text
+                'bool' => [
+                    'should' => [
+                        // 1. Exact match for diocese name (high boost)
+                        [
+                            'match' => [
+                                'dioceseName' => [
+                                    'value' => $analyzedText,
+                                    'boost' => 100,
+                                    'analyzer' => 'french_search_analyzer',
+                                ]
+                            ]
                         ],
+                        // 2. Fuzzy search on diocese (good boost)
+                        [
+                            'match' => [
+                                'dioceseName' => [
+                                    'query' => $analyzedText,
+                                    'fuzziness' => 'AUTO',
+                                    'prefix_length' => 2,
+                                    'boost' => 50
+                                ]
+                            ]
+                        ],
+                        // 3. Prefix search on parish
+                        [
+                            'match' => [
+                                'parishName' => [
+                                    'value' => $analyzedText,
+                                    'rewrite' => 'scoring_boolean',
+                                    'boost' => $isMoreThan3Words ? 1 : 30,
+                                    'analyzer' => 'french_search_analyzer',
+                                ]
+                            ]
+                        ],
+                        // 4. Full-text search on parish
+                        [
+                            'match_phrase_prefix' => [
+                                'parishName' => [
+                                    'query' => $analyzedText,
+                                    'slop' => 10,
+                                    'boost' => 20
+                                ]
+                            ]
+                        ],
+                        // 5. Fuzzy search on parish
+                        [
+                            'match' => [
+                                'parishName' => [
+                                    'query' => $analyzedText,
+                                    'fuzziness' => 'AUTO',
+                                    'prefix_length' => 2,
+                                    'boost' => 10
+                                ]
+                            ]
+                        ]
                     ],
-                ],
+                    'minimum_should_match' => 1
+                ]
+            ],
+            'sort' => [
+                ['parishName.french_sort' => ['order' => 'asc']]
             ],
             'size' => $limit,
             'from' => $offset,
-            '_source' => false, // We don't want the source, the _id will be enough
+            '_source' => false
         ];
     }
 
@@ -84,46 +121,60 @@ class OfficialElasticSearchService implements SearchServiceInterface
             'query' => [
                 'bool' => [
                     'should' => [
-                        // 1. Recherche exacte avec boost
+                        // 1. Boosted exact search
                         [
                             'term' => [
                                 'dioceseName.keyword' => [
                                     'value' => $analyzedText,
+                                    'boost' => 5
+                                ]
+                            ]
+                        ],
+                        // 2. Prefix search (short)
+                        [
+                            'prefix' => [
+                                'dioceseName.edge_ngram' => [
+                                    'value' => $analyzedText,
+                                    'rewrite' => 'scoring_boolean',
+                                    'boost' => str_word_count($text) > 2 ? 1 : 3
+                                ]
+                            ]
+                        ],
+                        // 3. Full-text search (long)
+                        [
+                            'match_phrase_prefix' => [
+                                'dioceseName' => [
+                                    'query' => $analyzedText,
+                                    'slop' => 10,
                                     'boost' => 2
                                 ]
                             ]
                         ],
-                        // 2. Recherche floue
+                        // 4. Approximate search
                         [
                             'match' => [
                                 'dioceseName' => [
                                     'query' => $analyzedText,
                                     'fuzziness' => 'AUTO',
-                                    'prefix_length' => 2 // Force les 2 premiers caractères exacts
+                                    'prefix_length' => 2,
+                                    'boost' => 1
                                 ]
                             ]
-                        ],
-                        // 3. Recherche par préfixe (wildcard optimisé)
-                        [
-                            'prefix' => [
-                                'dioceseName.edge_ngram' => [
-                                    'value' => $analyzedText,
-                                    'rewrite' => 'scoring_boolean'
-                                ]
-                            ]
-                        ],
+                        ]
                     ],
-                    'minimum_should_match' => 1, // At least one of the above rules should contain search text
-                ],
+                    'minimum_should_match' => 1
+                ]
             ],
             'sort' => [
-                'dioceseName.keyword' => [ 
-                    'order' => 'asc',
-                ],
+                [
+                    'dioceseName.french_sort' => [
+                        'order' => 'asc'
+                    ]
+                ]
             ],
             'size' => $limit,
             'from' => $offset,
-            '_source' => false,
+            '_source' => false,  // We don't want the source, the _id will be enough
         ];
     }
 

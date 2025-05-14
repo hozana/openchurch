@@ -39,11 +39,6 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                     ]
                 ],
                 'filter' => [
-                    "edge_ngram_filter" => [
-                        "type" => "edge_ngram",
-                        "min_gram" => 2,
-                        "max_gram" => 10,
-                    ],
                     'french_stemmer' => [
                         'type' => 'stemmer',
                         'language' => 'light_french',
@@ -55,6 +50,7 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                     'custom_stop' => [
                         'type' => 'stop',
                         'stopwords' => [
+                            'archidiocèse',
                             'paroisse',
                             'diocese',
                             'sainte',
@@ -69,23 +65,37 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                     ],
                 ],
                 'analyzer' => [
-                    "edge_ngram_analyzer" => [
-                        "tokenizer" => "pattern",
-                        "pattern" => "\\W+", // Découpe sur les non-lettres
-                        "filter" => ["lowercase", "asciifolding", "edge_ngram_filter"]
-                    ],
-                    'default' => [
+                    'french_search_analyzer' => [
+                        'type' => 'custom',
                         'tokenizer' => 'standard',
                         'filter' => [
+                            'lowercase',
+                            'asciifolding',
+                            'french_elision',
+                            'french_stop',
+                            'custom_stop'
+                        ]
+                    ],
+                    'edge_ngram_analyzer' => [
+                        'tokenizer' => 'edge_ngram_tokenizer',
+                        'filter' => [
+                            'custom_stop',
                             'asciifolding',
                             'lowercase',
-                            'custom_stop',
                             'french_stemmer',
                             'french_stop',
                             'french_elision',
                         ],
                     ],
                 ],
+                'tokenizer' => [
+                    'edge_ngram_tokenizer' => [
+                        'type' => 'edge_ngram',
+                        'min_gram' => 2,
+                        'max_gram' => 10,
+                        'token_chars' => ['letter', 'digit']
+                    ]
+                ]
             ],
         ];
     }
@@ -103,15 +113,24 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                 ],
                 'parishName' => [
                     'type' => 'text',
+                    'analyzer' => 'edge_ngram_analyzer',
+                    'search_analyzer' => 'french_search_analyzer',
                     'fields' => [
                         'edge_ngram' => [
                             'type' => 'text',
                             'analyzer' => 'edge_ngram_analyzer',
                         ],
+                        'french_sort' => [
+                            'type' => 'icu_collation_keyword',
+                            'language' => 'fr',
+                            'country' => 'FR',
+                            'strength' => 'secondary'
+                        ],
                     ]
                 ],
                 'dioceseName' => [
                     'type' => 'text',
+                    'search_analyzer' => 'french_search_analyzer',
                     'fields' => [
                         'edge_ngram' => [
                             'type' => 'text',
@@ -129,22 +148,24 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
     private function getDioceseMapping(): array
     {
         return [
-            'dynamic' => 'strict', // We do not allow other fields than the following
+            'dynamic' => 'strict',
             'properties' => [
-                'id' => [
-                    'type' => 'keyword',
-                ],
+                'id' => ['type' => 'keyword'],
                 'dioceseName' => [
                     'type' => 'text',
+                    'analyzer' => 'edge_ngram_analyzer',
+                    'search_analyzer' => 'french_search_analyzer',
                     'fields' => [
-                        'keyword' => [
-                            'type' => 'keyword',
-                            'normalizer' => 'french_normalizer' // Nouveau normalizer
-                        ],
                         'edge_ngram' => [
                             'type' => 'text',
-                            'analyzer' => 'edge_ngram_analyzer',
+                            'analyzer' => 'edge_ngram_analyzer'
                         ],
+                        'french_sort' => [
+                            'type' => 'icu_collation_keyword',
+                            'language' => 'fr',
+                            'country' => 'FR',
+                            'strength' => 'secondary'
+                        ]
                     ]
                 ],
             ],

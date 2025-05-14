@@ -51,8 +51,10 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
 
         return
             $this->filter(static function (QueryBuilder $qb) use ($ids): void {
-                $qb->andWhere('community.id IN (:ids)')
-                    ->setParameter('ids', array_map(fn (Uuid $id) => $id->toBinary(), $ids));
+                $qb->addSelect('FIELD(community.id, :ids) AS HIDDEN orderField')
+                    ->andWhere('community.id IN (:ids)')
+                    ->setParameter('ids', array_map(fn (Uuid $id) => $id->toBinary(), $ids))
+                    ->addOrderBy('orderField');
             });
     }
 
@@ -122,5 +124,18 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
                     ")
                     ->setParameter('valueParentCommunity', $parentId->toBinary());
             });
+    }
+
+    public function sortByName(): static
+    {
+        return $this->sort(static function (QueryBuilder $qb): void {
+            if (!in_array('fields', $qb->getAllAliases())) {
+                $qb->join('community.fields', 'fields');
+            }
+
+            $qb->andWhere('fields.name = :name')
+                ->setParameter('name', 'name')
+                ->orderBy('fields.stringVal', 'ASC');
+        });
     }
 }
