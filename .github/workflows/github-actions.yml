@@ -96,7 +96,9 @@ jobs:
           - 6379:6379
         options: --health-cmd="redis-cli --raw incr ping"
     steps:
-      - name: install elastic plugins
+      - name: Debug - Lister les containers
+        run: docker ps -a --format "{{.Names}}"
+      - name: Install elastic plugins
         run: |
           CONTAINER_NAME="${{ github.job }}-service-elasticsearch-1"
           docker exec $CONTAINER_NAME bin/elasticsearch-plugin install analysis-icu
