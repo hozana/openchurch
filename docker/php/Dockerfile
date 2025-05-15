@@ -53,13 +53,13 @@ COPY etc/cron.d/backend /etc/cron.d/backend
 COPY etc/caddy/Caddyfile /etc/caddy/Caddyfile
 COPY etc/logrotate.d/symfony /etc/logrotate.d/symfony
 
-# Build assets
-RUN bin/console asset-map:compile
-
 # Install composer dependencies
 RUN COMPOSER_MEMORY_LIMIT=-1 composer install --no-scripts --no-progress --no-suggest --prefer-dist --no-interaction
 
 RUN mkdir -p var/cache && mkdir -p var/log && mkdir -p var/cache/prod && chown -R ${USER}:${USER} var
+
+# Build assets
+RUN bin/console asset-map:compile
 
 # Ajouter la capacité supplémentaire de se lier aux ports 80 et 443
 # Donner l'accès en écriture à /data/caddy et /config/caddy
