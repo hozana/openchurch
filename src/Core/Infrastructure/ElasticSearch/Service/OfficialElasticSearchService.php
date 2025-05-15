@@ -7,6 +7,7 @@ use App\Core\Domain\Search\Service\SearchServiceInterface;
 use App\FieldHolder\Community\Domain\Model\Community;
 use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\Shared\Domain\Enum\SearchIndex;
+use stdClass;
 use Symfony\Component\Uid\Uuid;
 
 class OfficialElasticSearchService implements SearchServiceInterface
@@ -25,8 +26,8 @@ class OfficialElasticSearchService implements SearchServiceInterface
             $limit,
             $offset,
         );
-        $results = $this->elasticSearchHelper->search(SearchIndex::PARISH, $body);
 
+        $results = $this->elasticSearchHelper->search(SearchIndex::PARISH, $body);
         $entityIds = array_map(static fn (array $hit): string => $hit['_id'], $results['hits']['hits']);
 
         return $entityIds;
@@ -38,62 +39,78 @@ class OfficialElasticSearchService implements SearchServiceInterface
     private function buildQueryForParishes(string $text, int $limit, int $offset): array
     {
         $analyzedText = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $text);
-        $isMoreThan3Words = str_word_count($text) > 2;
+
+        if (trim($analyzedText) === '') {
+            return [
+                'query' => ['match_all' => new stdClass()],
+                'sort' => [['parishName.french_sort' => ['order' => 'asc']]],
+                'size' => $limit,
+                'from' => $offset,
+                '_source' => false
+            ];
+        }
 
         return [
             'query' => [
                 'bool' => [
                     'should' => [
-                        // 1. Exact match for diocese name (high boost)
+                        // 1. Exact match for parish name (high boost)
                         [
                             'match' => [
-                                'dioceseName' => [
-                                    'value' => $analyzedText,
-                                    'boost' => 100,
-                                    'analyzer' => 'french_search_analyzer',
-                                ]
-                            ]
-                        ],
-                        // 2. Fuzzy search on diocese (good boost)
-                        [
-                            'match' => [
-                                'dioceseName' => [
+                                'parishName.exact' => [
                                     'query' => $analyzedText,
-                                    'fuzziness' => 'AUTO',
-                                    'prefix_length' => 2,
-                                    'boost' => 50
+                                    'analyzer' => 'exact_analyzer',
+                                    'boost' => 5
                                 ]
                             ]
                         ],
-                        // 3. Prefix search on parish
+                        // 2. prefix search search on parish
                         [
-                            'match' => [
-                                'parishName' => [
+                            'prefix' => [
+                                'parishName.edge_ngram' => [
                                     'value' => $analyzedText,
                                     'rewrite' => 'scoring_boolean',
-                                    'boost' => $isMoreThan3Words ? 1 : 30,
-                                    'analyzer' => 'french_search_analyzer',
+                                    'boost' => str_word_count($text) > 2 ? 1 : 3
                                 ]
                             ]
                         ],
-                        // 4. Full-text search on parish
-                        [
-                            'match_phrase_prefix' => [
-                                'parishName' => [
-                                    'query' => $analyzedText,
-                                    'slop' => 10,
-                                    'boost' => 20
-                                ]
-                            ]
-                        ],
-                        // 5. Fuzzy search on parish
+                        // 3. Approximate search on parish
                         [
                             'match' => [
                                 'parishName' => [
                                     'query' => $analyzedText,
                                     'fuzziness' => 'AUTO',
                                     'prefix_length' => 2,
-                                    'boost' => 10
+                                    'boost' => 1
+                                ]
+                            ]
+                        ],
+                        // 4. exact search on diocese
+                        [
+                            'match' => [
+                                'dioceseName.exact' => [
+                                    'query' => $analyzedText,
+                                    'analyzer' => 'exact_analyzer'
+                                ]
+                            ]
+                        ],
+                        // 5. Prefix search on diocese
+                        [
+                            'prefix' => [
+                                'dioceseName.edge_ngram' => [
+                                    'value' => $analyzedText,
+                                    'rewrite' => 'scoring_boolean',
+                                    'boost' => str_word_count($text) > 2 ? 1 : 3
+                                ]
+                            ]
+                        ],
+                        // 6. Approximate search on diocese
+                        [
+                            'match' => [
+                                'dioceseName' => [
+                                    'query' => $analyzedText,
+                                    'fuzziness' => 'AUTO',
+                                    'prefix_length' => 2,
                                 ]
                             ]
                         ]
@@ -140,17 +157,7 @@ class OfficialElasticSearchService implements SearchServiceInterface
                                 ]
                             ]
                         ],
-                        // 3. Full-text search (long)
-                        [
-                            'match_phrase_prefix' => [
-                                'dioceseName' => [
-                                    'query' => $analyzedText,
-                                    'slop' => 10,
-                                    'boost' => 2
-                                ]
-                            ]
-                        ],
-                        // 4. Approximate search
+                        // 3. Approximate search
                         [
                             'match' => [
                                 'dioceseName' => [

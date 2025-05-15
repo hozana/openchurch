@@ -83,6 +83,8 @@ class GetCommunitiesTest extends AcceptanceTestHelper
     {
         $this->searchHelper->deleteIndex(SearchIndex::PARISH);
         $this->searchHelper->createIndex(SearchIndex::PARISH);
+        $this->searchHelper->putMapping(SearchIndex::PARISH);
+
         $community1 = DummyCommunityFactory::createOne([
             'fields' => [
                 DummyFieldFactory::createOne([
@@ -144,11 +146,28 @@ class GetCommunitiesTest extends AcceptanceTestHelper
         self::assertCount(1, $response);
         self::assertEquals($community2->id->toString(), $response[0]['id']);
 
+        // Test with a name that is not indexed
         $response = self::assertResponse($this->get('/communities', querystring: [
             FieldCommunity::TYPE->value => CommunityType::PARISH->value,
             FieldCommunity::NAME->value => 'montpellier',
         ]), HttpFoundationResponse::HTTP_OK);
-
         self::assertCount(0, $response);
+
+        // Test with a stopword
+        $response = self::assertResponse($this->get('/communities', querystring: [
+            FieldCommunity::TYPE->value => CommunityType::PARISH->value,
+            FieldCommunity::NAME->value => 'saint',
+        ]), HttpFoundationResponse::HTTP_OK);
+        self::assertCount(0, $response);
+
+        // Test alphabetical order is kept
+        $response = self::assertResponse($this->get('/communities', querystring: [
+            FieldCommunity::TYPE->value => CommunityType::PARISH->value,
+            FieldCommunity::NAME->value => '',
+        ]), HttpFoundationResponse::HTTP_OK);
+        self::assertCount(3, $response);
+        self::assertEquals('Paroisse Notre-Dame-du-Mont-Carmel', $response[0]['fields'][0]['value']);
+        self::assertEquals('Paroisse Saint-Domice', $response[1]['fields'][0]['value']);
+        self::assertEquals('Paroisse Saint-Pierre-Saint-Paul-du-Marsan', $response[2]['fields'][0]['value']);
     }
 }

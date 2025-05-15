@@ -49,7 +49,7 @@ final class CommunityCollectionProvider implements ProviderInterface
         }
 
         // name is provided. We search through elastic
-        if ($name) {
+        if ($name !== null) {
             if (!$type) {
                 throw new CommunityTypeNotProvidedException();
             }

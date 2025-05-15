@@ -50,8 +50,8 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                     'custom_stop' => [
                         'type' => 'stop',
                         'stopwords' => [
-                            'archidiocèse',
-                            'paroisse',
+                            'archidiocese',
+                            'paroisse', 'paroiss',
                             'diocese',
                             'sainte',
                             'saint',
@@ -77,16 +77,26 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                         ]
                     ],
                     'edge_ngram_analyzer' => [
-                        'tokenizer' => 'edge_ngram_tokenizer',
+                        'type' => 'custom',
+                        'tokenizer' => 'standard',
                         'filter' => [
-                            'custom_stop',
                             'asciifolding',
                             'lowercase',
+                            'custom_stop',
                             'french_stemmer',
                             'french_stop',
                             'french_elision',
                         ],
                     ],
+                    'exact_analyzer' => [
+                        'type' => 'custom',
+                        'tokenizer' => 'keyword',
+                        'filter' => [
+                            'lowercase',
+                            'asciifolding',
+                            'custom_stop'
+                        ]
+                    ]
                 ],
                 'tokenizer' => [
                     'edge_ngram_tokenizer' => [
@@ -116,15 +126,15 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                     'analyzer' => 'edge_ngram_analyzer',
                     'search_analyzer' => 'french_search_analyzer',
                     'fields' => [
-                        'edge_ngram' => [
-                            'type' => 'text',
-                            'analyzer' => 'edge_ngram_analyzer',
-                        ],
                         'french_sort' => [
                             'type' => 'icu_collation_keyword',
                             'language' => 'fr',
                             'country' => 'FR',
                             'strength' => 'secondary'
+                        ],
+                        'exact' => [
+                            'type' => 'text',
+                            'analyzer' => 'exact_analyzer'
                         ],
                     ]
                 ],
@@ -135,6 +145,10 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                         'edge_ngram' => [
                             'type' => 'text',
                             'analyzer' => 'edge_ngram_analyzer',
+                        ],
+                        'exact' => [
+                            'type' => 'text',
+                            'analyzer' => 'exact_analyzer'
                         ],
                     ]
                 ],
