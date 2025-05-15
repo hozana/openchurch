@@ -100,8 +100,8 @@ jobs:
         run: docker ps -a --format "{{.Names}}"
       - name: Install elastic plugins
         run: |
-          CONTAINER_NAME="${{ github.job }}-service-elasticsearch-1"
-          docker exec $CONTAINER_NAME bin/elasticsearch-plugin install analysis-icu
+          CONTAINER_ID=$(docker ps -a --format "{{.Names}}" | grep elasticsearch)
+          docker exec $CONTAINER_ID bin/elasticsearch-plugin install analysis-icu
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
