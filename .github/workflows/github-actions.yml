@@ -90,15 +90,16 @@ jobs:
           bootstrap.memory_lock: true
           ES_JAVA_OPTS: -Xms512m -Xmx512m
         options: --health-cmd="curl http://localhost:9200/_cluster/health" --health-interval=10s --health-timeout=5s --health-retries=3
-        inputs:
-          plugins:
-            - name: analysis-icu
       redis:
         image: redis:5
         ports:
           - 6379:6379
         options: --health-cmd="redis-cli --raw incr ping"
     steps:
+      - name: install elastic plugins
+        run: |
+          CONTAINER_NAME="${{ github.job }}-service-elasticsearch-1"
+          docker exec $CONTAINER_NAME bin/elasticsearch-plugin install analysis-icu
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
