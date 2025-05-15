@@ -102,6 +102,10 @@ jobs:
         run: |
           CONTAINER_ID=$(docker ps -a --format "{{.Names}}" | grep elasticsearch)
           docker exec $CONTAINER_ID bin/elasticsearch-plugin install analysis-icu
+      - name: Restart elastic after plugins installation
+        run: |
+          CONTAINER_ID=$(docker ps -a --format "{{.Names}}" | grep elasticsearch)
+          docker restart $CONTAINER_ID
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
