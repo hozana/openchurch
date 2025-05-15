@@ -115,6 +115,8 @@ class Query(object):
         105419665, # Roman Catholic archdiocese not metropolitan
         7100806, # Ordinariate for Eastern Catholic faithful
         373074, # suffragan diocese
+        2665272, # Ecclesiastical district immediately subject to the Holy See
+        104964763, # Metropolitan archdiocese headed by a Cardinal
     ]
     dateformat = '%Y-%m-%d %H:%M:%S'
 
@@ -206,15 +208,7 @@ class Query(object):
             wikidata_id = int(item['dioceses']['value'].split('/')[-1].replace('Q', ''))
             modified = item['modified']['value'].replace('T', ' ').replace('Z', '')
             gcatholic_id = Query.get_value(item, 'P8389')
-
-            if not gcatholic_id:
-                continue
-            type_ = Query.get_wikidata_id(item, 'P31')
-            if not type_ or int(type_) not in Query.dioceses_types:
-                continue # ignore item FIXME we may want to delete if from the DB
             country_id = Query.get_wikidata_id(item, 'P17')
-            website = Query.get_decoded_value(item, 'P856', '')
-            label_fr = item['label_fr']['value'] if 'label_fr' in item.keys() else item['label_en']['value'] if 'label_en' in item.keys() else ''
 
             # dirty hack so that Annecy appears in France and not in Switzerland
             if wikidata_id == 866863: # Annecy
@@ -223,6 +217,15 @@ class Query(object):
             if country_id != 142:
                 # For now, we only care about french data
                 continue
+
+            if not gcatholic_id:
+                continue
+            type_ = Query.get_wikidata_id(item, 'P31')
+            if not type_ or int(type_) not in Query.dioceses_types:
+                continue # ignore item FIXME we may want to delete if from the DB
+
+            website = Query.get_decoded_value(item, 'P856', '')
+            label_fr = item['label_fr']['value'] if 'label_fr' in item.keys() else item['label_en']['value'] if 'label_en' in item.keys() else ''
 
             dioceses[wikidata_id] = {
                 'type': 'diocese',

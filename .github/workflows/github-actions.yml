@@ -80,7 +80,7 @@ jobs:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3 --name=mysql
       elasticsearch:
-        image: elasticsearch:8.16.0
+        image: elasticsearch:8.18.1
         ports:
           - 9200:9200
         env:
@@ -90,6 +90,9 @@ jobs:
           bootstrap.memory_lock: true
           ES_JAVA_OPTS: -Xms512m -Xmx512m
         options: --health-cmd="curl http://localhost:9200/_cluster/health" --health-interval=10s --health-timeout=5s --health-retries=3
+        inputs:
+          plugins:
+            - name: analysis-icu
       redis:
         image: redis:5
         ports:
