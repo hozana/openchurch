@@ -96,8 +96,6 @@ jobs:
           - 6379:6379
         options: --health-cmd="redis-cli --raw incr ping"
     steps:
-      - name: Debug - Lister les containers
-        run: docker ps -a --format "{{.Names}}"
       - name: Install elastic plugins
         run: |
           CONTAINER_ID=$(docker ps -a --format "{{.Names}}" | grep elasticsearch)
