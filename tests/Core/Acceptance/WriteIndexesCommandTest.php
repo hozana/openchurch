@@ -104,6 +104,7 @@ class WriteIndexesCommandTest extends AcceptanceTestHelper
                 '_score' => 1.0,
                 '_source' => [
                     'parishName' => 'Paroisse Saint-Pierre-Saint-Paul-du-Marsan',
+                    'dioceseId' => $diocese2->id->toString(),
                     'dioceseName' => "Diocèse d'Aire de Dax",
                 ],
             ],
@@ -113,6 +114,7 @@ class WriteIndexesCommandTest extends AcceptanceTestHelper
                 '_score' => 1.0,
                 '_source' => [
                     'parishName' => 'Ensemble Paroissial de Bagnols-sur-Cèze',
+                    'dioceseId' => $diocese1->id->toString(),
                     'dioceseName' => 'Diocèse de Nîmes',
                 ],
             ],

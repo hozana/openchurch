@@ -105,6 +105,7 @@ class WriteIndexesCommand extends Command
                         })->first();
 
                     if ($parentDiocese) {
+                        $dioceseId = $parentDiocese->id->toString();
                         $dioceseName = $parentDiocese->getMostTrustableFieldByName(FieldCommunity::NAME)->getValue();
                     }
                 }
@@ -112,6 +113,7 @@ class WriteIndexesCommand extends Command
                 $idsToIndex[] = $parish->id;
                 $parishesToIndex[] = [
                     'parishName' => $parishName,
+                    'dioceseId' => $dioceseId,
                     'dioceseName' => $dioceseName,
                 ];
             }

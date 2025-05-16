@@ -75,18 +75,18 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
         );
         $this->elasticHelper->refresh(SearchIndex::PARISH);
 
-        $ids = $this->elasticService->searchParishIds('Joseph', 3, 0);
+        $ids = $this->elasticService->searchParishIds('Joseph', null, 3, 0);
         self::assertEquals([0 => $parishes[2]['parishName']], $ids);
 
-        $ids = $this->elasticService->searchParishIds('carmeel', 3, 0);
+        $ids = $this->elasticService->searchParishIds('carmeel', null, 3, 0);
         self::assertEquals([0 => $parishes[1]['parishName']], $ids);
 
         // search by diocese name
-        $ids = $this->elasticService->searchParishIds('Aire et Dax', 3, 0);
+        $ids = $this->elasticService->searchParishIds('Aire et Dax', null, 3, 0);
         self::assertEquals([0 => $parishes[1]['parishName'], 1 => $parishes[5]['parishName']], $ids);
 
         // search by diocese name
-        $ids = $this->elasticService->searchParishIds('Arles', 3, 0);
+        $ids = $this->elasticService->searchParishIds('Arles', null, 3, 0);
         self::assertEquals([0 => $parishes[3]['parishName']], $ids);
     }
 
@@ -189,7 +189,7 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
         foreach ($cases as $token => $expectedValues) {
             self::assertEquals(
                 $expectedValues,
-                $this->elasticService->searchParishIds($token, 6, 0)
+                $this->elasticService->searchParishIds($token, null, 6, 0)
             );
         }
     }
@@ -212,21 +212,54 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
         );
         $this->elasticHelper->refresh(SearchIndex::PARISH);
 
-        $ids = $this->elasticService->searchParishIds('diocèse de', 10, 0);
+        $ids = $this->elasticService->searchParishIds('diocèse de', null, 10, 0);
         self::assertCount(0, $ids);
 
-        $ids = $this->elasticService->searchParishIds('diocèse de Montpellier', 10, 0);
+        $ids = $this->elasticService->searchParishIds('diocèse de Montpellier', null, 10, 0);
         self::assertEquals([
             'Paroisse Cathédrale',
             'Paroisse Sainte Bernadette',
             'Paroisse Sainte Thérèse',
         ], $ids);
 
-        $ids = $this->elasticService->searchParishIds('Montpellier', 10, 0);
+        $ids = $this->elasticService->searchParishIds('Montpellier', null, 10, 0);
         self::assertEquals([
             'Paroisse Cathédrale',
             'Paroisse Sainte Bernadette',
             'Paroisse Sainte Thérèse',
+        ], $ids);
+    }
+
+    public function testParishWithDioceseId(): void
+    {
+        $parishes = [
+            ['dioceseId' => '1', 'dioceseName' => 'Archidiocèse de Montpellier', 'parishName' => 'Paroisse Cathédrale'],
+            ['dioceseId' => '1', 'dioceseName' => "Diocèse d'Aire et Dax", 'parishName' => 'Paroisse Notre-Dame-du-Mont-Carmel'],
+            ['dioceseId' => '1', 'dioceseName' => 'Archidiocèse de Montpellier', 'parishName' => 'Paroisse Sainte Thérèse'],
+            ['dioceseId' => '2', 'dioceseName' => "Archidiocèse d'Aix-en-Provence et Arles", 'parishName' => 'Unité pastorale Saint-Michel'],
+            ['dioceseId' => '2', 'dioceseName' => "Diocèse d'Ajaccio", 'parishName' => 'Paroisse de Zonza'],
+            ['dioceseId' => '3', 'dioceseName' => 'Archidiocèse de Montpellier', 'parishName' => 'Paroisse Sainte Bernadette'],
+        ];
+
+        $this->elasticHelper->bulkIndex(
+            SearchIndex::PARISH,
+            array_column($parishes, 'parishName'),
+            array_map(fn (array $parish) => ['parishName' => $parish['parishName'], 'dioceseId' => $parish['dioceseId'], 'dioceseName' => $parish['dioceseName']], $parishes),
+        );
+        $this->elasticHelper->refresh(SearchIndex::PARISH);
+
+        $ids = $this->elasticService->searchParishIds('diocèse de Montpellier', '1', 10, 0);
+        self::assertEquals([
+            'Paroisse Cathédrale',
+            'Paroisse Sainte Thérèse',
+        ], $ids);
+
+        $ids = $this->elasticService->searchParishIds('Montpellier', '2', 10, 0);
+        self::assertCount(0, $ids);
+
+        $ids = $this->elasticService->searchParishIds('Montpellier', '3', 10, 0);
+        self::assertEquals([
+            'Paroisse Sainte Bernadette',
         ], $ids);
     }
 
@@ -255,18 +288,18 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
         $this->elasticHelper->refresh(SearchIndex::PARISH);
 
         // check if d' is a stopword
-        $ids = $this->elasticService->searchParishIds("d'", 3, 0);
+        $ids = $this->elasticService->searchParishIds("d'", null, 3, 0);
         $ids = $this->elasticService->searchDioceseIds("d'", 3, 0);
         self::assertCount(0, $ids);
 
         // check if diocese is a stopword for parish ONLY
-        $ids = $this->elasticService->searchParishIds('diocese', 3, 0);
+        $ids = $this->elasticService->searchParishIds('diocese', null, 3, 0);
         self::assertCount(0, $ids);
         $ids = $this->elasticService->searchDioceseIds('diocese', 3, 0);
         self::assertCount(3, $ids);
 
         // check if diocese is a stopword for parish ONLY
-        $ids = $this->elasticService->searchParishIds('archidiocese', 3, 0);
+        $ids = $this->elasticService->searchParishIds('archidiocese', null, 3, 0);
         self::assertCount(0, $ids);
         $ids = $this->elasticService->searchDioceseIds('archidiocèse', 3, 0);
         self::assertCount(2, $ids);
@@ -299,7 +332,7 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
                 'Paroisse Sainte Bernadette',
                 'Unité pastorale Saint-Michel',
             ],
-            $this->elasticService->searchParishIds('', 6, 0)
+            $this->elasticService->searchParishIds('', null, 6, 0)
         );
     }
 

@@ -48,6 +48,11 @@ final class CommunityCollectionProvider implements ProviderInterface
             $itemsPerPage = $this->pagination->getLimit($operation, $context);
         }
 
+        $parentCommunity = null;
+        if ($parentWikidataId) {
+            $parentCommunity = $this->communityRepo->withWikidataId((int) $parentWikidataId)->asCollection()->first();
+        }
+
         // name is provided. We search through elastic
         if ($name !== null) {
             if (!$type) {
@@ -55,7 +60,7 @@ final class CommunityCollectionProvider implements ProviderInterface
             }
 
             $entityIds = match ($type) {
-                CommunityType::PARISH->value => $this->searchService->searchParishIds($name, $itemsPerPage, $page - 1),
+                CommunityType::PARISH->value => $this->searchService->searchParishIds($name, $parentCommunity?->id?->toString(), $itemsPerPage, $page - 1),
                 CommunityType::DIOCESE->value => $this->searchService->searchDioceseIds($name, $itemsPerPage, $page - 1),
                 default => throw new InvalidArgumentException(sprintf('Invalid type %s', $type)),
             };
@@ -63,10 +68,6 @@ final class CommunityCollectionProvider implements ProviderInterface
             if (0 === count($entityIds)) {
                 return [];
             }
-        }
-
-        if ($parentWikidataId) {
-            $parentCommunity = $this->communityRepo->withWikidataId((int) $parentWikidataId)->asCollection()->first();
         }
 
         $models = $this->communityRepo

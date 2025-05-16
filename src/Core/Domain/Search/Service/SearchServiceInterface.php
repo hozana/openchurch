@@ -11,7 +11,7 @@ interface SearchServiceInterface
     /**
      * @return string[]
      */
-    public function searchParishIds(string $text, int $limit, int $offset): array;
+    public function searchParishIds(string $text, ?string $dioceseId, int $limit, int $offset): array;
 
     public function findParish(string $id): ?Community;
 

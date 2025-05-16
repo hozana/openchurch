@@ -19,10 +19,11 @@ class OfficialElasticSearchService implements SearchServiceInterface
     }
 
     /** @return string[] */
-    public function searchParishIds(string $text, int $limit, int $offset): array
+    public function searchParishIds(string $text, ?string $dioceseId, int $limit, int $offset): array
     {
         $body = $this->buildQueryForParishes(
             $text,
+            $dioceseId,
             $limit,
             $offset,
         );
@@ -36,7 +37,7 @@ class OfficialElasticSearchService implements SearchServiceInterface
     /**
      * @return array<string, mixed>
      */
-    private function buildQueryForParishes(string $text, int $limit, int $offset): array
+    private function buildQueryForParishes(string $text, ?string $dioceseId, int $limit, int $offset): array
     {
         $analyzedText = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $text);
 
@@ -50,7 +51,7 @@ class OfficialElasticSearchService implements SearchServiceInterface
             ];
         }
 
-        return [
+        $query = [
             'query' => [
                 'bool' => [
                     'should' => [
@@ -125,6 +126,18 @@ class OfficialElasticSearchService implements SearchServiceInterface
             'from' => $offset,
             '_source' => false
         ];
+
+        if ($dioceseId !== null) {
+            $query['query']['bool']['must'] = [
+                [
+                    'term' => [
+                        'dioceseId' => $dioceseId
+                    ]
+                ]
+            ];
+        }
+
+        return $query;
     }
 
     /**
