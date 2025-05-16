@@ -272,6 +272,7 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
             ['dioceseName' => "Archidiocèse d'Aix-en-Provence et Arles", 'parishName' => 'Unité pastorale Saint-Michel'],
             ['dioceseName' => "Diocèse d'Ajaccio", 'parishName' => 'Paroisse de Zonza'],
             ['dioceseName' => 'Archidiocèse de Montpellier', 'parishName' => 'Paroisse Sainte Bernadette'],
+            ['dioceseName' => 'Saint Diocèse de France', 'parishName' => 'Paroisse Sainte Bernadette'],
         ];
 
         $this->elasticHelper->bulkIndex(
@@ -292,17 +293,29 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
         $ids = $this->elasticService->searchDioceseIds("d'", 3, 0);
         self::assertCount(0, $ids);
 
-        // check if diocese is a stopword for parish ONLY
+        // check if diocese is a stopword
         $ids = $this->elasticService->searchParishIds('diocese', null, 3, 0);
         self::assertCount(0, $ids);
         $ids = $this->elasticService->searchDioceseIds('diocese', 3, 0);
-        self::assertCount(3, $ids);
+        self::assertCount(0, $ids);
 
-        // check if diocese is a stopword for parish ONLY
-        $ids = $this->elasticService->searchParishIds('archidiocese', null, 3, 0);
+        // check if archidiocese is a stopword
+        $ids = $this->elasticService->searchParishIds('archidiocèse', null, 3, 0);
         self::assertCount(0, $ids);
         $ids = $this->elasticService->searchDioceseIds('archidiocèse', 3, 0);
-        self::assertCount(2, $ids);
+        self::assertCount(0, $ids);
+
+        // check if saint is a stopword
+        $ids = $this->elasticService->searchParishIds('saint', null, 3, 0);
+        self::assertCount(0, $ids);
+        $ids = $this->elasticService->searchDioceseIds('saint', 3, 0);
+        self::assertCount(0, $ids);
+
+        // check if sainte is a stopword
+        $ids = $this->elasticService->searchParishIds('sainte', null, 3, 0);
+        self::assertCount(0, $ids);
+        $ids = $this->elasticService->searchDioceseIds('sainte', 3, 0);
+        self::assertCount(0, $ids);
     }
 
     public function testParishSorting(): void
