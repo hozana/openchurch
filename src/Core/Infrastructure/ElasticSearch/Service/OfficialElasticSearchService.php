@@ -120,7 +120,8 @@ class OfficialElasticSearchService implements SearchServiceInterface
                 ]
             ],
             'sort' => [
-                ['parishName.french_sort' => ['order' => 'asc']]
+                ['_score' => ['order' => 'desc']],
+                ['parishName.french_sort' => ['order' => 'asc']],
             ],
             'size' => $limit,
             'from' => $offset,
@@ -196,11 +197,8 @@ class OfficialElasticSearchService implements SearchServiceInterface
                 ]
             ],
             'sort' => [
-                [
-                    'dioceseName.french_sort' => [
-                        'order' => 'asc'
-                    ]
-                ]
+                ['_score' => ['order' => 'desc']],
+                ['dioceseName.french_sort' => ['order' => 'asc']],
             ],
             'size' => $limit,
             'from' => $offset,

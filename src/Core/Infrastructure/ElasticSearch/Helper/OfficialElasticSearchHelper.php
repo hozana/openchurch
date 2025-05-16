@@ -48,9 +48,9 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                         'stopwords' => [
                             'saint', 'sainte', 'paroisse', 'diocese', 'archidiocese',
                             'au', 'aux', 'avec', 'ce', 'ces', 'dans', 'de', 'des', 'du', 'elle', 'en', 'et',
-                            'eux', 'il', 'je', 'le', 'leur', 'lui', 'ma', 'me', 'même', 'mes', 'moi', 'mon',
+                            'eux', 'il', 'je', 'le', 'leur', 'lui', 'ma', 'même', 'mes', 'moi', 'mon',
                             'ne', 'nos', 'nous', 'on', 'ou', 'par', 'pas', 'pour', 'qu', 'que', 'qui', 'sa',
-                            'se', 'ses', 'son', 'sur', 'ta', 'te', 'tes', 'toi', 'ton', 'tu', 'un', 'une',
+                            'se', 'ses', 'son', 'ta', 'te', 'tes', 'toi', 'ton', 'tu', 'un', 'une',
                             'vos', 'votre', 'vous', 'c', 'd', 'j', 'l', 'à', 'm', 'n', 's', 't', 'y', 'été',
                             'étée', 'étées', 'étés', 'étant', 'suis', 'es', 'est', 'sommes', 'êtes', 'sont',
                             'serai', 'seras', 'sera', 'serons', 'serez', 'seront', 'serais', 'serait',

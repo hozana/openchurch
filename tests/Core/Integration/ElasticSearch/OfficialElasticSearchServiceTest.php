@@ -128,6 +128,7 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
             ['dioceseName' => 'Archidiocèse de Paris', 'parishName' => 'Paroisse Notre-Dame-d\'Espérance'],
             ['dioceseName' => 'Archidiocèse de Paris', 'parishName' => 'Paroisse Notre-Dame-de-Bonne-Nouvelle'],
             ['dioceseName' => '???', 'parishName' => 'Paroisse de l\'Oise'],
+            ['dioceseName' => 'Diocèse d\'Arles', 'parishName' => 'Paroisse de Fos-sur-Mer'],
         ];
 
         $this->elasticHelper->bulkIndex(
@@ -139,32 +140,33 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
 
         $cases = [
             'm' => [
-                'Paroisse Saint-Marcel-du-Diois',
                 'Paroisse Saint-Marcellin-Champagnat-en-Tricastin',
                 'Paroisse Saint-Martin-de-la-Plaine-de-Valence',
+                'Paroisse Saint-Marcel-du-Diois',
+                'Paroisse de Fos-sur-Mer',
             ],
             'ma' => [
-                'Paroisse Saint-Marcel-du-Diois',
                 'Paroisse Saint-Marcellin-Champagnat-en-Tricastin',
                 'Paroisse Saint-Martin-de-la-Plaine-de-Valence',
+                'Paroisse Saint-Marcel-du-Diois',
             ],
             'mar' => [
-                'Paroisse Saint-Marcel-du-Diois',
                 'Paroisse Saint-Marcellin-Champagnat-en-Tricastin',
                 'Paroisse Saint-Martin-de-la-Plaine-de-Valence',
+                'Paroisse Saint-Marcel-du-Diois',
             ],
             'marc' => [
-                'Paroisse Saint-Marcel-du-Diois',
                 'Paroisse Saint-Marcellin-Champagnat-en-Tricastin',
+                'Paroisse Saint-Marcel-du-Diois',
                 'Paroisse Saint-Martin-de-la-Plaine-de-Valence',
             ],
             'marcel' => [
-                'Paroisse Saint-Marcel-du-Diois',
                 'Paroisse Saint-Marcellin-Champagnat-en-Tricastin',
+                'Paroisse Saint-Marcel-du-Diois',
             ],
             'marcell' => [
-                'Paroisse Saint-Marcel-du-Diois',
                 'Paroisse Saint-Marcellin-Champagnat-en-Tricastin',
+                'Paroisse Saint-Marcel-du-Diois',
             ],
             'marcellin' => [
                 'Paroisse Saint-Marcellin-Champagnat-en-Tricastin',
@@ -172,24 +174,31 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
             'notre' => [
                 'Paroisse Notre-Dame-d\'Auteuil',
                 'Paroisse Notre-Dame-d\'Espérance',
-                'Paroisse Notre-Dame-de-Bonne-Nouvelle',
                 'Paroisse Notre-Dame-de-la-Valloire',
+                'Paroisse Notre-Dame-de-Bonne-Nouvelle',
             ],
             'notre dame' => [
                 'Paroisse Notre-Dame-d\'Auteuil',
                 'Paroisse Notre-Dame-d\'Espérance',
-                'Paroisse Notre-Dame-de-Bonne-Nouvelle',
                 'Paroisse Notre-Dame-de-la-Valloire',
+                'Paroisse Notre-Dame-de-Bonne-Nouvelle',
             ],
             'oise' => [
                 'Paroisse de l\'Oise',
+            ],
+            'me' => [
+                'Paroisse de Fos-sur-Mer',
+            ],
+            'sur-me' => [
+                'Paroisse de Fos-sur-Mer',
             ],
         ];
 
         foreach ($cases as $token => $expectedValues) {
             self::assertEquals(
                 $expectedValues,
-                $this->elasticService->searchParishIds($token, null, 6, 0)
+                $this->elasticService->searchParishIds($token, null, 6, 0),
+                $token,
             );
         }
     }
@@ -318,7 +327,7 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
         self::assertCount(0, $ids);
     }
 
-    public function testParishSorting(): void
+    public function testParishSortingWithoutFilter(): void
     {
         $parishes = [
             'Paroisse Saint-Domice',
@@ -346,6 +355,34 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
                 'Unité pastorale Saint-Michel',
             ],
             $this->elasticService->searchParishIds('', null, 6, 0)
+        );
+    }
+
+    public function testParishSortingWithFilter(): void
+    {
+        $parishes = [
+            'Paroisse de Chateauneuf-les-Martigues/La-Mède',
+            'Paroisse des Saintes-Maries-de-la-Mer',
+            'Paroisse de Fos-sur-Mer',
+            'Paroisse Saint-Joseph-Ouvrier',
+            'Paroisse de Aos-sur-Mer',
+        ];
+
+        $this->elasticHelper->bulkIndex(
+            SearchIndex::PARISH,
+            $parishes,
+            array_map(fn (string $parishName) => ['parishName' => $parishName], $parishes),
+        );
+        $this->elasticHelper->refresh(SearchIndex::PARISH);
+
+        self::assertEquals(
+            [
+                'Paroisse de Aos-sur-Mer',
+                'Paroisse de Fos-sur-Mer',
+                'Paroisse des Saintes-Maries-de-la-Mer',
+                'Paroisse de Chateauneuf-les-Martigues/La-Mède',
+            ],
+            $this->elasticService->searchParishIds('sur-me', null, 6, 0)
         );
     }
 
