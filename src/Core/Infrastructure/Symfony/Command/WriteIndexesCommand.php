@@ -94,7 +94,7 @@ class WriteIndexesCommand extends Command
             $parishesToIndex = [];
 
             foreach ($parishes as $parish) {
-                $dioceseName = null;
+                $dioceseName = $dioceseId = null;
                 $parishName = $parish->getMostTrustableFieldByName(FieldCommunity::NAME)->getValue();
                 $parentId = $parish->getMostTrustableFieldByName(FieldCommunity::PARENT_COMMUNITY_ID)?->getValue()?->id?->toString();
 
