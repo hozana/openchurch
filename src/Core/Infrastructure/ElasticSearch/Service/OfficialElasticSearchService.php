@@ -134,15 +134,25 @@ class OfficialElasticSearchService implements SearchServiceInterface
     {
         $analyzedText = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $text);
 
+        if (trim($analyzedText) === '') {
+            return [
+                'query' => ['match_all' => new stdClass()],
+                'sort' => [['dioceseName.french_sort' => ['order' => 'asc']]],
+                'size' => $limit,
+                'from' => $offset,
+                '_source' => false
+            ];
+        }
+
         return [
             'query' => [
                 'bool' => [
                     'should' => [
                         // 1. Boosted exact search
                         [
-                            'term' => [
-                                'dioceseName.keyword' => [
-                                    'value' => $analyzedText,
+                            'match' => [
+                                'dioceseName.exact' => [
+                                    'query' => $analyzedText,
                                     'boost' => 5
                                 ]
                             ]

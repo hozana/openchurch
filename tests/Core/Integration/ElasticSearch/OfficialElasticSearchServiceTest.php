@@ -117,6 +117,83 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
         );
     }
 
+    public function testSearchParish(): void
+    {
+        $parishes = [
+            ['dioceseName' => 'Diocèse de Valence', 'parishName' => 'Paroisse Saint-Marcellin-Champagnat-en-Tricastin'],
+            ['dioceseName' => 'Diocèse de Valence', 'parishName' => 'Paroisse Saint-Marcel-du-Diois'],
+            ['dioceseName' => 'Diocèse de Valence', 'parishName' => 'Paroisse Notre-Dame-de-la-Valloire'],
+            ['dioceseName' => 'Diocèse de Valence', 'parishName' => 'Paroisse Saint-Martin-de-la-Plaine-de-Valence'],
+            ['dioceseName' => 'Archidiocèse de Paris', 'parishName' => 'Paroisse Notre-Dame-d\'Auteuil'],
+            ['dioceseName' => 'Archidiocèse de Paris', 'parishName' => 'Paroisse Notre-Dame-d\'Espérance'],
+            ['dioceseName' => 'Archidiocèse de Paris', 'parishName' => 'Paroisse Notre-Dame-de-Bonne-Nouvelle'],
+            ['dioceseName' => '???', 'parishName' => 'Paroisse de l\'Oise'],
+        ];
+
+        $this->elasticHelper->bulkIndex(
+            SearchIndex::PARISH,
+            array_column($parishes, 'parishName'),
+            array_map(fn (array $parish) => ['parishName' => $parish['parishName'], 'dioceseName' => $parish['dioceseName']], $parishes),
+        );
+        $this->elasticHelper->refresh(SearchIndex::PARISH);
+
+        $cases = [
+            'm' => [
+                'Paroisse Saint-Marcel-du-Diois',
+                'Paroisse Saint-Marcellin-Champagnat-en-Tricastin',
+                'Paroisse Saint-Martin-de-la-Plaine-de-Valence',
+            ],
+            'ma' => [
+                'Paroisse Saint-Marcel-du-Diois',
+                'Paroisse Saint-Marcellin-Champagnat-en-Tricastin',
+                'Paroisse Saint-Martin-de-la-Plaine-de-Valence',
+            ],
+            'mar' => [
+                'Paroisse Saint-Marcel-du-Diois',
+                'Paroisse Saint-Marcellin-Champagnat-en-Tricastin',
+                'Paroisse Saint-Martin-de-la-Plaine-de-Valence',
+            ],
+            'marc' => [
+                'Paroisse Saint-Marcel-du-Diois',
+                'Paroisse Saint-Marcellin-Champagnat-en-Tricastin',
+                'Paroisse Saint-Martin-de-la-Plaine-de-Valence',
+            ],
+            'marcel' => [
+                'Paroisse Saint-Marcel-du-Diois',
+                'Paroisse Saint-Marcellin-Champagnat-en-Tricastin',
+            ],
+            'marcell' => [
+                'Paroisse Saint-Marcel-du-Diois',
+                'Paroisse Saint-Marcellin-Champagnat-en-Tricastin',
+            ],
+            'marcellin' => [
+                'Paroisse Saint-Marcellin-Champagnat-en-Tricastin',
+            ],
+            'notre' => [
+                'Paroisse Notre-Dame-d\'Auteuil',
+                'Paroisse Notre-Dame-d\'Espérance',
+                'Paroisse Notre-Dame-de-Bonne-Nouvelle',
+                'Paroisse Notre-Dame-de-la-Valloire',
+            ],
+            'notre dame' => [
+                'Paroisse Notre-Dame-d\'Auteuil',
+                'Paroisse Notre-Dame-d\'Espérance',
+                'Paroisse Notre-Dame-de-Bonne-Nouvelle',
+                'Paroisse Notre-Dame-de-la-Valloire',
+            ],
+            'oise' => [
+                'Paroisse de l\'Oise',
+            ],
+        ];
+
+        foreach ($cases as $token => $expectedValues) {
+            self::assertEquals(
+                $expectedValues,
+                $this->elasticService->searchParishIds($token, 6, 0)
+            );
+        }
+    }
+
     public function testParishWithDioceseName(): void
     {
         $parishes = [
@@ -135,7 +212,16 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
         );
         $this->elasticHelper->refresh(SearchIndex::PARISH);
 
-        // check if d' is a stopword
+        $ids = $this->elasticService->searchParishIds('diocèse de', 10, 0);
+        self::assertCount(0, $ids);
+
+        $ids = $this->elasticService->searchParishIds('diocèse de Montpellier', 10, 0);
+        self::assertEquals([
+            'Paroisse Cathédrale',
+            'Paroisse Sainte Bernadette',
+            'Paroisse Sainte Thérèse',
+        ], $ids);
+
         $ids = $this->elasticService->searchParishIds('Montpellier', 10, 0);
         self::assertEquals([
             'Paroisse Cathédrale',
@@ -156,47 +242,34 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
         ];
 
         $this->elasticHelper->bulkIndex(
+            SearchIndex::DIOCESE,
+            array_column($parishes, 'dioceseName'),
+            array_map(fn (array $parish) => ['dioceseName' => $parish['dioceseName']], $parishes),
+        );
+        $this->elasticHelper->bulkIndex(
             SearchIndex::PARISH,
             array_column($parishes, 'parishName'),
             array_map(fn (array $parish) => ['parishName' => $parish['parishName'], 'dioceseName' => $parish['dioceseName']], $parishes),
         );
+        $this->elasticHelper->refresh(SearchIndex::DIOCESE);
         $this->elasticHelper->refresh(SearchIndex::PARISH);
 
         // check if d' is a stopword
         $ids = $this->elasticService->searchParishIds("d'", 3, 0);
+        $ids = $this->elasticService->searchDioceseIds("d'", 3, 0);
         self::assertCount(0, $ids);
 
-        // check if saint is a stopword
-        $ids = $this->elasticService->searchParishIds('saint', 3, 0);
-        self::assertCount(0, $ids);
-        $ids = $this->elasticService->searchParishIds('sainte', 3, 0);
-        self::assertCount(0, $ids);
-        $ids = $this->elasticService->searchParishIds('Sainte', 3, 0);
-        self::assertCount(0, $ids);
-
-        // check if paroisse is a stopword
-        $ids = $this->elasticService->searchParishIds('paroisse', 3, 0);
-        self::assertCount(0, $ids);
-        $ids = $this->elasticService->searchParishIds('Paroisse', 3, 0);
-        self::assertCount(0, $ids);
-        $ids = $this->elasticService->searchParishIds('paroiss', 3, 0);
-        self::assertCount(0, $ids);
-
-        // check if diocèse is a stopword
+        // check if diocese is a stopword for parish ONLY
         $ids = $this->elasticService->searchParishIds('diocese', 3, 0);
         self::assertCount(0, $ids);
-        $ids = $this->elasticService->searchParishIds('Diocese', 3, 0);
-        self::assertCount(0, $ids);
-        $ids = $this->elasticService->searchParishIds('diocèse', 3, 0);
-        self::assertCount(0, $ids);
-        $ids = $this->elasticService->searchParishIds('dioce', 3, 0);
-        self::assertCount(0, $ids);
+        $ids = $this->elasticService->searchDioceseIds('diocese', 3, 0);
+        self::assertCount(3, $ids);
 
-        // check if archidiocèse is a stopword
-        $ids = $this->elasticService->searchParishIds('Archidiocèse', 3, 0);
+        // check if diocese is a stopword for parish ONLY
+        $ids = $this->elasticService->searchParishIds('archidiocese', 3, 0);
         self::assertCount(0, $ids);
-        $ids = $this->elasticService->searchParishIds('archidiocèse', 3, 0);
-        self::assertCount(0, $ids);
+        $ids = $this->elasticService->searchDioceseIds('archidiocèse', 3, 0);
+        self::assertCount(2, $ids);
     }
 
     public function testParishSorting(): void

@@ -45,17 +45,32 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                     ],
                     'french_stop' => [ // The default stopwords can be overridden with the stopwords or stopwords_path parameters.
                         'type' => 'stop',
-                        'stopwords' => '_french_',
+                        'stopwords' => [
+                            'au', 'aux', 'avec', 'ce', 'ces', 'dans', 'de', 'des', 'du', 'elle', 'en', 'et',
+                            'eux', 'il', 'je', 'le', 'leur', 'lui', 'ma', 'me', 'même', 'mes', 'moi', 'mon',
+                            'ne', 'nos', 'nous', 'on', 'ou', 'par', 'pas', 'pour', 'qu', 'que', 'qui', 'sa',
+                            'se', 'ses', 'son', 'sur', 'ta', 'te', 'tes', 'toi', 'ton', 'tu', 'un', 'une',
+                            'vos', 'votre', 'vous', 'c', 'd', 'j', 'l', 'à', 'm', 'n', 's', 't', 'y', 'été',
+                            'étée', 'étées', 'étés', 'étant', 'suis', 'es', 'est', 'sommes', 'êtes', 'sont',
+                            'serai', 'seras', 'sera', 'serons', 'serez', 'seront', 'serais', 'serait',
+                            'serions', 'seriez', 'seraient', 'étais', 'était', 'étions', 'étiez', 'étaient',
+                            'fus', 'fut', 'fûmes', 'fûtes', 'furent', 'sois', 'soit', 'soyons', 'soyez',
+                            'soient', 'fusse', 'fusses', 'fût', 'fussions', 'fussiez', 'fussent', 'ayant',
+                            'eu', 'eue', 'eues', 'eus', 'ai', 'as', 'avons', 'avez', 'ont', 'aurai', 'auras',
+                            'aura', 'aurons', 'aurez', 'auront', 'aurais', 'aurait', 'aurions', 'auriez',
+                            'auraient', 'avais', 'avait', 'avions', 'aviez', 'avaient', 'eut', 'eûmes',
+                            'eûtes', 'eurent', 'aie', 'aies', 'ait', 'ayons', 'ayez', 'aient', 'eusse',
+                            'eusses', 'eût', 'eussions', 'eussiez', 'eussent'
+                        ], // Full list without 'notre' (usefull for Notre-Dame-...)
+                        'ignore_case' => true
                     ],
-                    'custom_stop' => [
+                    'parish_stop' => [
                         'type' => 'stop',
                         'stopwords' => [
-                            'archidiocese',
-                            'paroisse', 'paroiss',
                             'diocese',
-                            'sainte',
-                            'saint',
+                            'archidiocese',
                         ],
+                        'ignore_case' => true
                     ],
                     'french_elision' => [
                         'type' => 'elision',
@@ -73,19 +88,40 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                             'asciifolding',
                             'french_elision',
                             'french_stop',
-                            'custom_stop'
+                        ]
+                    ],
+                    'parish_french_search_analyzer' => [
+                        'type' => 'custom',
+                        'tokenizer' => 'standard',
+                        'filter' => [
+                            'lowercase',
+                            'asciifolding',
+                            'french_elision',
+                            'french_stop',
+                            'parish_stop',
                         ]
                     ],
                     'edge_ngram_analyzer' => [
                         'type' => 'custom',
-                        'tokenizer' => 'standard',
+                        'tokenizer' => 'edge_ngram_tokenizer',
                         'filter' => [
                             'asciifolding',
                             'lowercase',
-                            'custom_stop',
-                            'french_stemmer',
-                            'french_stop',
                             'french_elision',
+                            'french_stop',
+                            'french_stemmer',
+                        ],
+                    ],
+                    'parish_edge_ngram_analyzer' => [
+                        'type' => 'custom',
+                        'tokenizer' => 'edge_ngram_tokenizer',
+                        'filter' => [
+                            'asciifolding',
+                            'lowercase',
+                            'french_elision',
+                            'french_stop',
+                            'parish_stop',
+                            'french_stemmer',
                         ],
                     ],
                     'exact_analyzer' => [
@@ -94,15 +130,14 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                         'filter' => [
                             'lowercase',
                             'asciifolding',
-                            'custom_stop'
                         ]
-                    ]
+                    ],
                 ],
                 'tokenizer' => [
                     'edge_ngram_tokenizer' => [
                         'type' => 'edge_ngram',
                         'min_gram' => 2,
-                        'max_gram' => 10,
+                        'max_gram' => 15,
                         'token_chars' => ['letter', 'digit']
                     ]
                 ]
@@ -123,8 +158,8 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                 ],
                 'parishName' => [
                     'type' => 'text',
-                    'analyzer' => 'edge_ngram_analyzer',
-                    'search_analyzer' => 'french_search_analyzer',
+                    'analyzer' => 'parish_edge_ngram_analyzer',
+                    'search_analyzer' => 'parish_french_search_analyzer',
                     'fields' => [
                         'french_sort' => [
                             'type' => 'icu_collation_keyword',
@@ -136,15 +171,19 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                             'type' => 'text',
                             'analyzer' => 'exact_analyzer'
                         ],
+                        'edge_ngram' => [
+                            'type' => 'text',
+                            'analyzer' => 'parish_edge_ngram_analyzer',
+                        ],
                     ]
                 ],
                 'dioceseName' => [
                     'type' => 'text',
-                    'search_analyzer' => 'french_search_analyzer',
+                    'search_analyzer' => 'parish_french_search_analyzer',
                     'fields' => [
                         'edge_ngram' => [
                             'type' => 'text',
-                            'analyzer' => 'edge_ngram_analyzer',
+                            'analyzer' => 'parish_edge_ngram_analyzer',
                         ],
                         'exact' => [
                             'type' => 'text',
@@ -173,6 +212,10 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                         'edge_ngram' => [
                             'type' => 'text',
                             'analyzer' => 'edge_ngram_analyzer'
+                        ],
+                        'exact' => [
+                            'type' => 'text',
+                            'analyzer' => 'exact_analyzer'
                         ],
                         'french_sort' => [
                             'type' => 'icu_collation_keyword',

@@ -158,7 +158,7 @@ class GetCommunitiesTest extends AcceptanceTestHelper
             FieldCommunity::TYPE->value => CommunityType::PARISH->value,
             FieldCommunity::NAME->value => 'saint',
         ]), HttpFoundationResponse::HTTP_OK);
-        self::assertCount(0, $response);
+        self::assertCount(2, $response);
 
         // Test alphabetical order is kept
         $response = self::assertResponse($this->get('/communities', querystring: [
