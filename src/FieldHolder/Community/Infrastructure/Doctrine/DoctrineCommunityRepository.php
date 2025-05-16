@@ -8,6 +8,7 @@ use App\FieldHolder\Community\Domain\Model\Community;
 use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\Shared\Infrastructure\Doctrine\DoctrineRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\Uid\Uuid;
 
@@ -129,13 +130,9 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
     public function sortByName(): static
     {
         return $this->sort(static function (QueryBuilder $qb): void {
-            if (!in_array('fields', $qb->getAllAliases())) {
-                $qb->join('community.fields', 'fields');
-            }
-
-            $qb->andWhere('fields.name = :name')
+            $qb->leftJoin('community.fields', 'sort_name_fields', Join::WITH, 'sort_name_fields.name = :name')
                 ->setParameter('name', 'name')
-                ->orderBy('fields.stringVal', 'ASC');
+                ->addOrderBy('sort_name_fields.stringVal', 'ASC');
         });
     }
 }

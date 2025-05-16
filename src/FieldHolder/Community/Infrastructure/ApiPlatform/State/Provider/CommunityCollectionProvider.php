@@ -76,6 +76,10 @@ final class CommunityCollectionProvider implements ProviderInterface
             ->withParentCommunityId($parentCommunity->id ?? null)
             ->withPagination($page, $itemsPerPage);
 
+        if ($name === null) {
+            $models = $models->sortByName();
+        }
+
         $resources = [];
         foreach ($models as $model) {
             $resources[] = CommunityResource::fromModel($model);
