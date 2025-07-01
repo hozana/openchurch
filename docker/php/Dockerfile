@@ -50,7 +50,7 @@ COPY usr/local/bin/docker-php-entrypoint /usr/local/bin/
 COPY .env /var/www/html/
 COPY etc/cron.d/backend /etc/cron.d/backend
 
-COPY etc/caddy/Caddyfile /etc/caddy/Caddyfile
+COPY etc/frankenphp/Caddyfile /etc/frankenphp/Caddyfile
 COPY etc/logrotate.d/symfony /etc/logrotate.d/symfony
 
 # Install composer dependencies
