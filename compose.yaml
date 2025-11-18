@@ -98,6 +98,7 @@ services:
       ELASTIC_PASSWORD:
       SYNCHRO_SECRET_KEY:
       REDIS_URL:
+      CITIES_DOWNLOAD_URL:
     depends_on:
       - db
       - redis

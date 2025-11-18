@@ -11,6 +11,9 @@ services:
   _defaults:
     autowire: true # Automatically injects dependencies in your services.
     autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+    bind:
+      $citiesDownloadUrl: "%env(CITIES_DOWNLOAD_URL)%"
+      $targetPath: "%kernel.project_dir%/var/data/cities.csv"
 
   # makes classes in src/ available to be used as services
   # this creates a service per class whose id is the fully-qualified class name
@@ -54,6 +57,8 @@ services:
       $elasticsearchHost: "%env(ELASTICSEARCH_IRI)%"
   App\Core\Domain\Service\Search\SearchServiceInterface:
     class: App\Core\Infrastructure\Service\OfficialElasticSearchService
+  App\Core\Domain\Service\Search\CitiesDownloaderInterface:
+    class: App\Core\Infrastructure\Symfony\Service\LaposteCitiesDownloader
 
   App\Core\Infrastructure\ElasticSearch\Helper\OfficialElasticSearchHelper:
     arguments:

@@ -22,6 +22,8 @@ interface SearchServiceInterface
 
     public function findDiocese(string $text): ?Community;
 
+    public function searchCities(string $text, int $limit, int $offset): array;
+
     /**
      * @return string[]
      */

@@ -8,6 +8,8 @@ enum SearchIndex: string
 
     case DIOCESE = 'diocese';
 
+    case CITY = 'city';
+
     public function getName(): string
     {
         return 'enum_search_index';
