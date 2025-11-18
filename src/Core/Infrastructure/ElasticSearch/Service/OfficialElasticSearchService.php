@@ -306,7 +306,7 @@ class OfficialElasticSearchService implements SearchServiceInterface
         return $entityIds;
     }
 
-    /** @return array<{cityname: string, postCode: string}> */
+    /** @return array<{cityname: string, zipCode: string}> */
     public function searchCities(string $text, int $limit, int $offset): array
     {
         $body = $this->buildQueryForCities(

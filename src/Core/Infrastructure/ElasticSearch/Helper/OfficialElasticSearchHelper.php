@@ -232,7 +232,7 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                         ]
                     ]
                 ],
-                'postCode' => [
+                'zipCode' => [
                     'type' => 'keyword',
                 ],
             ],

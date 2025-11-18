@@ -93,6 +93,23 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
             });
     }
 
+    public function withContactZipcode(?string $value): static
+    {
+        if (!$value) {
+            return $this;
+        }
+
+        return
+            $this->filter(static function (QueryBuilder $qb) use ($value): void {
+                $qb->andWhere("
+                        EXISTS (SELECT 1 FROM App\Field\Domain\Model\Field f_contact_zipcode
+                        WHERE f_contact_zipcode.community = community
+                        AND f_contact_zipcode.name = 'contactZipcode' AND f_contact_zipcode.stringVal = :valueZipcode)
+                    ")
+                    ->setParameter('valueZipcode', $value);
+            });
+    }
+
     public function withWikidataIds(?array $wikidataIds): static
     {
         if (0 === count($wikidataIds)) {

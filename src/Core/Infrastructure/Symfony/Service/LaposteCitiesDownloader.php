@@ -40,7 +40,7 @@ class LaposteCitiesDownloader implements CitiesDownloaderInterface
                 continue;
             }
 
-            $data[] = array_combine(['name', 'postCode'], [$row[1], $row[2]]);
+            $data[] = array_combine(['name', 'zipCode'], [$row[1], $row[2]]);
         }
 
         fclose($handle);

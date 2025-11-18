@@ -50,7 +50,6 @@ class IndexCommunitiesCommand extends Command
         $this->createDioceseIndexes($dioceses);
         $output->writeln('Indexing parishes...');
         $this->createParishIndexes($dioceses, $output);
-        $output->writeln('Indexing cities...');
 
         return Command::SUCCESS;
     }

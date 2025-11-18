@@ -45,7 +45,7 @@ class IndexCitiesCommand extends Command
                 $idsToIndex[] = $cities[$it]['name'];
                 $citiesToIndex[] = [
                     'cityName' => $cities[$it]['name'],
-                    'postCode' => $cities[$it]['postCode'],
+                    'zipCode' => $cities[$it]['zipCode'],
                 ];
             }
 
