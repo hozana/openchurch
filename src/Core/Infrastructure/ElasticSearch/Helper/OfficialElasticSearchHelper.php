@@ -202,43 +202,6 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
         ];
     }
 
-     /**
-     * @return array<string, mixed>
-     */
-    private function getCityMapping(): array
-    {
-        return [
-            'dynamic' => 'strict',
-            'properties' => [
-                'id' => ['type' => 'keyword'],
-                'cityName' => [
-                    'type' => 'text',
-                    'analyzer' => 'edge_ngram_analyzer',
-                    'search_analyzer' => 'french_search_analyzer',
-                    'fields' => [
-                        'edge_ngram' => [
-                            'type' => 'text',
-                            'analyzer' => 'edge_ngram_analyzer'
-                        ],
-                        'exact' => [
-                            'type' => 'text',
-                            'analyzer' => 'exact_analyzer'
-                        ],
-                        'french_sort' => [
-                            'type' => 'icu_collation_keyword',
-                            'language' => 'fr',
-                            'country' => 'FR',
-                            'strength' => 'secondary'
-                        ]
-                    ]
-                ],
-                'zipCode' => [
-                    'type' => 'keyword',
-                ],
-            ],
-        ];
-    }
-
     /**
      * @param array<mixed>  $bodies
      * @param array<string> $ids
@@ -407,7 +370,6 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             'body' => match ($index) {
                 SearchIndex::PARISH => $this->getParishMapping(),
                 SearchIndex::DIOCESE => $this->getDioceseMapping(),
-                SearchIndex::CITY => $this->getCityMapping(),
                 default => throw new InvalidArgumentException('Mapping not defined for index '.$index->value),
             },
         ];

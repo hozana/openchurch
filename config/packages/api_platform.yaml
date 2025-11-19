@@ -14,7 +14,6 @@ api_platform:
       - "%kernel.project_dir%/src/FieldHolder/Community/Domain/Exception/"
       - "%kernel.project_dir%/src/Field/Domain/Exception/"
       - "%kernel.project_dir%/src/System/Infrastructure/ApiPlatform/Resource/"
-      - "%kernel.project_dir%/src/City/Infrastructure/ApiPlatform/Resource/"
   formats:
     json: ["application/json"]
     jsonld: ["application/ld+json"]

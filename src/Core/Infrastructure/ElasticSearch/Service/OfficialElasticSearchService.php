@@ -206,71 +206,6 @@ class OfficialElasticSearchService implements SearchServiceInterface
         ];
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    private function buildQueryForCities(string $text, int $limit, int $offset): array
-    {
-        $analyzedText = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $text);
-
-        if (trim($analyzedText) === '') {
-            return [
-                'query' => ['match_all' => new stdClass()],
-                'sort' => [['cityName.french_sort' => ['order' => 'asc']]],
-                'size' => $limit,
-                'from' => $offset,
-                '_source' => false
-            ];
-        }
-
-        return [
-            'query' => [
-                'bool' => [
-                    'should' => [
-                        // 1. Boosted exact search
-                        [
-                            'match' => [
-                                'cityName.exact' => [
-                                    'query' => $analyzedText,
-                                    'boost' => 5
-                                ]
-                            ]
-                        ],
-                        // 2. Prefix search (short)
-                        [
-                            'prefix' => [
-                                'cityName.edge_ngram' => [
-                                    'value' => $analyzedText,
-                                    'rewrite' => 'scoring_boolean',
-                                    'boost' => str_word_count($text) > 2 ? 1 : 3
-                                ]
-                            ]
-                        ],
-                        // 3. Approximate search
-                        [
-                            'match' => [
-                                'cityName' => [
-                                    'query' => $analyzedText,
-                                    'fuzziness' => 'AUTO',
-                                    'prefix_length' => 2,
-                                    'boost' => 1
-                                ]
-                            ]
-                        ]
-                    ],
-                    'minimum_should_match' => 1
-                ]
-            ],
-            'sort' => [
-                ['_score' => ['order' => 'desc']],
-                ['cityName.french_sort' => ['order' => 'asc']],
-            ],
-            'size' => $limit,
-            'from' => $offset,
-            '_source' => true,
-        ];
-    }
-
     public function findParish(string $id): ?Community
     {
         $document = $this->elasticSearchHelper->getDocument(SearchIndex::PARISH, $id);
@@ -304,21 +239,6 @@ class OfficialElasticSearchService implements SearchServiceInterface
         $entityIds = array_unique(array_map(static fn (array $hit): string => $hit['_id'], $results['hits']['hits']));
 
         return $entityIds;
-    }
-
-    /** @return array<{cityname: string, zipCode: string}> */
-    public function searchCities(string $text, int $limit, int $offset): array
-    {
-        $body = $this->buildQueryForCities(
-            $text,
-            $limit,
-            $offset,
-        );
-
-        $results = $this->elasticSearchHelper->search(SearchIndex::CITY, $body);
-        $entities = array_map(fn (array $hit): array => $hit['_source'], $results['hits']['hits']);
-        
-        return $entities;
     }
 
     /** @return string[] */
