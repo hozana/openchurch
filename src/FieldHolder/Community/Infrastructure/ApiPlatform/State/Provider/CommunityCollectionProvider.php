@@ -39,7 +39,7 @@ final class CommunityCollectionProvider implements ProviderInterface
         $type = $context['filters'][FieldCommunity::TYPE->value] ?? null;
         $wikidataId = $context['filters'][FieldCommunity::WIKIDATA_ID->value] ?? null;
         $parentWikidataId = $context['filters'][FieldCommunity::PARENT_WIKIDATA_ID->value] ?? null;
-        $contactZipcode = $context['filters'][FieldCommunity::CONTACT_ZIPCODE->value] ?? null;
+        $contactZipcodes = $context['filters']['contactZipcodes'] ?? null;
 
         $name = $context['filters'][FieldCommunity::NAME->value] ?? null;
         $page = $itemsPerPage = null;
@@ -71,12 +71,19 @@ final class CommunityCollectionProvider implements ProviderInterface
             }
         }
 
+        // contact zip code
+        if (\is_string($contactZipcodes)) {
+            $contactZipcodes = array_filter(
+                array_map('trim', explode(',', $contactZipcodes))
+            );
+        }
+
         $models = $this->communityRepo
             ->ofIds(array_map(fn (string $entityId) => Uuid::fromString($entityId), $entityIds ?? []))
             ->withType($type)
             ->withWikidataId((int) $wikidataId)
             ->withParentCommunityId($parentCommunity->id ?? null)
-            ->withContactZipcode($contactZipcode)
+            ->withContactZipcodes($contactZipcodes)
             ->withPagination($page, $itemsPerPage);
 
         if ($name === null) {

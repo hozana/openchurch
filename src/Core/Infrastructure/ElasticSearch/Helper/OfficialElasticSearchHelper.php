@@ -370,7 +370,6 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             'body' => match ($index) {
                 SearchIndex::PARISH => $this->getParishMapping(),
                 SearchIndex::DIOCESE => $this->getDioceseMapping(),
-                default => throw new InvalidArgumentException('Mapping not defined for index '.$index->value),
             },
         ];
 
