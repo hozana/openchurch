@@ -39,6 +39,7 @@ final class CommunityCollectionProvider implements ProviderInterface
         $type = $context['filters'][FieldCommunity::TYPE->value] ?? null;
         $wikidataId = $context['filters'][FieldCommunity::WIKIDATA_ID->value] ?? null;
         $parentWikidataId = $context['filters'][FieldCommunity::PARENT_WIKIDATA_ID->value] ?? null;
+        $contactZipcodes = $context['filters']['contactZipcodes'] ?? null;
 
         $name = $context['filters'][FieldCommunity::NAME->value] ?? null;
         $page = $itemsPerPage = null;
@@ -75,6 +76,7 @@ final class CommunityCollectionProvider implements ProviderInterface
             ->withType($type)
             ->withWikidataId((int) $wikidataId)
             ->withParentCommunityId($parentCommunity->id ?? null)
+            ->withContactZipcodes($contactZipcodes)
             ->withPagination($page, $itemsPerPage);
 
         if ($name === null) {

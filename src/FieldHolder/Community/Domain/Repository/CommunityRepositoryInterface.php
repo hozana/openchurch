@@ -35,5 +35,10 @@ interface CommunityRepositoryInterface extends RepositoryInterface
 
     public function withParentCommunityId(Uuid $parentId): static;
 
+    /**
+     * @param array<string> $contactZipcodes
+     */
+    public function withContactZipcodes(array $contactZipcodes): static;
+
     public function sortByName(): static;
 }

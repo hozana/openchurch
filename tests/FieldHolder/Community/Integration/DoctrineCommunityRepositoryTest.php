@@ -108,6 +108,28 @@ final class DoctrineCommunityRepositoryTest extends KernelTestCase
         }
     }
 
+    public function testContactZipcodes(): void
+    {
+        /** @var DoctrineCommunityRepository $repository */
+        $repository = static::getContainer()->get(DoctrineCommunityRepository::class);
+
+        $field1 = DummyFieldFactory::createOne(['name' => FieldCommunity::CONTACT_ZIPCODE->value, 'stringVal' => '75001']);
+        $field2 = DummyFieldFactory::createOne(['name' => FieldCommunity::CONTACT_ZIPCODE->value, 'stringVal' => '40270']);
+        $field3 = DummyFieldFactory::createOne(['name' => FieldCommunity::CONTACT_ZIPCODE->value, 'stringVal' => '30000']);
+
+        DummyCommunityFactory::createOne(['fields' => [$field1]]);
+        $communityGrenade = DummyCommunityFactory::createOne(['fields' => [$field2]]);
+        $communityNimes = DummyCommunityFactory::createOne(['fields' => [$field3]]);
+
+        self::$em->flush();
+
+        $results = $repository->withContactZipcodes(['40270', '30000']);
+        static::assertCount(2, $results);
+
+        static::assertSame($communityGrenade->_real(), $results->asCollection()->get(0));
+        static::assertSame($communityNimes->_real(), $results->asCollection()->get(1));
+    }
+
     public function testAddSelectField(): void
     {
         /** @var DoctrineCommunityRepository $repository */

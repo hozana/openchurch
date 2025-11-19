@@ -16,8 +16,8 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-#[AsCommand('app:write:indexes')]
-class WriteIndexesCommand extends Command
+#[AsCommand('app:index:communities')]
+class IndexCommunitiesCommand extends Command
 {
     private const BULK_SIZE = 100;
 

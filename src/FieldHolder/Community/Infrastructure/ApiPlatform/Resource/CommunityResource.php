@@ -12,6 +12,7 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Field\Domain\Model\Field;
+use App\Field\Infrastructure\ApiPlatform\Filter\FieldContactZipCodeFilter;
 use App\Field\Infrastructure\ApiPlatform\Filter\FieldNameFilter;
 use App\Field\Infrastructure\ApiPlatform\Filter\FieldParentWikidataIdFilter;
 use App\Field\Infrastructure\ApiPlatform\Filter\FieldTypeFilter;
@@ -60,6 +61,7 @@ use Symfony\Component\Uid\Uuid;
                 FieldWikidataIdFilter::class,
                 FieldParentWikidataIdFilter::class,
                 FieldNameFilter::class,
+                FieldContactZipCodeFilter::class,
             ],
             provider: CommunityCollectionProvider::class,
             normalizationContext: ['groups' => ['communities']],
