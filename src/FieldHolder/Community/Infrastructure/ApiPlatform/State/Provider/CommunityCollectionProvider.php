@@ -71,13 +71,6 @@ final class CommunityCollectionProvider implements ProviderInterface
             }
         }
 
-        // contact zip code
-        if (\is_string($contactZipcodes)) {
-            $contactZipcodes = array_filter(
-                array_map('trim', explode(',', $contactZipcodes))
-            );
-        }
-
         $models = $this->communityRepo
             ->ofIds(array_map(fn (string $entityId) => Uuid::fromString($entityId), $entityIds ?? []))
             ->withType($type)
