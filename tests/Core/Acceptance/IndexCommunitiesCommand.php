@@ -14,7 +14,7 @@ use App\Tests\FieldHolder\Community\DummyFactory\DummyCommunityFactory;
 use App\Tests\Helper\AcceptanceTestHelper;
 use Zenstruck\Foundry\Test\Factories;
 
-class WriteIndexesCommandTest extends AcceptanceTestHelper
+class IndexCommunitiesCommand extends AcceptanceTestHelper
 {
     use Factories;
 
@@ -85,7 +85,7 @@ class WriteIndexesCommandTest extends AcceptanceTestHelper
         ],
         ]);
         $this->em->flush();
-        $this->runCommand('app:write:indexes');
+        $this->runCommand('app:index:communities');
 
         $this->searchHelper->refresh(SearchIndex::PARISH);
         $this->searchHelper->refresh(SearchIndex::DIOCESE);
