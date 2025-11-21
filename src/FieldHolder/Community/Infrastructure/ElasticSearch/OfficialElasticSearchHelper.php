@@ -212,6 +212,7 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             throw new InvalidArgumentException('ids and bodies should be of same size');
         }
 
+        /** @var array{body: array{}} $params */
         $params = ['body' => []];
         $counter = count($ids);
 
@@ -229,7 +230,9 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             $params = ['body' => []];
         }
 
-        $this->elasticsearchClient->bulk($params);
+        if ($params['body'] !== []) {
+            $this->elasticsearchClient->bulk($params);
+        }
     }
 
     public function createIndex(SearchIndex $index): Elasticsearch|Promise

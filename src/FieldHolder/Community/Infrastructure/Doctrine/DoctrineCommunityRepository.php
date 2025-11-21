@@ -44,9 +44,9 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
     /**
      * @param array<Uuid> $ids
      */
-    public function ofIds(array $ids): static
+    public function ofIds(?array $ids): static
     {
-        if ([] === $ids) {
+        if ($ids === null || [] == $ids) {
             return $this;
         }
 
@@ -95,7 +95,7 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
 
     public function withContactZipcodes(?array $values): static
     {
-        if ([] === $values) {
+        if ($values === null || [] == $values) {
             return $this;
         }
 
