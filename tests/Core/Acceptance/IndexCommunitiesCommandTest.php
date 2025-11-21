@@ -14,7 +14,7 @@ use App\Tests\FieldHolder\Community\DummyFactory\DummyCommunityFactory;
 use App\Tests\Helper\AcceptanceTestHelper;
 use Zenstruck\Foundry\Test\Factories;
 
-class IndexCommunitiesCommand extends AcceptanceTestHelper
+class IndexCommunitiesCommandTest extends AcceptanceTestHelper
 {
     use Factories;
 

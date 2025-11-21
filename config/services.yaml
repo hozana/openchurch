@@ -54,6 +54,8 @@ services:
       $elasticsearchHost: "%env(ELASTICSEARCH_IRI)%"
   App\Core\Domain\Service\Search\SearchServiceInterface:
     class: App\Core\Infrastructure\Service\OfficialElasticSearchService
+  App\Core\Domain\Service\Search\CityLoaderInterface:
+    class: App\Core\Infrastructure\Symfony\Service\FileCityLoader
 
   App\Core\Infrastructure\ElasticSearch\Helper\OfficialElasticSearchHelper:
     arguments:
