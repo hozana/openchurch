@@ -106,21 +106,6 @@ jobs:
         with:
           name: ${{ inputs.artifact-name }}
           path: |
-            build/coverage/${{ inputs.artifact-name }}.cov
+            build/coverage/${{ inputs.artifact-name }}-html
             build/logs/${{ inputs.artifact-name }}-junit.xml
-          retention-days: 1
-
-      - name: Calculate Coverage
-        run: |
-          COVERAGE=$(php -r "
-          \$xml = simplexml_load_file('build/coverage-merged/merged-coverage.xml');
-          \$metrics = \$xml->project->metrics;
-          \$elements = (int)\$metrics['elements'];
-          \$covered = (int)\$metrics['coveredelements'];
-          if (\$elements > 0) {
-              echo number_format((\$covered / \$elements) * 100, 2);
-          } else {
-              echo '0';
-          }
-          ")
-          echo "📊 Total coverage: ${COVERAGE}%"
+          retention-days: 30
