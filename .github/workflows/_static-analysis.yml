@@ -15,9 +15,6 @@ jobs:
         with:
           php-version: "8.4"
 
-      - name: Create .env.test.local
-        run: echo -e "DATABASE_URL=mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/symfony\\nDB_NAME_SUFFIX=\\nREDIS_URI=redis://localhost:${{ job.services.redis.ports['6379'] }}" > .env.test.local
-
       - name: Cache Composer
         uses: actions/cache@v3
         with:
