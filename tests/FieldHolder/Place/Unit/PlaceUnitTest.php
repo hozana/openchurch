@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\FieldHolder\Place\Unit;
 
 use App\Field\Domain\Enum\FieldPlace;
@@ -13,7 +15,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Zenstruck\Foundry\Test\Factories;
 
-class PlaceUnitTest extends KernelTestCase
+final class PlaceUnitTest extends KernelTestCase
 {
     use Factories;
 
@@ -21,7 +23,7 @@ class PlaceUnitTest extends KernelTestCase
 
     protected function setUp(): void
     {
-        $this->validator = static::getContainer()->get(ValidatorInterface::class);
+        $this->validator = self::getContainer()->get(ValidatorInterface::class);
     }
 
     public function testDeletionReasonNotSet(): void
@@ -35,8 +37,8 @@ class PlaceUnitTest extends KernelTestCase
             ],
         ]);
         $violations = $this->validator->validate($place);
-        static::assertCount(1, $violations);
-        static::assertEquals('Deletion reason is mandatory when reporting a state=deleted state.', $violations->get(0)->getMessage());
+        self::assertCount(1, $violations);
+        self::assertSame('Deletion reason is mandatory when reporting a state=deleted state.', $violations->get(0)->getMessage());
     }
 
     public function testWrongCountryCode(): void
@@ -50,8 +52,8 @@ class PlaceUnitTest extends KernelTestCase
             ],
         ]);
         $violations = $this->validator->validate($place);
-        static::assertCount(1, $violations);
-        static::assertEquals("Country code '-1' is not valid.", $violations->get(0)->getMessage());
+        self::assertCount(1, $violations);
+        self::assertSame("Country code '-1' is not valid.", $violations->get(0)->getMessage());
     }
 
     public function testGetFieldsByName(): void
@@ -72,7 +74,7 @@ class PlaceUnitTest extends KernelTestCase
         ]);
 
         $result = $place->getFieldsByName(FieldPlace::MESSESINFO_ID);
-        static::assertEquals(new ArrayCollection([$field]), $result);
+        self::assertEquals(new ArrayCollection([$field]), $result);
     }
 
     public function testGetFieldByNameAndAgent(): void
@@ -98,7 +100,8 @@ class PlaceUnitTest extends KernelTestCase
         ]);
 
         $result = $place->getFieldByNameAndAgent(FieldPlace::MESSESINFO_ID, $agent);
-        static::assertEquals($result->getValue(), 789456);
+        $this->assertInstanceOf(Field::class, $result);
+        self::assertEquals(789456, $result->getValue());
     }
 
     public function testAddField(): void
@@ -109,12 +112,12 @@ class PlaceUnitTest extends KernelTestCase
             Field::getPropertyName(FieldPlace::NAME) => 'mon nom',
         ]);
 
-        static::assertCount(0, $place->fields);
+        self::assertCount(0, $place->fields);
         $place->addField($field);
 
-        static::assertCount(1, $place->fields);
-        static::assertEquals($field, $place->fields->first());
-        static::assertEquals($place, $field->place);
+        self::assertCount(1, $place->fields);
+        self::assertEquals($field, $place->fields->first());
+        self::assertEquals($place, $field->place);
     }
 
     public function testRemoveField(): void
@@ -128,9 +131,9 @@ class PlaceUnitTest extends KernelTestCase
             'fields' => [$field],
         ]);
 
-        static::assertCount(1, $place->fields);
+        self::assertCount(1, $place->fields);
         $place->removeField($field);
-        static::assertCount(0, $place->fields);
-        static::assertNull($field->place);
+        self::assertCount(0, $place->fields);
+        self::assertNull($field->place);
     }
 }

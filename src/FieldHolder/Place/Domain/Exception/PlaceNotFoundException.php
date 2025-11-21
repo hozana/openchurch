@@ -14,7 +14,7 @@ use Symfony\Component\Uid\Uuid;
 class PlaceNotFoundException extends Exception implements ProblemExceptionInterface
 {
     public function __construct(
-        private Uuid $placeId,
+        private readonly Uuid $placeId,
     ) {
     }
 

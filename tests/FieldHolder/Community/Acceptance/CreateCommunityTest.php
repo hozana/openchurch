@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\FieldHolder\Community\Acceptance;
 
 use App\Field\Domain\Enum\FieldCommunity;
@@ -14,14 +16,14 @@ use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Symfony\Component\Uid\Uuid;
 use Zenstruck\Foundry\Test\Factories;
 
-class CreateCommunityTest extends AcceptanceTestHelper
+final class CreateCommunityTest extends AcceptanceTestHelper
 {
     use Factories;
 
     public function testShouldPassWithGoodData(): void
     {
         /** @var CommunityRepositoryInterface $communityRepository */
-        $communityRepository = static::getContainer()->get(CommunityRepositoryInterface::class);
+        $communityRepository = self::getContainer()->get(CommunityRepositoryInterface::class);
 
         self::assertCount(0, $communityRepository);
         $agent = DummyAgentFactory::createOne();
@@ -56,7 +58,7 @@ class CreateCommunityTest extends AcceptanceTestHelper
     public function testShouldThrowIfFieldNameNotValid(): void
     {
         /** @var CommunityRepositoryInterface $communityRepository */
-        $communityRepository = static::getContainer()->get(CommunityRepositoryInterface::class);
+        $communityRepository = self::getContainer()->get(CommunityRepositoryInterface::class);
 
         self::assertCount(0, $communityRepository);
         $agent = DummyAgentFactory::createOne();
@@ -80,7 +82,7 @@ class CreateCommunityTest extends AcceptanceTestHelper
     public function testShouldThrowIfFieldValueNotValid(): void
     {
         /** @var CommunityRepositoryInterface $communityRepository */
-        $communityRepository = static::getContainer()->get(CommunityRepositoryInterface::class);
+        $communityRepository = self::getContainer()->get(CommunityRepositoryInterface::class);
 
         self::assertCount(0, $communityRepository);
         $agent = DummyAgentFactory::createOne();
@@ -104,7 +106,7 @@ class CreateCommunityTest extends AcceptanceTestHelper
     public function testShouldThrowIfWikidataIdAlreadyExists(): void
     {
         /** @var CommunityRepositoryInterface $communityRepository */
-        $communityRepository = static::getContainer()->get(CommunityRepositoryInterface::class);
+        $communityRepository = self::getContainer()->get(CommunityRepositoryInterface::class);
 
         self::assertCount(0, $communityRepository);
         $agent = DummyAgentFactory::createOne();
@@ -141,7 +143,7 @@ class CreateCommunityTest extends AcceptanceTestHelper
     public function testShouldThrowIfMesseInfoIdAlreadyExists(): void
     {
         /** @var CommunityRepositoryInterface $communityRepository */
-        $communityRepository = static::getContainer()->get(CommunityRepositoryInterface::class);
+        $communityRepository = self::getContainer()->get(CommunityRepositoryInterface::class);
 
         self::assertCount(0, $communityRepository);
         $agent = DummyAgentFactory::createOne();
@@ -193,8 +195,8 @@ class CreateCommunityTest extends AcceptanceTestHelper
                     ],
                 ],
             ]),
-            (new FieldEntityNotFoundException($id))->getStatus(),
-            (new FieldEntityNotFoundException($id))->getDetail(),
+            new FieldEntityNotFoundException($id)->getStatus(),
+            new FieldEntityNotFoundException($id)->getDetail(),
         );
     }
 
@@ -216,8 +218,8 @@ class CreateCommunityTest extends AcceptanceTestHelper
                     ],
                 ],
             ]),
-            (new FieldEntityNotFoundException($ids))->getStatus(),
-            (new FieldEntityNotFoundException($ids))->getDetail(),
+            new FieldEntityNotFoundException($ids)->getStatus(),
+            new FieldEntityNotFoundException($ids)->getDetail(),
         );
     }
 }

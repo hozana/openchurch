@@ -22,7 +22,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 class FixParishZipCodeCommand extends Command
 {
-    private const BULK_SIZE = 100;
+    private const int BULK_SIZE = 100;
     private array $invalidZipCodeParishes = [];
 
     public function __construct(
@@ -84,7 +84,7 @@ class FixParishZipCodeCommand extends Command
                 break;
             }
 
-            $i ++;
+            ++$i;
             $progress->advance(self::BULK_SIZE);
         }
 

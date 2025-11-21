@@ -2,6 +2,7 @@
 
 namespace App\Tests\Agent\DummyFactory;
 
+use Override;
 use App\Agent\Domain\Model\Agent;
 use Zenstruck\Foundry\Persistence\PersistentObjectFactory;
 
@@ -35,6 +36,7 @@ final class DummyAgentFactory extends PersistentObjectFactory
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#initialization
      */
+    #[Override]
     protected function initialize(): static
     {
         return $this

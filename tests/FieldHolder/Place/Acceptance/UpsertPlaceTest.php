@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\FieldHolder\Place\Acceptance;
 
 use App\Field\Domain\Enum\FieldCommunity;
@@ -21,14 +23,14 @@ use Zenstruck\Foundry\Test\Factories;
 
 use function Zenstruck\Foundry\Persistence\flush_after;
 
-class UpsertPlaceTest extends AcceptanceTestHelper
+final class UpsertPlaceTest extends AcceptanceTestHelper
 {
     use Factories;
 
     public function testShouldPassWithGoodData(): void
     {
         /** @var PlaceRepositoryInterface $placeRepository */
-        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
+        $placeRepository = self::getContainer()->get(PlaceRepositoryInterface::class);
 
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
@@ -100,7 +102,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
                     ],
                     [
                         'name' => FieldPlace::WIKIDATA_UPDATED_AT,
-                        'value' => (new DateTime())->format('Y-m-d H:i:s'),
+                        'value' => new DateTime()->format('Y-m-d H:i:s'),
                         'reliability' => FieldReliability::HIGH,
                         'source' => 'custom_source',
                         'explanation' => 'yolo',
@@ -120,7 +122,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
     public function testShouldPassWhenProvidingParentCommunities(): void
     {
         /** @var PlaceRepositoryInterface $placeRepository */
-        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
+        $placeRepository = self::getContainer()->get(PlaceRepositoryInterface::class);
 
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
@@ -203,13 +205,14 @@ class UpsertPlaceTest extends AcceptanceTestHelper
         self::assertCount(2, $placeRepository);
         self::assertEquals($response, [880099 => 'Inserted']);
         self::assertEquals($insertedField->name, FieldPlace::PARENT_COMMUNITIES->value);
+        $this->assertInstanceOf(Field::class, $insertedField);
         self::assertEquals($insertedField->getValue(), [$parentCommunity]);
     }
 
     public function testShouldInsertWhenProvidingParentWikidataIds(): void
     {
         /** @var PlaceRepositoryInterface $placeRepository */
-        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
+        $placeRepository = self::getContainer()->get(PlaceRepositoryInterface::class);
 
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
@@ -301,13 +304,14 @@ class UpsertPlaceTest extends AcceptanceTestHelper
         self::assertCount(1, $placeRepository);
         self::assertEquals($response, [$fieldWikidataPlace->getValue() => 'Inserted']);
         self::assertEquals($insertedField->name, FieldPlace::PARENT_COMMUNITIES->value);
+        $this->assertInstanceOf(Field::class, $insertedField);
         self::assertEquals($insertedField->getValue(), $parentCommunities);
     }
 
     public function testShouldUpdateWhenProvidingParentWikidataIds(): void
     {
         /** @var PlaceRepositoryInterface $placeRepository */
-        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
+        $placeRepository = self::getContainer()->get(PlaceRepositoryInterface::class);
 
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
@@ -396,13 +400,14 @@ class UpsertPlaceTest extends AcceptanceTestHelper
 
         self::assertEquals([$fieldWikidataPlace->getValue() => 'Updated'], $response);
         self::assertCount(1, $parentCommunities);
+        $this->assertInstanceOf(Field::class, $updatedField);
         self::assertEquals($updatedField->getValue(), [$community]);
     }
 
     public function testShouldErrorIfParentWikidataIdsNotFound(): void
     {
         /** @var PlaceRepositoryInterface $placeRepository */
-        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
+        $placeRepository = self::getContainer()->get(PlaceRepositoryInterface::class);
 
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
@@ -471,7 +476,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
     public function testShouldErrorIfFieldNameNotValid(): void
     {
         /** @var PlaceRepositoryInterface $placeRepository */
-        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
+        $placeRepository = self::getContainer()->get(PlaceRepositoryInterface::class);
 
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
@@ -527,7 +532,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
     public function testShouldErrorIfFieldValueNotValid(): void
     {
         /** @var PlaceRepositoryInterface $placeRepository */
-        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
+        $placeRepository = self::getContainer()->get(PlaceRepositoryInterface::class);
 
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
@@ -564,7 +569,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
     public function testShouldErrorIfWikidataIdNotProvided(): void
     {
         /** @var PlaceRepositoryInterface $placeRepository */
-        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
+        $placeRepository = self::getContainer()->get(PlaceRepositoryInterface::class);
 
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
@@ -589,7 +594,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
     public function testShouldErrorIfMesseInfoIdAlreadyExists(): void
     {
         /** @var PlaceRepositoryInterface $placeRepository */
-        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
+        $placeRepository = self::getContainer()->get(PlaceRepositoryInterface::class);
 
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();

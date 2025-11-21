@@ -124,14 +124,14 @@ class Field
      */
     #[ORM\Column(type: 'text', nullable: true)]
     #[Groups(['communities', 'places'])]
-    public ?string $source;
+    public ?string $source = null;
 
     /**
      * Explanation of the source (its URL).
      */
     #[ORM\Column(type: 'text', nullable: true)]
     #[Groups(['communities', 'places'])]
-    public ?string $explanation;
+    public ?string $explanation = null;
 
     #[ORM\ManyToOne(inversedBy: 'fields')]
     public ?Place $place = null;

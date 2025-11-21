@@ -12,12 +12,12 @@ use App\FieldHolder\Place\Domain\Repository\PlaceRepositoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 
-final class FieldHolderUpsertService
+final readonly class FieldHolderUpsertService
 {
     public function __construct(
-        private readonly EntityManagerInterface $fieldRepo,
-        private readonly CommunityRepositoryInterface $communityRepo,
-        private readonly PlaceRepositoryInterface $placeRepo,
+        private EntityManagerInterface $fieldRepo,
+        private CommunityRepositoryInterface $communityRepo,
+        private PlaceRepositoryInterface $placeRepo,
     ) {
     }
 

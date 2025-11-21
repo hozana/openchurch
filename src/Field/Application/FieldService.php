@@ -25,14 +25,14 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 use function Symfony\Component\String\s;
 
-final class FieldService
+final readonly class FieldService
 {
     public function __construct(
-        private readonly CommunityRepositoryInterface $communityRepository,
-        private readonly PlaceRepositoryInterface $placeRepository,
-        private readonly FieldRepositoryInterface $fieldRepo,
-        private readonly ValidatorInterface $validator,
-        private readonly Security $security,
+        private CommunityRepositoryInterface $communityRepository,
+        private PlaceRepositoryInterface $placeRepository,
+        private FieldRepositoryInterface $fieldRepo,
+        private ValidatorInterface $validator,
+        private Security $security,
     ) {
     }
 
@@ -96,7 +96,7 @@ final class FieldService
     private function getOrCreate(Place|Community $entity, FieldPlace|FieldCommunity $nameEnum, Agent $agent): Field
     {
         $field = $entity->getFieldByNameAndAgent($nameEnum, $agent);
-        if (!$field) {
+        if (!$field instanceof Field) {
             $field = new Field();
             $field->agent = $agent;
             $this->fieldRepo->add($field);
@@ -145,7 +145,7 @@ final class FieldService
                 throw new BadRequestHttpException($nameEnum->value.': should be an array');
             }
 
-            $instances = $repo->ofIds(array_map(fn (string $id) => UuidV7::fromString($id), $value))->asCollection();
+            $instances = $repo->ofIds(array_map(UuidV7::fromString(...), $value))->asCollection();
 
             if (count($instances) !== count($value)) {
                 throw new FieldEntityNotFoundException($value);
@@ -157,7 +157,7 @@ final class FieldService
             assert(is_string($value));
             $instance = $repo->ofId(Uuid::fromString($value));
 
-            if (!$instance) {
+            if ($instance === null) {
                 throw new FieldEntityNotFoundException($value);
             }
 
@@ -189,7 +189,7 @@ final class FieldService
     private function wikidataIdToCommunityId(int $wikidataId): string
     {
         $fields = $this->fieldRepo->getNameValueFields(FieldCommunity::WIKIDATA_ID, $wikidataId);
-        if (0 === count($fields)) {
+        if ([] === $fields) {
             throw new FieldParentWikidataIdNotFoundException([$wikidataId]);
         }
 

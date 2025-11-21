@@ -19,11 +19,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand('app:index:communities')]
 class IndexCommunitiesCommand extends Command
 {
-    private const BULK_SIZE = 100;
+    private const int BULK_SIZE = 100;
 
     public function __construct(
-        private SearchHelperInterface $elasticHelper,
-        private CommunityRepositoryInterface $communityRepo,
+        private readonly SearchHelperInterface $elasticHelper,
+        private readonly CommunityRepositoryInterface $communityRepo,
     ) {
         parent::__construct();
     }
@@ -100,9 +100,7 @@ class IndexCommunitiesCommand extends Command
 
                 if ($parentId) {
                     $parentDiocese =
-                        $dioceses->filter(function (Community $diocese) use ($parentId) {
-                            return $diocese->id->toString() === $parentId;
-                        })->first();
+                        $dioceses->filter(fn(Community $diocese) => $diocese->id->toString() === $parentId)->first();
 
                     if ($parentDiocese) {
                         $dioceseId = $parentDiocese->id->toString();

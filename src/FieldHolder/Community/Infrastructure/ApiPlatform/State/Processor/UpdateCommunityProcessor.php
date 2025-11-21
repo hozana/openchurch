@@ -15,7 +15,7 @@ use Webmozart\Assert\Assert;
 /**
  * @implements ProcessorInterface<CommunityResource, CommunityResource>
  */
-final class UpdateCommunityProcessor implements ProcessorInterface
+final readonly class UpdateCommunityProcessor implements ProcessorInterface
 {
     public function __construct(
         private CommunityRepositoryInterface $communityRepo,

@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Helper;
 
+use Override;
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use ApiPlatform\Symfony\Bundle\Test\Client;
 use Doctrine\ORM\EntityManagerInterface;
@@ -27,6 +30,7 @@ abstract class AcceptanceTestHelper extends ApiTestCase
         $this->em = static::getContainer()->get('doctrine.orm.entity_manager');
     }
 
+    #[Override]
     protected function tearDown(): void
     {
         $this->em->clear();
@@ -69,7 +73,7 @@ abstract class AcceptanceTestHelper extends ApiTestCase
      */
     protected function get(string $endpoint, ?string $apikey = null, array $headers = [], array $querystring = []): Response
     {
-        if (count($querystring)) {
+        if ($querystring !== []) {
             if (str_contains($endpoint, '?')) {
                 throw new InvalidArgumentException("$endpoint already contains a querystring, don't use both \$querystring argument and a hardcoded one!");
             }
@@ -149,9 +153,8 @@ abstract class AcceptanceTestHelper extends ApiTestCase
         // Ensure that the request response is valid JSON
         $content = $response->getContent();
         self::assertJson($content, 'response body must be valid JSON');
-        $decodedContent = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
 
-        return $decodedContent;
+        return json_decode($content, true, 512, JSON_THROW_ON_ERROR);
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\FieldHolder\Community\Domain\Model;
 
+use Stringable;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Model\Field;
 use App\FieldHolder\FieldHolder;
@@ -18,7 +19,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity]
 #[ORM\Table]
-class Community extends FieldHolder
+class Community extends FieldHolder implements Stringable
 {
     use DoctrineTimestampableTrait;
 
@@ -55,7 +56,7 @@ class Community extends FieldHolder
         $this->fieldsAsCommunitiesVal = new ArrayCollection();
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->id->toString();
     }
@@ -96,11 +97,9 @@ class Community extends FieldHolder
 
     public function removeField(Field $field): static
     {
-        if ($this->fields->removeElement($field)) {
-            // set the owning side to null (unless already changed)
-            if ($field->community === $this) {
-                $field->community = null;
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->fields->removeElement($field) && $field->community === $this) {
+            $field->community = null;
         }
 
         return $this;

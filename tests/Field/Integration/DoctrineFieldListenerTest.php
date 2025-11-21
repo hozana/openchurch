@@ -24,16 +24,14 @@ final class DoctrineFieldListenerTest extends KernelTestCase
     use Factories;
 
     private EntityManagerInterface $em;
-    private DoctrineCommunityListener $listener;
-    public SearchServiceInterface $searchService;
     public SearchHelperInterface $searchHelper;
 
     protected function setUp(): void
     {
-        $this->listener = static::getContainer()->get(DoctrineCommunityListener::class);
-        $this->searchService = static::getContainer()->get(SearchServiceInterface::class);
-        $this->searchHelper = static::getContainer()->get(SearchHelperInterface::class);
-        $this->em = static::getContainer()->get(EntityManagerInterface::class);
+        self::getContainer()->get(DoctrineCommunityListener::class);
+        self::getContainer()->get(SearchServiceInterface::class);
+        $this->searchHelper = self::getContainer()->get(SearchHelperInterface::class);
+        $this->em = self::getContainer()->get(EntityManagerInterface::class);
 
         $this->searchHelper->deleteIndex(SearchIndex::DIOCESE);
         $this->searchHelper->createIndex(SearchIndex::DIOCESE);
@@ -75,8 +73,8 @@ final class DoctrineFieldListenerTest extends KernelTestCase
 
         $this->searchHelper->refresh(SearchIndex::PARISH);
         $document = $this->searchHelper->getDocument(SearchIndex::PARISH, $parish->id->toString());
-        self::assertSame($document['_source']['parishName'], 'Paroisse du Haillon');
-        self::assertSame($document['_source']['dioceseName'], 'Diocèse de Nantes');
+        self::assertSame('Paroisse du Haillon', $document['_source']['parishName']);
+        self::assertSame('Diocèse de Nantes', $document['_source']['dioceseName']);
 
         $accessor = Field::getPropertyName(FieldCommunity::NAME);
         $fieldParishName->$accessor = 'Paroisse de la Haie';
@@ -84,8 +82,8 @@ final class DoctrineFieldListenerTest extends KernelTestCase
 
         $this->searchHelper->refresh(SearchIndex::PARISH);
         $document = $this->searchHelper->getDocument(SearchIndex::PARISH, $parish->id->toString());
-        self::assertSame($document['_source']['parishName'], 'Paroisse de la Haie');
-        self::assertSame($document['_source']['dioceseName'], 'Diocèse de Nantes');
+        self::assertSame('Paroisse de la Haie', $document['_source']['parishName']);
+        self::assertSame('Diocèse de Nantes', $document['_source']['dioceseName']);
     }
 
     public function testPostUpdateDioceseName(): void
@@ -143,11 +141,11 @@ final class DoctrineFieldListenerTest extends KernelTestCase
 
         $this->searchHelper->refresh(SearchIndex::PARISH);
         $document1 = $this->searchHelper->getDocument(SearchIndex::PARISH, $parish1->id->toString());
-        self::assertSame($document1['_source']['parishName'], 'Paroisse 1');
-        self::assertSame($document1['_source']['dioceseName'], 'Super Diocèse');
+        self::assertSame('Paroisse 1', $document1['_source']['parishName']);
+        self::assertSame('Super Diocèse', $document1['_source']['dioceseName']);
         $document2 = $this->searchHelper->getDocument(SearchIndex::PARISH, $parish2->id->toString());
-        self::assertSame($document2['_source']['parishName'], 'Paroisse 2');
-        self::assertSame($document2['_source']['dioceseName'], 'Super Diocèse');
+        self::assertSame('Paroisse 2', $document2['_source']['parishName']);
+        self::assertSame('Super Diocèse', $document2['_source']['dioceseName']);
 
         $dioceseFieldName = $diocese->getMostTrustableFieldByName(FieldCommunity::NAME);
         $accessor = Field::getPropertyName(FieldCommunity::NAME);
@@ -156,10 +154,10 @@ final class DoctrineFieldListenerTest extends KernelTestCase
 
         $this->searchHelper->refresh(SearchIndex::PARISH);
         $document1 = $this->searchHelper->getDocument(SearchIndex::PARISH, $parish1->id->toString());
-        self::assertSame($document1['_source']['parishName'], 'Paroisse 1');
-        self::assertSame($document1['_source']['dioceseName'], 'Hyper Diocèse');
+        self::assertSame('Paroisse 1', $document1['_source']['parishName']);
+        self::assertSame('Hyper Diocèse', $document1['_source']['dioceseName']);
         $document2 = $this->searchHelper->getDocument(SearchIndex::PARISH, $parish2->id->toString());
-        self::assertSame($document2['_source']['parishName'], 'Paroisse 2');
-        self::assertSame($document2['_source']['dioceseName'], 'Hyper Diocèse');
+        self::assertSame('Paroisse 2', $document2['_source']['parishName']);
+        self::assertSame('Hyper Diocèse', $document2['_source']['dioceseName']);
     }
 }

@@ -14,10 +14,10 @@ use Symfony\Component\Uid\Uuid;
 /**
  * @implements ProviderInterface<CommunityResource>
  */
-final class CommunityItemProvider implements ProviderInterface
+final readonly class CommunityItemProvider implements ProviderInterface
 {
     public function __construct(
-        private readonly CommunityRepositoryInterface $communityRepo,
+        private CommunityRepositoryInterface $communityRepo,
     ) {
     }
 

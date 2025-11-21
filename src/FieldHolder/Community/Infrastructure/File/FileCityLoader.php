@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\FieldHolder\Community\Infrastructure\File;
 
+use RuntimeException;
 use App\FieldHolder\Community\Domain\Service\CityLoaderInterface;
 use App\Kernel;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -11,7 +12,7 @@ use Symfony\Component\Filesystem\Filesystem;
 
 class FileCityLoader implements CityLoaderInterface
 {
-    private string $targetPath;
+    private readonly string $targetPath;
 
     public function __construct(
         private readonly HttpClientInterface $httpClient,
@@ -30,15 +31,15 @@ class FileCityLoader implements CityLoaderInterface
         $data = [];
 
         if (($handle = fopen($this->targetPath, 'r')) === false) {
-            throw new \RuntimeException(sprintf('Impossible d’ouvrir le fichier CSV : %s', $this->targetPath));
+            throw new RuntimeException(sprintf('Impossible d’ouvrir le fichier CSV : %s', $this->targetPath));
         }
 
-        if (($header = fgetcsv($handle, 0, ';')) === false) {
+        if (($header = fgetcsv($handle, 0, ';', escape: '\\')) === false) {
             fclose($handle);
-            throw new \RuntimeException('Impossible de lire la ligne d’en-têtes du CSV.');
+            throw new RuntimeException('Impossible de lire la ligne d’en-têtes du CSV.');
         }
 
-        while (($row = fgetcsv($handle, 0, ';')) !== false) {
+        while (($row = fgetcsv($handle, 0, ';', escape: '\\')) !== false) {
             // Ligne vide ou incomplète
             if (count($row) !== count($header)) {
                 continue;
@@ -61,7 +62,7 @@ class FileCityLoader implements CityLoaderInterface
         ]);
 
         if (200 !== $response->getStatusCode()) {
-            throw new \RuntimeException(sprintf(
+            throw new RuntimeException(sprintf(
                 'Download failure (HTTP %d).',
                 $response->getStatusCode()
             ));
@@ -70,7 +71,7 @@ class FileCityLoader implements CityLoaderInterface
         // 3. Ouverture du fichier en écriture binaire
         $fileHandler = fopen($this->targetPath, 'wb');
         if (false === $fileHandler) {
-            throw new \RuntimeException('Unable to create local file.');
+            throw new RuntimeException('Unable to create local file.');
         }
 
         // 4. Écriture du flux dans le fichier

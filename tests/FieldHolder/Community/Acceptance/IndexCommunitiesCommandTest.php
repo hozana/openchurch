@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\FieldHolder\Community\Acceptance;
 
+use Override;
 use ApiPlatform\Symfony\Bundle\Test\Client;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Model\Field;
@@ -14,20 +17,19 @@ use App\Tests\FieldHolder\Community\DummyFactory\DummyCommunityFactory;
 use App\Tests\Helper\AcceptanceTestHelper;
 use Zenstruck\Foundry\Test\Factories;
 
-class IndexCommunitiesCommandTest extends AcceptanceTestHelper
+final class IndexCommunitiesCommandTest extends AcceptanceTestHelper
 {
     use Factories;
-
-    protected Client $client;
     private SearchHelperInterface $searchHelper;
     private SearchServiceInterface $searchService;
 
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->searchHelper = static::getContainer()->get(SearchHelperInterface::class);
-        $this->searchService = static::getContainer()->get(SearchServiceInterface::class);
+        $this->searchHelper = self::getContainer()->get(SearchHelperInterface::class);
+        $this->searchService = self::getContainer()->get(SearchServiceInterface::class);
     }
 
     public function testExecute(): void
@@ -91,13 +93,13 @@ class IndexCommunitiesCommandTest extends AcceptanceTestHelper
         $this->searchHelper->refresh(SearchIndex::DIOCESE);
 
         $indexedParishes = $this->searchService->allParishes();
-        static::assertEquals([$parish1->id->toString(), $parish2->id->toString()], $indexedParishes);
+        self::assertEquals([$parish1->id->toString(), $parish2->id->toString()], $indexedParishes);
 
         $indexedDioceses = $this->searchService->allDioceses();
-        static::assertEquals([$diocese1->id->toString(), $diocese2->id->toString()], $indexedDioceses);
+        self::assertEquals([$diocese1->id->toString(), $diocese2->id->toString()], $indexedDioceses);
 
         $rawResults = $this->searchHelper->all(SearchIndex::PARISH, 100, 0);
-        static::assertEquals([
+        self::assertEquals([
             [
                 '_index' => 'parish',
                 '_id' => $parish1->id->toString(),

@@ -18,13 +18,13 @@ final class DoctrineAgentRepositoryTest extends KernelTestCase
 
     protected function setUp(): void
     {
-        static::$em = static::getContainer()->get(EntityManagerInterface::class);
+        self::$em = self::getContainer()->get(EntityManagerInterface::class);
     }
 
     public function testFindAgentNameByApiKey(): void
     {
         /** @var DoctrineAgentRepository $repository */
-        $repository = static::getContainer()->get(DoctrineAgentRepository::class);
+        $repository = self::getContainer()->get(DoctrineAgentRepository::class);
 
         $agent = DummyAgentFactory::createOne(['name' => 'Romain de rosario', 'apiKey' => '1234']);
         DummyAgentFactory::createOne(['name' => 'toto la praline', 'apiKey' => '5678']);
@@ -33,6 +33,6 @@ final class DoctrineAgentRepositoryTest extends KernelTestCase
 
         $result = $repository->findAgentNameByApiKey($agent->apiKey);
 
-        static::assertEquals($agent->name, $result);
+        self::assertEquals($agent->name, $result);
     }
 }

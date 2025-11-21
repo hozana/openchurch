@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\FieldHolder\Community\Acceptance;
 
 use App\Field\Domain\Enum\FieldCommunity;
@@ -18,7 +20,7 @@ use Zenstruck\Foundry\Test\Factories;
 
 use function Zenstruck\Foundry\Persistence\flush_after;
 
-class UpdateCommunityTest extends AcceptanceTestHelper
+final class UpdateCommunityTest extends AcceptanceTestHelper
 {
     use Factories;
 
@@ -170,8 +172,8 @@ class UpdateCommunityTest extends AcceptanceTestHelper
                 ],
             ],
         ]),
-            (new CommunityNotFoundException($id))->getStatus(),
-            (new CommunityNotFoundException($id))->getDetail(),
+            new CommunityNotFoundException($id)->getStatus(),
+            new CommunityNotFoundException($id)->getDetail(),
         );
     }
 }

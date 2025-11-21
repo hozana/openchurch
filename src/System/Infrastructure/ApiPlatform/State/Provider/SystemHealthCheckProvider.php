@@ -14,11 +14,11 @@ use Doctrine\ORM\EntityManagerInterface;
 /**
  * @implements ProviderInterface<SystemHealthCheckResource>
  */
-final class SystemHealthCheckProvider implements ProviderInterface
+final readonly class SystemHealthCheckProvider implements ProviderInterface
 {
     public function __construct(
-        private readonly RedisClient $redisClient,
-        private readonly EntityManagerInterface $em,
+        private RedisClient $redisClient,
+        private EntityManagerInterface $em,
     ) {
     }
 

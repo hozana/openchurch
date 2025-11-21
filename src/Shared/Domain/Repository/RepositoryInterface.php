@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Shared\Domain\Repository;
 
+use Countable;
 use Doctrine\Common\Collections\Collection;
 use Iterator;
 use IteratorAggregate;
@@ -11,9 +12,9 @@ use IteratorAggregate;
 /**
  * @template T of object
  *
- * @extends \IteratorAggregate<array-key, T>
+ * @extends IteratorAggregate<array-key, T>
  */
-interface RepositoryInterface extends IteratorAggregate, \Countable
+interface RepositoryInterface extends IteratorAggregate, Countable
 {
     /**
      * @return Iterator<T>

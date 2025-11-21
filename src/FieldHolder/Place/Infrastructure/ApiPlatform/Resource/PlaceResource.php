@@ -31,38 +31,38 @@ use Symfony\Component\Uid\Uuid;
     ],
     operations: [
         new Post(
-            security: 'is_granted("ROLE_AGENT")',
             uriTemplate: '/places',
             status: 200,
-            processor: CreatePlaceProcessor::class,
-            normalizationContext: ['groups' => ['places']]
+            normalizationContext: ['groups' => ['places']],
+            security: 'is_granted("ROLE_AGENT")',
+            processor: CreatePlaceProcessor::class
         ),
         new Patch(
-            securityPostDenormalize: 'is_granted("ROLE_AGENT")',
             uriTemplate: '/places/{id}',
             status: 200,
+            normalizationContext: ['groups' => ['places']],
+            securityPostDenormalize: 'is_granted("ROLE_AGENT")',
             provider: PlaceItemProvider::class,
             processor: UpdatePlaceProcessor::class,
-            normalizationContext: ['groups' => ['places']],
         ),
         new Get(
-            provider: PlaceItemProvider::class,
             normalizationContext: ['groups' => ['places']],
+            provider: PlaceItemProvider::class,
         ),
         new Put(
-            security: 'is_granted("ROLE_AGENT")',
             uriTemplate: '/places/upsert',
             status: 200,
-            processor: UpsertPlaceProcessor::class,
+            security: 'is_granted("ROLE_AGENT")',
             input: PlaceWikidataInput::class,
+            processor: UpsertPlaceProcessor::class,
         ),
         new GetCollection(
             uriTemplate: '/places',
+            normalizationContext: ['groups' => ['places']],
             filters: [
                 FieldParentCommunityIdFilter::class,
             ],
             provider: PlaceCollectionProvider::class,
-            normalizationContext: ['groups' => ['places']],
         ),
     ],
 )]

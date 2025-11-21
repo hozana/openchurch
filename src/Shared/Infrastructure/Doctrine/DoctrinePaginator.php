@@ -14,7 +14,7 @@ use Traversable;
  *
  * @implements PaginatorInterface<T>
  */
-final class DoctrinePaginator implements PaginatorInterface
+final readonly class DoctrinePaginator implements PaginatorInterface
 {
     private int $firstResult;
     private int $maxResults;

@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\FieldHolder\Community\Acceptance;
 
+use Override;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Model\Field;
 use App\FieldHolder\Community\Domain\Enum\CommunityType;
@@ -16,19 +19,19 @@ use App\Tests\Helper\AcceptanceTestHelper;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Zenstruck\Foundry\Test\Factories;
 
-class GetCommunitiesTest extends AcceptanceTestHelper
+final class GetCommunitiesTest extends AcceptanceTestHelper
 {
     use Factories;
 
     public SearchHelperInterface $searchHelper;
-    public SearchServiceInterface $searchService;
 
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->searchHelper = static::getContainer()->get(SearchHelperInterface::class);
-        $this->searchService = static::getContainer()->get(SearchServiceInterface::class);
+        $this->searchHelper = self::getContainer()->get(SearchHelperInterface::class);
+        self::getContainer()->get(SearchServiceInterface::class);
     }
 
     public function testFilterByWikidataId(): void
@@ -134,8 +137,8 @@ class GetCommunitiesTest extends AcceptanceTestHelper
             $this->get('/communities', querystring: [
                 FieldCommunity::NAME->value => 'carmel',
             ]),
-            (new CommunityTypeNotProvidedException())->getStatus(),
-            (new CommunityTypeNotProvidedException())->getDetail()
+            new CommunityTypeNotProvidedException()->getStatus(),
+            new CommunityTypeNotProvidedException()->getDetail()
         );
 
         $response = self::assertResponse($this->get('/communities', querystring: [

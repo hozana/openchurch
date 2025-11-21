@@ -11,6 +11,7 @@ use Rector\CodingStyle\Rector\Encapsed\EncapsedStringsToSprintfRector;
 use Rector\CodingStyle\Rector\Encapsed\WrapEncapsedVariableInCurlyBracesRector;
 use Rector\CodingStyle\Rector\Stmt\NewlineAfterStatementRector;
 use Rector\Config\RectorConfig;
+use Rector\PHPUnit\CodeQuality\Rector\Class_\PreferPHPUnitThisCallRector;
 use Rector\Strict\Rector\Empty_\DisallowedEmptyRuleFixerRector;
 use Rector\TypeDeclaration\Rector\StmtsAwareInterface\DeclareStrictTypesRector;
 
@@ -31,6 +32,7 @@ return RectorConfig::configure()
         NewlineBeforeNewAssignSetRector::class,
         CatchExceptionNameMatchingTypeRector::class,
         SplitDoubleAssignRector::class,
+        PreferPHPUnitThisCallRector::class,
         DeclareStrictTypesRector::class,
     ])
     // here we can define, what prepared sets of rules will be applied

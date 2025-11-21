@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
+use Override;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 use RuntimeException;
@@ -28,6 +29,7 @@ final class Version20241220160327 extends AbstractMigration
         );
     }
 
+    #[Override]
     public function down(Schema $schema): void
     {
         $this->addSql('DELETE FROM agent WHERE name = "CLI_SYNCHRO"');

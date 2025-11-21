@@ -15,7 +15,7 @@ use Webmozart\Assert\Assert;
 /**
  * @implements ProcessorInterface<PlaceResource, PlaceResource>
  */
-final class UpdatePlaceProcessor implements ProcessorInterface
+final readonly class UpdatePlaceProcessor implements ProcessorInterface
 {
     public function __construct(
         private PlaceRepositoryInterface $placeRepo,

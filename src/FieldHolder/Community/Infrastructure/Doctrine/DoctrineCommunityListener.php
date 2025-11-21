@@ -15,12 +15,12 @@ use Doctrine\ORM\Events;
 use Symfony\Bundle\SecurityBundle\Security;
 
 #[AsEntityListener(event: Events::postPersist, method: 'postPersist', entity: Community::class)]
-final class DoctrineCommunityListener
+final readonly class DoctrineCommunityListener
 {
     public function __construct(
-        private readonly string $synchroSecretKey,
-        private readonly Security $security,
-        private readonly SearchHelperInterface $searchHelper,
+        private string $synchroSecretKey,
+        private Security $security,
+        private SearchHelperInterface $searchHelper,
     ) {
     }
 

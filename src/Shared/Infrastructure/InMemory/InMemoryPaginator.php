@@ -16,7 +16,7 @@ use Webmozart\Assert\Assert;
  *
  * @implements PaginatorInterface<T>
  */
-final class InMemoryPaginator implements PaginatorInterface
+final readonly class InMemoryPaginator implements PaginatorInterface
 {
     private int $offset;
     private int $limit;

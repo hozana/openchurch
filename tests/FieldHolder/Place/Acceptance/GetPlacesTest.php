@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\FieldHolder\Place\Acceptance;
 
+use Override;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Enum\FieldPlace;
 use App\Field\Domain\Model\Field;
@@ -14,10 +17,11 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Zenstruck\Foundry\Test\Factories;
 
-class GetPlacesTest extends AcceptanceTestHelper
+final class GetPlacesTest extends AcceptanceTestHelper
 {
     use Factories;
 
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -91,7 +95,7 @@ class GetPlacesTest extends AcceptanceTestHelper
 
     public function testShouldErrorIfParentCommunityIdNotAUuid(): void
     {
-        $response = self::assertErrorResponse(
+        self::assertErrorResponse(
             $this->get('/places', querystring: [
                 FieldCommunity::PARENT_COMMUNITY_ID->value => 123,
             ]),

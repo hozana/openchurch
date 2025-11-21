@@ -2,6 +2,7 @@
 
 namespace App\Tests\Field\DummyFactory;
 
+use Override;
 use App\Field\Domain\Enum\FieldEngine;
 use App\Field\Domain\Enum\FieldReliability;
 use App\Field\Domain\Model\Field;
@@ -47,6 +48,7 @@ final class DummyFieldFactory extends PersistentObjectFactory
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#initialization
      */
+    #[Override]
     protected function initialize(): static
     {
         return $this

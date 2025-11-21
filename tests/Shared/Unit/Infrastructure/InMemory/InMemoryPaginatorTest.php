@@ -24,7 +24,7 @@ final class InMemoryPaginatorTest extends TestCase
             itemsPerPage: $itemsPerPage,
         );
 
-        static::assertSame($lastPage, $paginator->getLastPage());
+        self::assertSame($lastPage, $paginator->getLastPage());
     }
 
     /**
@@ -53,11 +53,11 @@ final class InMemoryPaginatorTest extends TestCase
             itemsPerPage: $itemsPerPage,
         );
 
-        static::assertSame(count($page), count($paginator));
+        self::assertCount(count($page), $paginator);
 
         $i = 0;
         foreach ($paginator as $item) {
-            static::assertSame($page[$i], $item);
+            self::assertSame($page[$i], $item);
             ++$i;
         }
     }

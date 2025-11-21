@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\FieldHolder\Place\Acceptance;
 
 use App\Agent\Domain\Model\Agent;
@@ -22,7 +24,7 @@ use Zenstruck\Foundry\Test\Factories;
 
 use function Zenstruck\Foundry\Persistence\flush_after;
 
-class UpdatePlaceTest extends AcceptanceTestHelper
+final class UpdatePlaceTest extends AcceptanceTestHelper
 {
     use Factories;
 
@@ -94,8 +96,8 @@ class UpdatePlaceTest extends AcceptanceTestHelper
                     ],
                 ],
             ]),
-            (new FieldInvalidNameException('toto'))->getStatus(),
-            (new FieldInvalidNameException('toto'))->getDetail()
+            new FieldInvalidNameException('toto')->getStatus(),
+            new FieldInvalidNameException('toto')->getDetail()
         );
     }
 
@@ -161,7 +163,7 @@ class UpdatePlaceTest extends AcceptanceTestHelper
 
         $this->em->flush();
 
-        $response = self::assertErrorResponse(
+        self::assertErrorResponse(
             $this->patch('/places/'.$place->id->toString(), $agent->apiKey, body: [
                 'fields' => [
                     [
@@ -174,8 +176,8 @@ class UpdatePlaceTest extends AcceptanceTestHelper
                     ],
                 ],
             ]),
-            (new FieldUnicityViolationException(FieldPlace::WIKIDATA_ID->value, 123457))->getStatus(),
-            (new FieldUnicityViolationException(FieldPlace::WIKIDATA_ID->value, 123457))->getDetail(),
+            new FieldUnicityViolationException(FieldPlace::WIKIDATA_ID->value, 123457)->getStatus(),
+            new FieldUnicityViolationException(FieldPlace::WIKIDATA_ID->value, 123457)->getDetail(),
         );
     }
 
@@ -197,7 +199,7 @@ class UpdatePlaceTest extends AcceptanceTestHelper
             ],
         ]),
             404,
-            (new PlaceNotFoundException($id))->getDetail(),
+            new PlaceNotFoundException($id)->getDetail(),
         );
     }
 }

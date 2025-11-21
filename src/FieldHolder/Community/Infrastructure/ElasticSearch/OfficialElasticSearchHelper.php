@@ -13,7 +13,7 @@ use stdClass;
 
 class OfficialElasticSearchHelper implements SearchHelperInterface
 {
-    private Client $elasticsearchClient;
+    private readonly Client $elasticsearchClient;
 
     public function __construct(string $elasticsearchHost)
     {
@@ -213,8 +213,9 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
         }
 
         $params = ['body' => []];
+        $counter = count($ids);
 
-        for ($i = 0; $i < count($ids); ++$i) {
+        for ($i = 0; $i < $counter; ++$i) {
             $params['body'][] = [
                 'index' => [
                     '_index' => $index->value,
@@ -228,7 +229,7 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             $params = ['body' => []];
         }
 
-        if (count($params['body']) > 0) {
+        if ($params['body'] !== []) {
             $this->elasticsearchClient->bulk($params);
         }
     }

@@ -18,7 +18,7 @@ use Symfony\Component\Uid\Uuid;
 /**
  * @implements ProviderInterface<PlaceResource>
  */
-final class PlaceCollectionProvider implements ProviderInterface
+final readonly class PlaceCollectionProvider implements ProviderInterface
 {
     public function __construct(
         private Pagination $pagination,

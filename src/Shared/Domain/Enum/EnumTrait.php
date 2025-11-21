@@ -24,7 +24,7 @@ trait EnumTrait
      */
     public static function constants(): array
     {
-        return (new ReflectionClass(static::class))->getConstants();
+        return new ReflectionClass(static::class)->getConstants();
     }
 
     /**

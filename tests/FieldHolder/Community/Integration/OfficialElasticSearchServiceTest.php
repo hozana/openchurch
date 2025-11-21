@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\FieldHolder\Community\Integration;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
@@ -8,7 +10,7 @@ use App\FieldHolder\Community\Infrastructure\ElasticSearch\OfficialElasticSearch
 use App\FieldHolder\Community\Infrastructure\ElasticSearch\OfficialElasticSearchService;
 use App\Shared\Domain\Enum\SearchIndex;
 
-class OfficialElasticSearchServiceTest extends ApiTestCase
+final class OfficialElasticSearchServiceTest extends ApiTestCase
 {
     public OfficialElasticSearchHelper $elasticHelper;
     public OfficialElasticSearchService $elasticService;
@@ -21,7 +23,7 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
         $this->elasticHelper = new OfficialElasticSearchHelper($_ENV['ELASTICSEARCH_IRI']);
         $this->elasticService = new OfficialElasticSearchService(
             $this->elasticHelper,
-            static::getContainer()->get(CommunityRepositoryInterface::class),
+            self::getContainer()->get(CommunityRepositoryInterface::class),
         );
 
         $this->elasticHelper->deleteIndex(SearchIndex::DIOCESE);
@@ -50,7 +52,7 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
 
         $this->elasticHelper->refresh(SearchIndex::DIOCESE);
         $ids = $this->elasticService->searchDioceseIds('Montauban', 3, 0);
-        self::assertEquals([0 => $dioceseIds[4]], $ids);
+        self::assertSame([0 => $dioceseIds[4]], $ids);
 
         // check if d' is a stopword
         $ids = $this->elasticService->searchDioceseIds("d'", 3, 0);
@@ -76,18 +78,18 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
         $this->elasticHelper->refresh(SearchIndex::PARISH);
 
         $ids = $this->elasticService->searchParishIds('Joseph', null, 3, 0);
-        self::assertEquals([0 => $parishes[2]['parishName']], $ids);
+        self::assertSame([0 => $parishes[2]['parishName']], $ids);
 
         $ids = $this->elasticService->searchParishIds('carmeel', null, 3, 0);
-        self::assertEquals([0 => $parishes[1]['parishName']], $ids);
+        self::assertSame([0 => $parishes[1]['parishName']], $ids);
 
         // search by diocese name
         $ids = $this->elasticService->searchParishIds('Aire et Dax', null, 3, 0);
-        self::assertEquals([0 => $parishes[1]['parishName'], 1 => $parishes[5]['parishName']], $ids);
+        self::assertSame([0 => $parishes[1]['parishName'], 1 => $parishes[5]['parishName']], $ids);
 
         // search by diocese name
         $ids = $this->elasticService->searchParishIds('Arles', null, 3, 0);
-        self::assertEquals([0 => $parishes[3]['parishName']], $ids);
+        self::assertSame([0 => $parishes[3]['parishName']], $ids);
     }
 
     public function testSearchDioceseOnSmallText(): void
@@ -108,7 +110,7 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
         );
         $this->elasticHelper->refresh(SearchIndex::DIOCESE);
 
-        self::assertEquals(
+        self::assertSame(
             [
                 'Diocèse de France',
                 'Diocèse de Fréjus-Toulon',
@@ -124,10 +126,10 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
             ['dioceseName' => 'Diocèse de Valence', 'parishName' => 'Paroisse Saint-Marcel-du-Diois'],
             ['dioceseName' => 'Diocèse de Valence', 'parishName' => 'Paroisse Notre-Dame-de-la-Valloire'],
             ['dioceseName' => 'Diocèse de Valence', 'parishName' => 'Paroisse Saint-Martin-de-la-Plaine-de-Valence'],
-            ['dioceseName' => 'Archidiocèse de Paris', 'parishName' => 'Paroisse Notre-Dame-d\'Auteuil'],
+            ['dioceseName' => 'Archidiocèse de Paris', 'parishName' => "Paroisse Notre-Dame-d'Auteuil"],
             ['dioceseName' => 'Archidiocèse de Paris', 'parishName' => 'Paroisse Notre-Dame-d\'Espérance'],
             ['dioceseName' => 'Archidiocèse de Paris', 'parishName' => 'Paroisse Notre-Dame-de-Bonne-Nouvelle'],
-            ['dioceseName' => '???', 'parishName' => 'Paroisse de l\'Oise'],
+            ['dioceseName' => '???', 'parishName' => "Paroisse de l'Oise"],
             ['dioceseName' => 'Diocèse d\'Arles', 'parishName' => 'Paroisse de Fos-sur-Mer'],
         ];
 
@@ -172,19 +174,19 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
                 'Paroisse Saint-Marcellin-Champagnat-en-Tricastin',
             ],
             'notre' => [
-                'Paroisse Notre-Dame-d\'Auteuil',
+                "Paroisse Notre-Dame-d'Auteuil",
                 'Paroisse Notre-Dame-d\'Espérance',
                 'Paroisse Notre-Dame-de-la-Valloire',
                 'Paroisse Notre-Dame-de-Bonne-Nouvelle',
             ],
             'notre dame' => [
-                'Paroisse Notre-Dame-d\'Auteuil',
+                "Paroisse Notre-Dame-d'Auteuil",
                 'Paroisse Notre-Dame-d\'Espérance',
                 'Paroisse Notre-Dame-de-la-Valloire',
                 'Paroisse Notre-Dame-de-Bonne-Nouvelle',
             ],
             'oise' => [
-                'Paroisse de l\'Oise',
+                "Paroisse de l'Oise",
             ],
             'me' => [
                 'Paroisse de Fos-sur-Mer',
@@ -225,14 +227,14 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
         self::assertCount(0, $ids);
 
         $ids = $this->elasticService->searchParishIds('diocèse de Montpellier', null, 10, 0);
-        self::assertEquals([
+        self::assertSame([
             'Paroisse Cathédrale',
             'Paroisse Sainte Bernadette',
             'Paroisse Sainte Thérèse',
         ], $ids);
 
         $ids = $this->elasticService->searchParishIds('Montpellier', null, 10, 0);
-        self::assertEquals([
+        self::assertSame([
             'Paroisse Cathédrale',
             'Paroisse Sainte Bernadette',
             'Paroisse Sainte Thérèse',
@@ -258,7 +260,7 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
         $this->elasticHelper->refresh(SearchIndex::PARISH);
 
         $ids = $this->elasticService->searchParishIds('diocèse de Montpellier', '1', 10, 0);
-        self::assertEquals([
+        self::assertSame([
             'Paroisse Cathédrale',
             'Paroisse Sainte Thérèse',
         ], $ids);
@@ -267,7 +269,7 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
         self::assertCount(0, $ids);
 
         $ids = $this->elasticService->searchParishIds('Montpellier', '3', 10, 0);
-        self::assertEquals([
+        self::assertSame([
             'Paroisse Sainte Bernadette',
         ], $ids);
     }
@@ -345,7 +347,7 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
         );
         $this->elasticHelper->refresh(SearchIndex::PARISH);
 
-        self::assertEquals(
+        self::assertSame(
             [
                 'Paroisse de Zonza',
                 'Paroisse Notre-Dame-du-Mont-Carmel',
@@ -375,7 +377,7 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
         );
         $this->elasticHelper->refresh(SearchIndex::PARISH);
 
-        self::assertEquals(
+        self::assertSame(
             [
                 'Paroisse de Aos-sur-Mer',
                 'Paroisse de Fos-sur-Mer',
@@ -404,7 +406,7 @@ class OfficialElasticSearchServiceTest extends ApiTestCase
         );
         $this->elasticHelper->refresh(SearchIndex::DIOCESE);
 
-        self::assertEquals(
+        self::assertSame(
             [
                 'Archidiocèse d\'Aix-en-Provence et Arles',
                 'Archidiocèse de Montpellier',

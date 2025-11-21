@@ -20,7 +20,7 @@ final class DoctrinePaginatorTest extends TestCase
     public function testGetCurrentPage(int $currentPage, int $firstResult, int $maxResults, int $totalItems): void
     {
         $paginator = new DoctrinePaginator($this->createPaginatorStub($firstResult, $maxResults, $totalItems));
-        static::assertSame($currentPage, $paginator->getCurrentPage());
+        self::assertSame($currentPage, $paginator->getCurrentPage());
     }
 
     /**
@@ -41,7 +41,7 @@ final class DoctrinePaginatorTest extends TestCase
     public function testGetLastPage(int $lastPage, int $maxResults, int $totalItems): void
     {
         $paginator = new DoctrinePaginator($this->createPaginatorStub(1, $maxResults, $totalItems));
-        static::assertSame($lastPage, $paginator->getLastPage());
+        self::assertSame($lastPage, $paginator->getLastPage());
     }
 
     /**

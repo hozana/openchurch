@@ -92,11 +92,9 @@ class Place extends FieldHolder
 
     public function removeField(Field $field): static
     {
-        if ($this->fields->removeElement($field)) {
-            // set the owning side to null (unless already changed)
-            if ($field->place === $this) {
-                $field->place = null;
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->fields->removeElement($field) && $field->place === $this) {
+            $field->place = null;
         }
 
         return $this;

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
+use Override;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
@@ -18,6 +19,7 @@ final class Version20241203150437 extends AbstractMigration
         $this->addSql('ALTER TABLE field ADD CONSTRAINT FK_5BF54558DA6A219 FOREIGN KEY (place_id) REFERENCES place (id)');
     }
 
+    #[Override]
     public function down(Schema $schema): void
     {
         $this->addSql('ALTER TABLE field DROP FOREIGN KEY FK_5BF54558FDA7B0BF');

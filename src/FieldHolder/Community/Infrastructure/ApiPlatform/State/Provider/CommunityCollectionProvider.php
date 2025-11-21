@@ -21,7 +21,7 @@ use Symfony\Component\Uid\Uuid;
 /**
  * @implements ProviderInterface<CommunityResource>
  */
-final class CommunityCollectionProvider implements ProviderInterface
+final readonly class CommunityCollectionProvider implements ProviderInterface
 {
     public function __construct(
         private Pagination $pagination,
@@ -66,13 +66,13 @@ final class CommunityCollectionProvider implements ProviderInterface
                 default => throw new InvalidArgumentException(sprintf('Invalid type %s', $type)),
             };
 
-            if (0 === count($entityIds)) {
+            if ([] === $entityIds) {
                 return [];
             }
         }
 
         $models = $this->communityRepo
-            ->ofIds(array_map(fn (string $entityId) => Uuid::fromString($entityId), $entityIds ?? []))
+            ->ofIds(array_map(Uuid::fromString(...), $entityIds ?? []))
             ->withType($type)
             ->withWikidataId((int) $wikidataId)
             ->withParentCommunityId($parentCommunity->id ?? null)

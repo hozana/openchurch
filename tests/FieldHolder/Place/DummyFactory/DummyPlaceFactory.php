@@ -2,6 +2,7 @@
 
 namespace App\Tests\FieldHolder\Place\DummyFactory;
 
+use Override;
 use App\FieldHolder\Place\Domain\Model\Place;
 use DateTimeImmutable;
 use Zenstruck\Foundry\Persistence\PersistentObjectFactory;
@@ -40,6 +41,7 @@ final class DummyPlaceFactory extends PersistentObjectFactory
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#initialization
      */
+    #[Override]
     protected function initialize(): static
     {
         return $this

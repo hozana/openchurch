@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\FieldHolder\Community\Infrastructure\ApiPlatform\State\Processor;
 
+use App\Field\Domain\Model\Field;
 use ApiPlatform\Metadata\Exception\ProblemExceptionInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
@@ -21,7 +22,7 @@ use Webmozart\Assert\Assert;
 /**
  * @implements ProcessorInterface<CommunityWikidataInput, array<int, string>>
  */
-final class UpsertCommunityProcessor implements ProcessorInterface
+final readonly class UpsertCommunityProcessor implements ProcessorInterface
 {
     public function __construct(
         private CommunityRepositoryInterface $communityRepo,
@@ -44,7 +45,7 @@ final class UpsertCommunityProcessor implements ProcessorInterface
 
             $wikidataIds = array_map(function (array $fields) use (&$wikidataIdFields) {
                 $wikidataField = $this->fieldHolderUpsertService->getFieldByName($fields, FieldCommunity::WIKIDATA_ID->value);
-                if (!$wikidataField) {
+                if (!$wikidataField instanceof Field) {
                     throw new FieldWikidataIdMissingException();
                 }
 

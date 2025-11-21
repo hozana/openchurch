@@ -16,13 +16,13 @@ use Doctrine\ORM\Events;
 use Symfony\Bundle\SecurityBundle\Security;
 
 #[AsEntityListener(event: Events::postUpdate, method: 'postUpdate', entity: Field::class)]
-final class DoctrineFieldListener
+final readonly class DoctrineFieldListener
 {
     public function __construct(
-        private readonly string $synchroSecretKey,
-        private readonly Security $security,
-        private readonly SearchHelperInterface $searchHelper,
-        private readonly CommunityRepositoryInterface $communityRepo,
+        private string $synchroSecretKey,
+        private Security $security,
+        private SearchHelperInterface $searchHelper,
+        private CommunityRepositoryInterface $communityRepo,
     ) {
     }
 
