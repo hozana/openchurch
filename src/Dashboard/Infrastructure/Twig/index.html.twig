@@ -1,0 +1,36 @@
+<table>
+    <thead>
+        <tr>
+            <th>Type</th>
+            <th>Count</th>
+            <th>Status</th>
+            <th>Progress</th>
+            <th>Start date</th>
+            <th>End date</th>
+
+        </tr>
+        </thead/>
+    <tbody>
+    {% for type, data in input %}
+        <tr>
+            <td><a href="/dashboard/{{type}}">{{type}}</a></td>
+            <td>{{data.count}}</td>
+            <td>
+                <span style="font-size: 30px; color: 
+                {% if data.status == 'success' %}
+                    green
+                {% elseif data.status == 'processing' %}
+                    orange
+                {% else %}
+                    red
+                {% endif %}">
+                    &#8226;
+                </span>
+            </td>
+            <td>{{data.progress}}%</td>
+            <td>{{data.startDate}}</td>
+            <td>{{data.endDate}}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

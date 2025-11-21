@@ -1,0 +1,9 @@
+# we'll rotate symfony log files 
+/var/www/html/var/log {
+    missingok
+    dayly
+    create 0660 www-data www-data
+    rotate 31
+    compress
+    delaycompress
+}

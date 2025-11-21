@@ -1,0 +1,21 @@
+api_platform:
+  title: openchurch
+  version: 2.0.0
+  defaults:
+    stateless: true
+    pagination_client_items_per_page: true
+    cache_headers:
+      vary: ["Content-Type", "Authorization", "Origin"]
+  mapping:
+    paths:
+      - "%kernel.project_dir%/src/FieldHolder/Community/Infrastructure/ApiPlatform/Resource/"
+      - "%kernel.project_dir%/src/FieldHolder/Place/Infrastructure/ApiPlatform/Resource/"
+      - "%kernel.project_dir%/src/FieldHolder/Place/Domain/Exception/"
+      - "%kernel.project_dir%/src/FieldHolder/Community/Domain/Exception/"
+      - "%kernel.project_dir%/src/Field/Domain/Exception/"
+      - "%kernel.project_dir%/src/System/Infrastructure/ApiPlatform/Resource/"
+  formats:
+    json: ["application/json"]
+    jsonld: ["application/ld+json"]
+  patch_formats:
+    json: ["application/json"]

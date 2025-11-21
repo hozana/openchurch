@@ -1,0 +1,75 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+  host_api: "%env(HOST_API)%"
+
+services:
+  # default configuration for services in *this* file
+  _defaults:
+    autowire: true # Automatically injects dependencies in your services.
+    autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+  # makes classes in src/ available to be used as services
+  # this creates a service per class whose id is the fully-qualified class name
+  App\:
+    resource: "../src/"
+    exclude:
+      - "../src/DependencyInjection/"
+      - "../src/Entity/"
+      - "../src/Kernel.php"
+
+  app.predis_client:
+    class: Predis\Client
+    arguments:
+      - "%env(REDIS_URL)%"
+  Predis\Client: "@app.predis_client"
+
+  # add more service definitions when explicit configuration is needed
+  # please note that last definitions always *replace* previous ones
+
+  # Manager
+  App\Shared\Domain\Manager\TransactionManagerInterface:
+    class: App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager
+
+  # Repositories
+  App\FieldHolder\Place\Domain\Repository\PlaceRepositoryInterface:
+    class: App\FieldHolder\Place\Infrastructure\Doctrine\DoctrinePlaceRepository
+
+  App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface:
+    class: App\FieldHolder\Community\Infrastructure\Doctrine\DoctrineCommunityRepository
+
+  App\Field\Domain\Repository\FieldRepositoryInterface:
+    class: App\Field\Infrastructure\Doctrine\DoctrineFieldRepository
+
+  App\Agent\Domain\Repository\AgentRepositoryInterface:
+    class: App\Agent\Infrastructure\Doctrine\DoctrineAgentRepository
+
+  # Services
+  App\FieldHolder\Community\Domain\Service\SearchHelperInterface:
+    class: App\FieldHolder\Community\Infrastructure\ElasticSearch\OfficialElasticSearchHelper
+    arguments:
+      $elasticsearchHost: "%env(ELASTICSEARCH_IRI)%"
+  App\FieldHolder\Community\Domain\Service\SearchServiceInterface:
+    class: App\FieldHolder\Community\Infrastructure\ElasticSearch\OfficialElasticSearchService
+  App\FieldHolder\Community\Domain\Service\CityLoaderInterface:
+    class: App\FieldHolder\Community\Infrastructure\File\FileCityLoader
+
+  App\FieldHolder\Community\Infrastructure\ElasticSearch\OfficialElasticSearchHelper:
+    arguments:
+      $elasticsearchHost: "%env(ELASTICSEARCH_IRI)%"
+  App\Field\Infrastructure\Doctrine\DoctrineFieldListener:
+    arguments:
+      $synchroSecretKey: "%env(SYNCHRO_SECRET_KEY)%"
+  App\FieldHolder\Community\Infrastructure\Doctrine\DoctrineCommunityListener:
+    arguments:
+      $synchroSecretKey: "%env(SYNCHRO_SECRET_KEY)%"
+
+  App\Core\Infrastructure\Doctrine\FixDoctrineMigrationTableSchema:
+    autoconfigure: false
+    arguments:
+      $dependencyFactory: "@doctrine.migrations.dependency_factory"
+    tags:
+      - { name: "doctrine.event_listener", event: "postGenerateSchema" }
