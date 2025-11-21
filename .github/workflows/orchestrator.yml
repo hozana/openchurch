@@ -16,7 +16,7 @@ jobs:
         uses: ./.github/workflows/_static-analysis.yml
 
     docker-image:
-        if: github.ref == 'refs/heads/cleanup' || github.ref == 'refs/heads/preprod' || github.ref == 'refs/heads/prod'
+        if: github.ref == 'refs/heads/preprod' || github.ref == 'refs/heads/prod'
         needs: [tests, static-analysis]
         uses: ./.github/workflows/_docker-build-publish-image.yml
         secrets: inherit
