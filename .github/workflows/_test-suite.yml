@@ -1,0 +1,127 @@
+name: Test Suite
+
+on:
+  workflow_call:
+    inputs:
+      suite-name:
+        description: "PHPUnit test suite name"
+        required: true
+        type: string
+      artifact-name:
+        description: "Artifact name for coverage files"
+        required: true
+        type: string
+
+jobs:
+  run-tests:
+    name: ${{ inputs.suite-name }}
+    runs-on: ubuntu-latest
+    env:
+      APP_ENV: test
+      HOST_API: http://api.openchurch.local/api
+      REDIS_URL: redis://redis:6379
+    services:
+      mysql:
+        image: mysql:latest
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: false
+          MYSQL_ROOT_PASSWORD: symfony
+          MYSQL_DATABASE: openchurch_test
+        ports:
+          - 3306/tcp
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3 --name=mysql
+      redis:
+        image: redis
+        ports:
+          - 6379/tcp
+        options: --health-cmd="redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=3
+      elasticsearch:
+        image: elasticsearch:8.18.1
+        ports:
+          - 9200:9200
+        env:
+          ELASTIC_PASSWORD: admin
+          discovery.type: single-node
+          xpack.security.enabled: true
+          bootstrap.memory_lock: true
+          ES_JAVA_OPTS: -Xms512m -Xmx512m
+        options: --health-cmd="curl http://localhost:9200/_cluster/health" --health-interval=10s --health-timeout=5s --health-retries=3
+    steps:
+      - name: Install elastic plugins
+        run: |
+          CONTAINER_ID=$(docker ps -a --format "{{.Names}}" | grep elasticsearch)
+          docker exec $CONTAINER_ID bin/elasticsearch-plugin install analysis-icu
+
+      - name: Restart elastic after plugins installation
+        run: |
+          CONTAINER_ID=$(docker ps -a --format "{{.Names}}" | grep elasticsearch)
+          docker restart $CONTAINER_ID
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          tools: phpunit-bridge
+          extensions: mbstring, xml, ctype, intl, iconv, json, redis, mysql
+          ini-values: date.timezone=Europe/Paris
+
+      - uses: actions/checkout@v4
+
+      - name: Create .env.test.local
+        run: echo -e "DB_NAME_SUFFIX=\\nELASTICSEARCH_IRI=http://elastic:admin@127.0.0.1:${{ job.services.elasticsearch.ports['9200'] }}" > .env.test.local
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install Dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      - name: Run migrations
+        run: |
+          php bin/console doctrine:migrations:migrate --no-interaction
+        env:
+          DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/openchurch_test
+          SYNCHRO_SECRET_KEY: secret
+
+      - name: doctrine:schema:validate
+        run: php bin/console doctrine:schema:validate
+
+      - name: Run Tests
+        run: |
+          XDEBUG_MODE=coverage vendor/bin/phpunit --debug --verbose \
+            --testsuite "${{ inputs.suite-name }}" \
+            --coverage-html build/coverage/${{ inputs.artifact-name }}-html \
+            --coverage-php build/coverage/${{ inputs.artifact-name }}.cov \
+            --log-junit build/logs/${{ inputs.artifact-name }}-junit.xml
+
+      - name: Upload Coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: |
+            build/coverage/${{ inputs.artifact-name }}.cov
+            build/logs/${{ inputs.artifact-name }}-junit.xml
+          retention-days: 1
+
+      - name: Calculate Coverage
+        run: |
+          COVERAGE=$(php -r "
+          \$xml = simplexml_load_file('build/coverage-merged/merged-coverage.xml');
+          \$metrics = \$xml->project->metrics;
+          \$elements = (int)\$metrics['elements'];
+          \$covered = (int)\$metrics['coveredelements'];
+          if (\$elements > 0) {
+              echo number_format((\$covered / \$elements) * 100, 2);
+          } else {
+              echo '0';
+          }
+          ")
+          echo "📊 Total coverage: ${COVERAGE}%"

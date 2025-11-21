@@ -1,0 +1,49 @@
+name: Static Analysis
+
+on: [workflow_call]
+
+jobs:
+  analyze:
+    name: Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+
+      - name: Create .env.test.local
+        run: echo -e "DATABASE_URL=mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/symfony\\nDB_NAME_SUFFIX=\\nREDIS_URI=redis://localhost:${{ job.services.redis.ports['6379'] }}" > .env.test.local
+
+      - name: Cache Composer
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Run PHPStan
+        run: composer phpstan
+
+      - name: composer validate
+        run: composer validate --strict
+
+      - name: lint:container
+        run: php bin/console lint:container
+
+      - name: lint:twig
+        run: php bin/console lint:twig templates
+
+      - name: lint:yaml
+        run: php bin/console lint:yaml config src translations
+
+      - name: php-cs-fixer-check
+        run: php vendor/bin/php-cs-fixer fix --dry-run --diff
+
+      - name: rector-check
+        run: vendor/bin/rector process --dry-run
