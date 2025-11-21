@@ -91,7 +91,7 @@ if [[ "$@" == "/usr/sbin/cron -f -l 15" ]]; then
 		echo "Waiting for elasticsearch to be ready..."
 		sleep 5
 	done
-	bin/console -vvv app:write:indexes
+	bin/console -vvv app:index:communities
 fi
 
 nice php -d memory_limit=256M bin/console -n cache:clear --no-warmup
