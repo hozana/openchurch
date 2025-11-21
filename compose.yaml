@@ -1,0 +1,155 @@
+x-extra_hosts: &default-extra_hosts
+  - "openchurch.local:host-gateway"
+  - "api.openchurch.local:host-gateway"
+  - "admin.openchurch.local:host-gateway"
+
+services:
+  db:
+    image: mariadb:11.5.2
+    container_name: openchurch_db
+    command: --default-authentication-plugin=caching_sha2_password
+    volumes:
+      - openchurch_db_data:/var/lib/mysql:delegated
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: openchurch
+      MYSQL_DATABASE: openchurch
+      MYSQL_USER: openchurch
+      MYSQL_PASSWORD: openchurch
+    networks:
+      - app-network
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+      start_period: 5s
+      interval: 5s
+      timeout: 5s
+      retries: 55
+
+  elasticsearch:
+    container_name: openchurch_elasticsearch
+    build:
+      context: .
+      dockerfile: ./docker/elasticsearch/Dockerfile
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enrollment.enabled=true
+      - bootstrap.memory_lock=true
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m # 512mo HEAP
+      - ELASTIC_PASSWORD=admin
+    healthcheck:
+      test: "curl -s -u elastic:$$ELASTIC_PASSWORD -f -X GET localhost:9200/_cluster/health || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    networks:
+      - app-network
+    ports:
+      - 9200:9200
+    volumes:
+      - ./openchurch_elasticsearch_data:/usr/share/elasticsearch/data
+
+  backend:
+    extra_hosts: *default-extra_hosts
+    container_name: openchurch_backend
+    build:
+      context: .
+      dockerfile: ./docker/php/Dockerfile
+    volumes:
+      - .:/var/www/html
+      - ./usr/local/bin/docker-php-entrypoint:/usr/local/bin/docker-php-entrypoint
+    ports:
+      - 443:443
+      - 2019:2019
+    depends_on:
+      - db
+      - redis
+      - elasticsearch
+    user: root
+    networks:
+      - app-network
+    environment:
+      SERVER_NAME: "localhost api.openchurch.local admin.openchurch.local"
+      APP_ENV:
+      REDIS_URI:
+      DATABASE_URL:
+      SENTRY_DSN:
+      MONITORING_SERVER_IP:
+      HOST_API:
+      APP_SECRET:
+      ELASTICSEARCH_IRI:
+      ELASTIC_PASSWORD:
+      REDIS_URL:
+      CORS_ALLOW_ORIGIN:
+  cli:
+    extra_hosts: *default-extra_hosts
+    container_name: openchurch_backend_cli
+    command: /usr/sbin/cron -f -l 15
+    build:
+      context: .
+      dockerfile: ./docker/php/Dockerfile
+    environment:
+      SERVER_NAME: :80
+      APP_ENV:
+      DATABASE_URL:
+      HOST_API:
+      APP_SECRET:
+      ELASTICSEARCH_IRI:
+      ELASTIC_PASSWORD:
+      SYNCHRO_SECRET_KEY:
+      REDIS_URL:
+    depends_on:
+      - db
+      - redis
+      - elasticsearch
+    user: root
+    healthcheck:
+      test: if [ $$(pgrep -F /var/run/crond.pid -r S,R --count) -eq 1 ]; then exit 0; else exit 1; fi
+      interval: 5s
+      timeout: 5s
+      retries: 55
+    networks:
+      - app-network
+  python:
+    container_name: openchurch_python
+    command: /usr/sbin/cron -f -l 15
+    build:
+      context: .
+      dockerfile: ./docker/python/Dockerfile
+    depends_on:
+      - redis
+      - backend
+    networks:
+      - app-network
+    extra_hosts:
+      - "api.openchurch.local:host-gateway"
+    environment:
+      OPENCHURCH_HOST: "https://api.openchurch.local/api"
+      PYTHONWARNINGS: "ignore:Unverified HTTPS request"
+      SYNCHRO_SECRET_KEY: "secret"
+      REDIS_URL: redis://redis:6379
+      SLEEP_MS_BETWEEN_REQUESTS: 1
+      SENTRY_DSN_SYNCHRO:
+    volumes:
+      - ./scripts:/app
+  redis:
+    image: redis:5
+    container_name: openchurch_redis
+    expose:
+      - 6379
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 1s
+      timeout: 5s
+      retries: 55
+      start_period: 30s
+
+volumes:
+  openchurch_db_data: {}
+  openchurch_elasticsearch_data: {}
+
+networks:
+  app-network:
+    driver: bridge

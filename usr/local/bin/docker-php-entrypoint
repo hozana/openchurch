@@ -1,0 +1,103 @@
+#!/bin/bash -x
+set -e
+
+# first arg is `-f` or `--some-option`
+if [ "${1#-}" != "$1" ]; then
+        set -- frankenphp run "$@"
+fi
+
+echo "----- Versions"
+echo "PHP          --> "$(php -v | grep -Eo "PHP [0-9\.]+" | sed 's/PHP //')
+echo "Composer     --> "$(composer --version | grep -o '\d.\d.\d ')
+
+if [ "$APP_ENV" != 'prod' ]; then
+	# Install dev convenience tools
+	if [ -z "$(which mycli)" ]; then
+		apt update && apt install -y mycli inetutils-telnet zip
+	fi
+
+	bash -c '[[ -n "$(pecl list | grep xdebug)" ]]\
+ 		|| (pecl install xdebug && docker-php-ext-enable xdebug)'
+
+	# Install composer dependencies
+	COMPOSER_MEMORY_LIMIT=-1 /usr/local/bin/composer -n install --optimize-autoloader --classmap-authoritative
+fi
+
+# Removed cached .env.local.php
+rm -f .env.local.php
+
+if [ "$APP_ENV" != 'prod' ]; then
+    # fix access rights to cache:
+    # our composer installs created them with root owner, while apache runs as www
+    echo "------ Remap www-data to composer.json owner (dev for devs and www-data service for production)"
+    export REF_OWNER_FILE=/var/www/html/composer.lock
+    DEV_UID="$(stat -c %u $REF_OWNER_FILE)"
+    export DEV_UID
+    DEV_GID="$(stat -c %g $REF_OWNER_FILE)"
+    export DEV_GID
+    if [ "$DEV_UID" != "0" ] || [ "$DEV_GID" != "0" ]; then
+        groupmod -g "$DEV_GID" www-data || true
+        usermod -u "$DEV_UID" -g "$DEV_GID" -s /sbin/nologin www-data || true
+        chown -R "$DEV_UID":"$DEV_GID" \
+            ./var/log \
+            ./var/cache \
+        ;
+	fi
+fi
+
+# Clear cache https://github.com/symfony/symfony/issues/23592#issuecomment-318627886
+rm -rf var/cache/prod/* var/cache/dev/* var/cache/test/*
+
+# Dump parameters
+# Disabled for now, portainer env variables values does not seem to be taken into account
+#composer dump-env "${APP_ENV:=prod}"
+
+php -d memory_limit=256M bin/console -n cache:clear
+php -d memory_limit=256M bin/console cache:pool:clear cache.global_clearer
+
+# Warmup cache
+php -d memory_limit=256M bin/console -n cache:warmup
+
+# Migrations are executed ONLY when CLI boots up or when APP_ENV is not set to prod (dev et test envs).
+# To ensure mysql is stable when in dev mode, but quickiest on prod: the code below ping every second the
+# mysql server. Once it has a connection it disconnect and wait to allows for mysql to cold initialize and reboot a second
+# time (10 sec approx). If the database existes and is initialised the first part of the code below (ping every second)
+# will terminate faster than 3 seconds and therefore the process will continue directly to migrations.
+if [[ "$@" == "/usr/sbin/cron -f -l 15" ]]; then
+	# Wait for db to be ready
+	echo -n "------ Waiting for db to be ready "
+	count=0
+	until bin/console doctrine:query:sql "SELECT 1" > /dev/null 2>&1; do
+    	echo -n .
+  		sleep 1
+		((count+=1))
+	done
+	if [ $count -gt 5 ]; then
+		echo "\n------ Waiting for db to restart post initialisation. db will be stable in approximately 10 secs."
+		sleep 10
+	fi
+	echo "\n db is UP!"
+
+	# Run database migrations
+	bin/console -n doctrine:migrations:migrate -vvv
+
+	# Merge docker env variables and cron.d/rosario
+	env > /etc/cron.d/openchurch_env
+	cat /etc/cron.d/backend >> /etc/cron.d/openchurch_env
+	mv /etc/cron.d/openchurch_env /etc/cron.d/backend
+
+	# Initialize elastic indexes
+	until curl -s -u elastic:$ELASTIC_PASSWORD -f -X GET $ELASTICSEARCH_IRI/_cluster/health > /dev/null; do
+		echo "Waiting for elasticsearch to be ready..."
+		sleep 5
+	done
+	bin/console -vvv app:write:indexes
+fi
+
+nice php -d memory_limit=256M bin/console -n cache:clear --no-warmup
+nice php -d memory_limit=256M bin/console -n cache:warmup
+
+# Restore correct access rights to all project files exept for node_modules and vendor (they are not writable and do not belong to us):
+chown -R www-data:www-data $(ls -A1 | grep -Ev 'vendor|node_modules|.git')
+
+exec "$@"

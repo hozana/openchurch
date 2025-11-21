@@ -1,5 +1,3 @@
-index:
-    path: /
-    controller: App\Controller\HomeController::index
-    defaults:
-        template: home/index.html.twig
+dashboard_controllers:
+  resource: ../src/Dashboard/Infrastructure/Symfony/Controller/
+  type: attribute

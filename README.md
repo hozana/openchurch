@@ -1,136 +1,284 @@
-# openchurch
+# Whats is OpenChurch ?
 
-[![CircleCI](https://circleci.com/gh/hozana/openchurch.svg?style=svg)](https://circleci.com/gh/hozana/openchurch)
-[![BrowserStack Status](https://www.browserstack.com/automate/badge.svg?badge_key=ZSt3N2Rtd2hhWWZDcDhVNmNFUjAycVNjSW0rYXJIdWhINmpXODJmYVB2TT0tLWc4WjFweGtmN29Fc3AyNldaRVZycEE9PQ==--1d3f8aa35e09306748448a275969f0d8de70fa6f)](https://www.browserstack.com/automate/public-build/ZSt3N2Rtd2hhWWZDcDhVNmNFUjAycVNjSW0rYXJIdWhINmpXODJmYVB2TT0tLWc4WjFweGtmN29Fc3AyNldaRVZycEE9PQ==--1d3f8aa35e09306748448a275969f0d8de70fa6f)
+Openchurch aims to be an open API in order to allow anyone to find data about dioceses, parishes, and churches. As ecclesia reality is complex, openchurch does not serve fully trustable information. Instead, it serves informations who have been entered by multiple agents.  
+Currently, it serves [the Rosario app](https://rosario.app/), allowing people to easily join a parish to pray chapelet.
 
-## They help us
+There are 2 main services : `backend` and `python`. The `backend` aims to provide an API, and `python` aims to retrieve data from wikidata, and import it to the backend.  
+There is also an `elastisearch` service. Data coming from wikidata is indexed in an elastic instance in order to find it using search. For now, only diocese and parish can be searched.
 
-[![](https://marker.io/vendor/img/logo/browserstack-logo.svg "BrowserStack")](https://www.browserstack.com/)
+![Openchurch Architecture](openchurch-architecture.png)
 
-BrowserStack is a useful tool to test our app on different browsers, different OS and different versions. They give free access to their platform to open-source projects. Thanks to them!
+## Development
 
-## A few commands
+### Project setup
 
-### Quick start
+This project uses Symfony with Api-Platform. Make sure to have docker installed on your machine.
 
-To build and start the app:
-
-```
-# build docker image
-cp .env.dist .env
-docker-compose build
-docker-compose up
-
-# install
-docker exec -it openchurch composer install
-docker exec -it openchurch yarn install
-docker exec -it openchurch sh -c "cd openchurch-admin && yarn install"
-docker exec -it openchurch yarn run dev
-
-# import database
-mysql -uopenchurch -popenchurch -h 127.0.0.1 -P 13306 openchurch < data/20180806-openchurch.sql
-docker exec -it openchurch bin/console doctrine:schema:update --force
-
-# index data in ES
-docker exec -it openchurch bin/console fos:elastica:populate
-
-# run API
-docker exec -it openchurch bin/console server:run 0.0.0.0:8000
-
-# run backoffice
-docker exec -it openchurch sh -c "cd openchurch-admin && npm start"
-```
-
-Check API works on [http://127.0.0.1:1819](http://127.0.0.1:1819). And backoffice on [http://127.0.0.1:3000](http://127.0.0.1:3000).
-
+1. Git clone `git@github.com:hozana/openchurch.git`
+2. Setup your `/etc/hosts` to include `127.0.0.1 api.openchurch.local`
+3. Build the containers: `docker compose build`
+4. Run the containers: `docker compose up`
+5. You can navigate to https://api.openchurch.local/api/docs to see the doc. You can also go to https://api.openchurch.local/dashboard in order to see the importation of data status.
+6. Once data have been imported (or whenever you want) you can run the command `bin/console app:index:communities` from the backend container in order to index all communities to elastic.
+7. You are ready to query the API
 
 ### Docker
+If you need to ssh into a container, run `docker compose exec <service> bash` where `<service>` can be any service located in `compose.yml`.
 
-Always rebuild `openchurch` after modification.
+### Elastic
+To index communities (parishes and dioceses stored in the database), run from the `backend container`: `bin/console app:index:communities`
 
-Then you should have three instances:
+## API documentation
 
-```
-docker ps
-CONTAINER ID        IMAGE                                                 COMMAND                  CREATED             STATUS              PORTS                                                                NAMES
-1651a84b55b9        hozana/openchurch                                     "/data/scripts/docke…"   51 seconds ago      Up 50 seconds       0.0.0.0:3000->3000/tcp, 0.0.0.0:8000->8000/tcp, 0.0.0.0:1819->80/tcp openchurch
-7c9484d9ca5f        docker.elastic.co/elasticsearch/elasticsearch:6.3.2   "/usr/local/bin/dock…"   2 minutes ago       Up 51 seconds       0.0.0.0:9200->9200/tcp, 9300/tcp                                     elasticsearch
-f368935297ef        mysql:latest                                          "docker-entrypoint.s…"   16 minutes ago      Up 51 seconds       33060/tcp, 0.0.0.0:13306->3306/tcp                                   db
-```
+Documentation is available at `/api/docs`:
 
-If you need to directly hit inside our custom container:
+- https://api.openchurch.local/api/docs
 
-```
-docker exec -it openchurch bash
-```
+## Synchro Dashboard
+A synchro dashboard is available at `/dashboard`:
 
-```
-mysql -h 127.0.0.1 -P 13306 -u openchurch --protocol=tcp -p
-```
+- https://api.openchurch.local/dashboard
 
-### To start
+# Data structure
+Each Field holder (Place or Community) hold some fields. Each fields is categorized by a name (CF `FieldCommunity.php` or `FieldPlace.php`) and have a value. A field is coming from an agent (the entity who entered the data) and have a reliability indice. The value can be of multiple types (dting, float, int, date, ...)
+A Field can also refer to a Community or a Place. Indeed, a parish will have a field named `parentCommunityId` which link it to a `diocese`.
 
-- `cp .env.dist .env && vim .env` to setup your own environment.
-- `docker exec -it openchurch bin/console doctrine:migration:migrate`
-- `composer install && yarn install && cd openchurch-admin && yarn install` to install all dependencies.
-
-### Database
-
-To generate our schema we first used `vendor/bin/schema generate-types config/schema.yaml` to have the PHP entities generated from yaml and [schema.org](https://schema.org/Church). But as these generated entities has been modified, we could just remove the [schema-generator](https://api-platform.com/docs/schema-generator/configuration/) and the schema.yaml file.
-
-- `bin/console doctrine:schema:update --force` to update database
-- or `bin/console doctrine:migrations:diff` to create a migration,
-- and `bin/console doctrine:migrations:migrate` to run the migration.
-
-### To start the API
-
-To test the app: `bin/console server:run` in project root folder and then reach [http://127.0.0.1:8000](http://127.0.0.1:8000). There is also a GraphiQL interface to help you write down your GraphQL requests : [http://localhost:8000/api/graphql](http://localhost:8000/api/graphql).
-
-- To create a oAuth2 client to test the API: `bin/console oauth:client:create client_credentials` (or use the upcoming web interface).
-- To fill Elasticsearch: `bin/console fos:elastica:populate`.
-- To generate the assets `yarn run dev` (and `yarn run watch` while developing).
-
-### To start the react app
-
-This app is provided by API Platform. It connects to the PHP API and autodiscover it.
-
-```
-cd openchurch-admin
-npm start
-```
-
-Then `http://localhost:3000` should be automatically opened.
-In `openchurch-admin/src/App.js` you can define the API's URL : it's the only configuration.
+## Synchro with wikidata
 
 ### To synchronize the database from Wikidata
+From `python`service, load data from Wikidata: `/opt/venv/bin/python /app/synchro.py --entity-only xxx` where xxx can be either `diocese`, `parish` or `church`.
 
+### How does it work?
+While the synchro is occuring, data drom wikidata is being fetched by batch. When some data is being imported, an import status is being reported to the `redis` service. Thanks to it, if the process failed during run, it can start again where it stopped. Moreover, if multiple processes are started at the same time, they will handle different batches.
+
+Data is being requested from wikidata thanks to a sparql query. All logic resides in `sripts/synchro.py`. Importing diocese takes several minutes. Parishes takes about 15-30 minutes. Churches is longer (around 2 hours).
+
+When processing a batch, the python script calls `[PUT] /places/upsert` endpoint for churches, or `[PUT] /communities/upsert` for communities (ie diocese/parishes). The wikidataId is being stored, so the data can be either updated or inserted.
+
+## Api usage example
+### Query a diocese
+`https://api.openchurch.local/api/communities?type=diocese&itemsPerPage=10&page=1&name=aix%20en%20provence`
+
+### Query a parish
+`https://api.openchurch.local/api/communities?type=parish&itemsPerPage=10&contactZipcodes[]=40270&contactZipcodes[]=30000`
+
+### Response example
+```JSON
+{
+	"@context": "/api/contexts/Community",
+	"@id": "/api/communities",
+	"@type": "Collection",
+	"totalItems": 2,
+	"member": [
+		{
+			"@id": "/api/communities/0194cc58-9ae2-754e-aaa4-0f98ab46bb18",
+			"@type": "Community",
+			"id": "0194cc58-9ae2-754e-aaa4-0f98ab46bb18",
+			"fields": [
+				{
+					"@type": "Field",
+					"@id": "/api/.well-known/genid/636173db41ef2a4797d1",
+					"name": "contactCountryCode",
+					"value": "fr",
+					"agent": {
+						"@type": "Agent",
+						"@id": "/api/.well-known/genid/00694474629cbf0d779a",
+						"id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
+						"name": "CLI_PYTHON"
+					},
+					"reliability": "high",
+					"engine": "scraper",
+					"source": "Wikidata",
+					"explanation": "https://www.wikidata.org/wiki/Q1363973"
+				},
+				{
+					"@type": "Field",
+					"@id": "/api/.well-known/genid/1005b8c821e43a34a907",
+					"name": "name",
+					"value": "Archidiocèse d'Aix-en-Provence et Arles",
+					"agent": {
+						"@type": "Agent",
+						"@id": "/api/.well-known/genid/00694474629cbf0d779a",
+						"id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
+						"name": "CLI_PYTHON"
+					},
+					"reliability": "high",
+					"engine": "scraper",
+					"source": "Wikidata",
+					"explanation": "https://www.wikidata.org/wiki/Q1363973"
+				},
+				{
+					"@type": "Field",
+					"@id": "/api/.well-known/genid/0fb42f164359d0774415",
+					"name": "type",
+					"value": "diocese",
+					"agent": {
+						"@type": "Agent",
+						"@id": "/api/.well-known/genid/00694474629cbf0d779a",
+						"id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
+						"name": "CLI_PYTHON"
+					},
+					"reliability": "high",
+					"engine": "scraper",
+					"source": "Wikidata",
+					"explanation": "https://www.wikidata.org/wiki/Q1363973"
+				},
+				{
+					"@type": "Field",
+					"@id": "/api/.well-known/genid/6c8ccedbe6861c1935d4",
+					"name": "wikidataId",
+					"value": 1363973,
+					"agent": {
+						"@type": "Agent",
+						"@id": "/api/.well-known/genid/00694474629cbf0d779a",
+						"id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
+						"name": "CLI_PYTHON"
+					},
+					"reliability": "high",
+					"engine": "scraper",
+					"source": "Wikidata",
+					"explanation": "https://www.wikidata.org/wiki/Q1363973"
+				},
+				{
+					"@type": "Field",
+					"@id": "/api/.well-known/genid/4ca791f1e444898a57ee",
+					"name": "wikidataUpdatedAt",
+					"value": "2025-03-26T14:01:10+00:00",
+					"agent": {
+						"@type": "Agent",
+						"@id": "/api/.well-known/genid/00694474629cbf0d779a",
+						"id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
+						"name": "CLI_PYTHON"
+					},
+					"reliability": "high",
+					"engine": "scraper",
+					"source": "Wikidata",
+					"explanation": "https://www.wikidata.org/wiki/Q1363973"
+				}
+			]
+		},
+		{
+			"@id": "/api/communities/0194cc58-8931-753b-b77c-f3a75fe04ba8",
+			"@type": "Community",
+			"id": "0194cc58-8931-753b-b77c-f3a75fe04ba8",
+			"fields": [
+				{
+					"@type": "Field",
+					"@id": "/api/.well-known/genid/d9415c4d44f906ff3a69",
+					"name": "contactCountryCode",
+					"value": "fr",
+					"agent": {
+						"@type": "Agent",
+						"@id": "/api/.well-known/genid/00694474629cbf0d779a",
+						"id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
+						"name": "CLI_PYTHON"
+					},
+					"reliability": "high",
+					"engine": "scraper",
+					"source": "Wikidata",
+					"explanation": "https://www.wikidata.org/wiki/Q866776"
+				},
+				{
+					"@type": "Field",
+					"@id": "/api/.well-known/genid/abb294b073a833cdd952",
+					"name": "name",
+					"value": "Diocèse d'Aire et Dax",
+					"agent": {
+						"@type": "Agent",
+						"@id": "/api/.well-known/genid/00694474629cbf0d779a",
+						"id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
+						"name": "CLI_PYTHON"
+					},
+					"reliability": "high",
+					"engine": "scraper",
+					"source": "Wikidata",
+					"explanation": "https://www.wikidata.org/wiki/Q866776"
+				},
+				{
+					"@type": "Field",
+					"@id": "/api/.well-known/genid/ea3c0c5515f041c6a3d0",
+					"name": "type",
+					"value": "diocese",
+					"agent": {
+						"@type": "Agent",
+						"@id": "/api/.well-known/genid/00694474629cbf0d779a",
+						"id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
+						"name": "CLI_PYTHON"
+					},
+					"reliability": "high",
+					"engine": "scraper",
+					"source": "Wikidata",
+					"explanation": "https://www.wikidata.org/wiki/Q866776"
+				},
+				{
+					"@type": "Field",
+					"@id": "/api/.well-known/genid/607b601ece57c173c729",
+					"name": "wikidataId",
+					"value": 866776,
+					"agent": {
+						"@type": "Agent",
+						"@id": "/api/.well-known/genid/00694474629cbf0d779a",
+						"id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
+						"name": "CLI_PYTHON"
+					},
+					"reliability": "high",
+					"engine": "scraper",
+					"source": "Wikidata",
+					"explanation": "https://www.wikidata.org/wiki/Q866776"
+				},
+				{
+					"@type": "Field",
+					"@id": "/api/.well-known/genid/516c82999a0bbc3e23d0",
+					"name": "wikidataUpdatedAt",
+					"value": "2025-05-10T08:18:06+00:00",
+					"agent": {
+						"@type": "Agent",
+						"@id": "/api/.well-known/genid/00694474629cbf0d779a",
+						"id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
+						"name": "CLI_PYTHON"
+					},
+					"reliability": "high",
+					"engine": "scraper",
+					"source": "Wikidata",
+					"explanation": "https://www.wikidata.org/wiki/Q866776"
+				}
+			]
+		}
+	],
+	"view": {
+		"@id": "/api/communities?itemsPerPage=10&name=aix%20en%20provence&type=diocese",
+		"@type": "PartialCollectionView"
+	},
+	"search": {
+		"@type": "IriTemplate",
+		"template": "/api/communities{?type,messeInfoId,parentWikidataId,name}",
+		"variableRepresentation": "BasicRepresentation",
+		"mapping": [
+			{
+				"@type": "IriTemplateMapping",
+				"variable": "type",
+				"property": "type",
+				"required": false
+			},
+			{
+				"@type": "IriTemplateMapping",
+				"variable": "messeInfoId",
+				"property": "wikidataId",
+				"required": false
+			},
+			{
+				"@type": "IriTemplateMapping",
+				"variable": "parentWikidataId",
+				"property": "parentWikidataId",
+				"required": false
+			},
+			{
+				"@type": "IriTemplateMapping",
+				"variable": "name",
+				"property": "name",
+				"required": false
+			}
+		]
+	}
+}
 ```
-cd scripts
-python3 -m venv .venv
-source .venv/bin/activate
-python3 -m pip install -r requirements.txt
-PYWIKIBOT_NO_USER_CONFIG=1 python3 synchro.py
-```
-
-If you need to override the MySQL configuration of your `.env` file:
-
-```
-DB_HOST=127.0.0.1 DB_PORT=13306 PYWIKIBOT_NO_USER_CONFIG=1 python3 synchro.py
-```
-
-## For Elasticsearch
-
-On a VM:
-
-```
-docker pull docker.elastic.co/elasticsearch/elasticsearch:6.3.2
-docker run -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:6.3.2
-```
-
-## Deployment
-
-Follow these [guidelines](./docs/setup_openchurch_server.md) to setup prod server. Lost server? [Here](./docs/restore_backup.md) is the process to restore db backup.
-
-## API usage example
-
-TODO

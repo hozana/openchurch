@@ -1,0 +1,35 @@
+<table>
+    <thead>
+        <tr>
+            <th>Key</th>
+            <th>Status</th>
+            <th>SuccessCount</th>
+            <th>FailureCount</th>
+            <th>UpdatedAt</th>
+        </tr>
+        </thead/>
+    <tbody>
+    {% for key, data in input %}
+        <tr>
+            <td>{{key}}</td>
+            <td>
+                <span style="font-size: 30px; color: 
+                {% if data.status == 'success' %}
+                    green
+                {% elseif data.status == 'processing' %}
+                    orange
+                {% elseif data.status == 'skipped' %}
+                    blue
+                {% else %}
+                    red
+                {% endif %}">
+                    &#8226;
+                </span>
+            </td>
+            <td>{{data.successCount}}</td>
+            <td>{{data.failureCount}}</td>
+            <td>{{data.updatedAt}}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

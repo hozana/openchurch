@@ -2,59 +2,74 @@
 # Files in the packages/ subdirectory configure your dependencies.
 
 # Put parameters here that don't need to change on each machine where the app is deployed
-# https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
-    locale: 'en'
+  host_api: "%env(HOST_API)%"
 
 services:
-    # default configuration for services in *this* file
-    _defaults:
-        autowire: true      # Automatically injects dependencies in your services.
-        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
-        public: false       # Allows optimizing the container by removing unused services; this also means
-                            # fetching services directly from the container via $container->get() won't work.
-                            # The best practice is to be explicit about your dependencies anyway.
+  # default configuration for services in *this* file
+  _defaults:
+    autowire: true # Automatically injects dependencies in your services.
+    autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
 
-    # makes classes in src/ available to be used as services
-    # this creates a service per class whose id is the fully-qualified class name
-    App\:
-        resource: '../src/*'
-        exclude: '../src/{DependencyInjection,Entity,Migrations,Tests,Kernel.php}'
+  # makes classes in src/ available to be used as services
+  # this creates a service per class whose id is the fully-qualified class name
+  App\:
+    resource: "../src/"
+    exclude:
+      - "../src/DependencyInjection/"
+      - "../src/Entity/"
+      - "../src/Kernel.php"
 
-    # controllers are imported separately to make sure services can be injected
-    # as action arguments even if you don't extend any base controller class
-    App\Controller\:
-        resource: '../src/Controller'
-        tags: ['controller.service_arguments']
+  app.predis_client:
+    class: Predis\Client
+    arguments:
+      - "%env(REDIS_URL)%"
+  Predis\Client: "@app.predis_client"
 
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
+  # add more service definitions when explicit configuration is needed
+  # please note that last definitions always *replace* previous ones
 
-    App\Listener\ApiLoggerListener:
-        arguments:
-            $loggableListener: '@stof_doctrine_extensions.listener.loggable'
-            $tokenStorage: '@?security.token_storage'
-            $authorizationChecker: '@?security.authorization_checker'
-            $oAuthStorage : '@?fos_oauth_server.storage'
-        public: true
-        tags:
-        - { name: kernel.event_subscriber }
-    # override default Logger class
-    stof_doctrine_extensions.event_listener.logger: '@App\Listener\ApiLoggerListener'
+  # Manager
+  App\Shared\Domain\Manager\TransactionManagerInterface:
+    class: App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager
 
-    App\DataProvider\ChurchCollectionDataProvider:
-        arguments:
-            $finder: '@fos_elastica.finder.churches'
+  # Repositories
+  App\FieldHolder\Place\Domain\Repository\PlaceRepositoryInterface:
+    class: App\FieldHolder\Place\Infrastructure\Doctrine\DoctrinePlaceRepository
 
-    App\DataProvider\DioceseCollectionDataProvider:
-        arguments:
-            $finder: '@fos_elastica.finder.dioceses'
+  App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface:
+    class: App\FieldHolder\Community\Infrastructure\Doctrine\DoctrineCommunityRepository
 
-    App\DataProvider\ParishCollectionDataProvider:
-        arguments:
-            $finder: '@fos_elastica.finder.parishes'
+  App\Field\Domain\Repository\FieldRepositoryInterface:
+    class: App\Field\Infrastructure\Doctrine\DoctrineFieldRepository
 
-    app.form.registration:
-        class: App\Form\RegistrationType
-        tags:
-        - { name: form.type, alias: app_user_registration }
+  App\Agent\Domain\Repository\AgentRepositoryInterface:
+    class: App\Agent\Infrastructure\Doctrine\DoctrineAgentRepository
+
+  # Services
+  App\FieldHolder\Community\Domain\Service\SearchHelperInterface:
+    class: App\FieldHolder\Community\Infrastructure\ElasticSearch\OfficialElasticSearchHelper
+    arguments:
+      $elasticsearchHost: "%env(ELASTICSEARCH_IRI)%"
+  App\FieldHolder\Community\Domain\Service\SearchServiceInterface:
+    class: App\FieldHolder\Community\Infrastructure\ElasticSearch\OfficialElasticSearchService
+  App\FieldHolder\Community\Domain\Service\CityLoaderInterface:
+    class: App\FieldHolder\Community\Infrastructure\File\FileCityLoader
+
+  App\FieldHolder\Community\Infrastructure\ElasticSearch\OfficialElasticSearchHelper:
+    arguments:
+      $elasticsearchHost: "%env(ELASTICSEARCH_IRI)%"
+  App\Field\Infrastructure\Doctrine\DoctrineFieldListener:
+    arguments:
+      $synchroSecretKey: "%env(SYNCHRO_SECRET_KEY)%"
+  App\FieldHolder\Community\Infrastructure\Doctrine\DoctrineCommunityListener:
+    arguments:
+      $synchroSecretKey: "%env(SYNCHRO_SECRET_KEY)%"
+
+  App\Core\Infrastructure\Doctrine\FixDoctrineMigrationTableSchema:
+    autoconfigure: false
+    arguments:
+      $dependencyFactory: "@doctrine.migrations.dependency_factory"
+    tags:
+      - { name: "doctrine.event_listener", event: "postGenerateSchema" }

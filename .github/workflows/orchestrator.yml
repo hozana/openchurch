@@ -1,0 +1,22 @@
+name: CI Pipeline
+
+on: [push]
+
+jobs:
+    security:
+        uses: ./.github/workflows/_security.yml
+
+    tests:
+        uses: ./.github/workflows/_test-suite.yml
+        with:
+            suite-name: Full test suite
+            artifact-name: test-coverage
+
+    static-analysis:
+        uses: ./.github/workflows/_static-analysis.yml
+
+    docker-image:
+        if: github.ref == 'refs/heads/preprod' || github.ref == 'refs/heads/prod'
+        needs: [tests, static-analysis]
+        uses: ./.github/workflows/_docker-build-publish-image.yml
+        secrets: inherit

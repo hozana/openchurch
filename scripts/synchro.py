@@ -2,36 +2,45 @@
 # -*- coding: utf-8 -*-
 
 import json
-import re
 import os
-import sys
 import time
+import requests
 import datetime
-import pywikibot
 import sentry_sdk
 import urllib.parse
+import urllib3
+import argparse
+import redis
 
 from codecs import open
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, exc, MetaData, Table, orm, func, insert, update
 from SPARQLWrapper import SPARQLWrapper, JSON
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+from datetime import datetime, timedelta
+from time import sleep
 
-load_dotenv(dotenv_path='../.env')
+load_dotenv(dotenv_path='.env')
 sentry_sdk.init(dsn=os.getenv('SENTRY_DSN_SYNCHRO'))
+sleep_time = os.getenv('SLEEP_MS_BETWEEN_REQUESTS', 0)
 
 endpoint = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
 agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'
 churches_query = '''PREFIX schema: <http://schema.org/>
-  SELECT DISTINCT ?churches ?P17 ?P18 ?P31 ?P131 ?P625 ?P708 ?P1644 ?P5607 ?label_fr ?modified WHERE {
+  SELECT DISTINCT ?churches ?P17 ?P18 ?P31 ?P131 ?P281 ?P625 ?P708 ?P856 ?P1644 ?P2971 ?P5607 ?label_fr ?modified WHERE {
   {?churches (wdt:P31/wdt:P279*) wd:Q16970 .}
   ?churches schema:dateModified ?modified
   OPTIONAL {?churches wdt:P17 ?P17 .} # country
   OPTIONAL {?churches wdt:P18 ?P18 .} # image
   OPTIONAL {?churches wdt:P31 ?P31 .} # type
   OPTIONAL {?churches wdt:P131 ?P131 .} # city
+  OPTIONAL {?churches wdt:P281 ?P281 .} # zip_code
   OPTIONAL {?churches wdt:P625 ?P625 .} # coordinates
   OPTIONAL {?churches wdt:P708 ?P708 .} # diocese
+  OPTIONAL {?churches wdt:P856 ?P856 .} # website
   OPTIONAL {?churches wdt:P1644 ?P1644 .} # messes_info
+  OPTIONAL {?churches wdt:P2971 ?P2971 .} # gcatholic
   OPTIONAL {?churches wdt:P5607 ?P5607 .} # parish
   OPTIONAL {?churches rdfs:label ?label_fr filter (lang(?label_fr) = "fr") .}
   SERVICE wikibase:label {bd:serviceParam wikibase:language "fr".} }'''
@@ -60,24 +69,9 @@ parishes_query = '''PREFIX schema: <http://schema.org/>
   OPTIONAL {?parishes rdfs:label ?label_fr filter (lang(?label_fr) = "fr") .}
   SERVICE wikibase:label {bd:serviceParam wikibase:language "fr".} }'''
 
-class DB:
-    now = func.current_timestamp()
-    host = os.getenv('DB_HOST')
-    port = os.getenv('DB_PORT')
-    database = os.getenv('MYSQL_DATABASE')
-    user = os.getenv('MYSQL_USER')
-    password = os.getenv('MYSQL_PASSWORD')
-    dsn = 'mysql+pymysql://%s:%s@%s:%s/%s' % (user, password, host, port, database)
-    engine = create_engine(dsn)
-    con = engine.connect()
-    metadata = MetaData(bind=engine)
-    session = orm.sessionmaker(bind=engine)()
-    places = Table('places', metadata, autoload=True)
-    churches = Table('wikidata_churches', metadata, autoload=True)
-    dioceses = Table('dioceses', metadata, autoload=True)
-    parishes = Table('parishes', metadata, autoload=True)
-
 class Query(object):
+    verbosity_level = 0
+
     building_types = [
         16970, # église
         2977, # cathédrale
@@ -121,14 +115,17 @@ class Query(object):
         105419665, # Roman Catholic archdiocese not metropolitan
         7100806, # Ordinariate for Eastern Catholic faithful
         373074, # suffragan diocese
+        2665272, # Ecclesiastical district immediately subject to the Holy See
+        104964763, # Metropolitan archdiocese headed by a Cardinal
     ]
     dateformat = '%Y-%m-%d %H:%M:%S'
 
-    def __init__(self):
+    def __init__(self, verbosity_level):
         self.cache_places = {}
         self.cache_churches = {}
         self.cache_dioceses = {}
         self.cache_parishes = {}
+        self.verbosity_level = verbosity_level
 
     @staticmethod
     def decode(string):
@@ -156,303 +153,373 @@ class Query(object):
 
         return int(wikidata_id.replace('Q', '')) if wikidata_id and wikidata_id.startswith('Q') else None
 
+    @staticmethod
+    def split_into_batches(lst, batch_size):
+        return [lst[i:i + batch_size] for i in range(0, len(lst), batch_size)]
 
-    def init_caches(self):
-        if not len(self.cache_places):
-            places = DB.con.execute('SELECT place_id FROM places').fetchall()
-            self.cache_places = [wikidata_id for (wikidata_id,) in places]
-        print(len(self.cache_places), 'places in cache')
-        if not len(self.cache_churches):
-            churches = DB.con.execute('SELECT wikidata_church_id, updated_at FROM wikidata_churches').fetchall()
-            self.cache_churches = {wikidata_id: date_time for (wikidata_id, date_time) in churches}
-        print(len(self.cache_churches), 'churches in cache')
-        if not len(self.cache_dioceses):
-            dioceses = DB.con.execute('SELECT diocese_id, updated_at FROM dioceses').fetchall()
-            self.cache_dioceses = {wikidata_id: date_time for (wikidata_id, date_time) in dioceses}
-        print(len(self.cache_dioceses), 'dioceses in cache')
-        if not len(self.cache_parishes):
-            parishes = DB.con.execute('SELECT parish_id, updated_at FROM parishes').fetchall()
-            self.cache_parishes = {wikidata_id: date_time for (wikidata_id, date_time) in parishes}
-        print(len(self.cache_parishes), 'parishes in cache')
+    def fetch(self, file_name, query):
+        offset = 0
+        batch_size = 50000
 
-    def fetch(self, filename, query):
-        if os.path.isfile(filename) and os.path.getmtime(filename) > time.time() - 12 * 3600: # cache JSON for 12 hours
-            with open(filename, 'r', encoding='utf-8') as content_file:
-                print('Loading from file, please wait...')
-                return json.loads(content_file.read())
+        if os.path.isfile(file_name):
+            if os.path.getmtime(file_name) > time.time() - 1 * 3600: # cache JSON for 60 mins
+                with open(file_name, 'r', encoding='utf-8') as content_file:
+                    print('Loading from file', file_name ,'please wait...')
+                    return json.loads(content_file.read())
+            else:
+                os.remove(file_name)
 
-        print('Query running, please wait...')
+        print('Query running for', file_name, ' - please wait...')
         sparql = SPARQLWrapper(endpoint, agent=agent)
-        sparql.setQuery(query)
         sparql.setReturnFormat(JSON)
-        data = sparql.query().convert()
 
-        if len(data) > 0:
-            json.dump(data, open(filename, 'wb', encoding='utf-8'))
+        with open(file_name, 'w', encoding='utf-8') as f:
+            f.write('[')
+            first_batch = True
+            while True:
+                try:
+                    print(f'Loading data {offset} to {offset + batch_size}...')
+                    sparql.setQuery(query + f' LIMIT {batch_size} OFFSET {offset}')
+                    data = sparql.query().convert()
 
-        return data
+                    results = data['results']['bindings']
+                    if not results:  # if no result, we stop the loop
+                        break
 
-    def add_location(self, wikidata_id, country = False):
-        datapage = pywikibot.ItemPage(pywikibot.Site('fr').data_repository(), 'Q%s' % (wikidata_id,))
-        if datapage.exists():
-            claims = datapage.claims if datapage.claims else {}
-            labels = datapage.labels
-            parent_id = int(claims['P131'][0].getTarget().title().replace('Q', '')) if 'P131' in claims else '' # FIXME manage multiple parents
-            latitude = claims['P625'][0].getTarget().lat if 'P625' in claims and claims['P625'][0].getTarget() else 0
-            longitude = claims['P625'][0].getTarget().lon if 'P625' in claims and claims['P625'][0].getTarget() else 0
-            name = labels['fr'] if 'fr' in labels else labels['en'] if 'en' in labels else next(iter(labels.values()))
-            name = Query.ucfirst(name)
-            place_type = 'country' if country else 'unknown'
-            if parent_id and parent_id not in self.cache_places:
-                self.add_location(parent_id)
-            ins = insert(DB.places)
-            ins = ins.values({'place_id': wikidata_id, 'name': name, 'parent_id': parent_id or None, 'type': place_type, 'created_at': DB.now, 'updated_at': DB.now})
-            DB.session.execute(ins)
-            print('Notice: place Q%s "%s" added' % (wikidata_id, name))
-            self.cache_places.append(wikidata_id)
-            return wikidata_id
-        return False
+                    # add data to file
+                    for result in results:
+                        if not first_batch:
+                            f.write(',')
+                        json.dump(result, f, ensure_ascii=False)
+                        first_batch = False
+                    offset += batch_size
+                except Exception as e:
+                    print(f"Failed to load data from {offset} to {offset + batch_size}: {e}")
+                offset += batch_size
+            f.write(']')  # Fin du tableau JSON
 
-    def update_churches(self, data):
-        if 'results' in data.keys() and 'bindings' in data['results'].keys():
-            t = len(data['results']['bindings'])
-            print(t, 'churches loaded')
-            i = 0
-            j = 0
-            for item in data['results']['bindings']:
-                i += 1
-                if i % 1000 == 0:
-                    DB.session.commit()
-                wikidata_id = int(item['churches']['value'].split('/')[-1].replace('Q', ''))
-                modified = item['modified']['value'].replace('T', ' ').replace('Z', '')
-                if wikidata_id in self.cache_churches and self.cache_churches[wikidata_id].strftime(Query.dateformat) == modified:
-                    print('(%s/%s) Q%s' % (i, t, wikidata_id), '-> continue', end='    \r')
-                    continue
-                print('(%s/%s) Q%s' % (i, t, wikidata_id), '-> update', end='    \r')
-                type_ = Query.get_wikidata_id(item, 'P31')
-                if not type_ or int(type_) not in Query.building_types:
-                    continue # ignore item FIXME we may want to delete if from the DB
-                place_id = Query.get_wikidata_id(item, 'P131') # FIXME manage multiple places
-                if not place_id:
-                    print('No location for Q%s                    ' % (wikidata_id,))
-                    continue
-                country_id = Query.get_wikidata_id(item, 'P17')
-                image = Query.get_decoded_value(item, 'P18', '')
-                diocese_id = Query.get_wikidata_id(item, 'P708')
-                parish_id = Query.get_wikidata_id(item, 'P5607')
-                commonscat = Query.get_decoded_value(item, 'P373', '')
-                point = Query.get_value(item, 'P625', '')
-                coordinates = point.replace('Point(', '').replace(')', '').split(' ') if point.startswith('Point') else ''
-                latitude = coordinates[1] if coordinates else 0
-                longitude = coordinates[0] if coordinates else 0
-                label_fr = item['label_fr']['value'] if 'label_fr' in item.keys() else item['label_en']['value'] if 'label_en' in item.keys() else ''
-                messesinfo_id = item['P1644']['value'] if 'P1644' in item.keys() else ''
+        print(f'Data written in {file_name}.')
+        with open(file_name, 'r', encoding='utf-8') as content_file:
+            return json.loads(content_file.read())
 
-                if place_id not in self.cache_places:
-                    self.add_location(place_id)
+    def extractDiocesesFromSparqlQuery(self, sparqlData):
+        dioceses = {}
+        for item in sparqlData:
+            wikidata_id = int(item['dioceses']['value'].split('/')[-1].replace('Q', ''))
+            modified = item['modified']['value'].replace('T', ' ').replace('Z', '')
+            gcatholic_id = Query.get_value(item, 'P8389')
+            country_id = Query.get_wikidata_id(item, 'P17')
 
-                if country_id and country_id not in self.cache_places:
-                    self.add_location(country_id, True)
+            # dirty hack so that Annecy appears in France and not in Switzerland
+            if wikidata_id == 866863: # Annecy
+                country_id = 142 # France
 
-                if diocese_id and diocese_id not in self.cache_dioceses:
-                    diocese_id = None
+            if country_id != 142:
+                # For now, we only care about french data
+                continue
 
-                if parish_id and parish_id not in self.cache_parishes:
-                    if messesinfo_id:
-                        print('Could not find Parish', parish_id)
-                    parish_id = None
+            if not gcatholic_id:
+                continue
+            type_ = Query.get_wikidata_id(item, 'P31')
+            if not type_ or int(type_) not in Query.dioceses_types:
+                continue # ignore item FIXME we may want to delete if from the DB
 
-                church = {
-                  'place_id': place_id,
-                  'diocese_id': diocese_id,
-                  'parish_id': parish_id,
-                  'messesinfo_id': messesinfo_id,
-                  'name': Query.ucfirst(label_fr),
-                  'latitude': latitude,
-                  'longitude': longitude,
-                  'address': '',
-                  'updated_at': modified,
-                }
+            website = Query.get_decoded_value(item, 'P856', '')
+            label_fr = item['label_fr']['value'] if 'label_fr' in item.keys() else item['label_en']['value'] if 'label_en' in item.keys() else ''
 
-                if wikidata_id in self.cache_churches:
-                    up = update(DB.churches, DB.churches.c.wikidata_church_id==wikidata_id)
-                    up = up.values(church)
-                    DB.session.execute(up)
+            dioceses[wikidata_id] = {
+                'type': 'diocese',
+                'wikidataId': wikidata_id,
+                'name': Query.ucfirst(label_fr),
+                'contactCountryCode': 'fr',
+                'website': website,
+                'wikidataUpdatedAt': str(datetime.strptime(modified, Query.dateformat)),
+            }
+        return dioceses
+    
+    def extractParishesFromSparqlQuery(self, sparqlData):
+        parishes = {}
+        for item in sparqlData:
+            wikidata_id = int(item['parishes']['value'].split('/')[-1].replace('Q', ''))
+            modified = item['modified']['value'].replace('T', ' ').replace('Z', '')
+            messesinfo_id = item['P6788']['value'] if 'P6788' in item.keys() else ''
+            #type_ = Query.get_wikidata_id(item, 'P31')
+            #if not type_ or int(type_) not in Query.parishes_types:
+            #    continue # ignore item FIXME we may want to delete if from the DB
+            country_id = Query.get_wikidata_id(item, 'P17')
+            zip_code = Query.get_value(item, 'P281', '')
+            diocese_id = Query.get_wikidata_id(item, 'P708')
+            website = Query.get_decoded_value(item, 'P856', '')
+            label_fr = item['label_fr']['value'] if 'label_fr' in item.keys() else item['label_en']['value'] if 'label_en' in item.keys() else ''
+
+            if country_id != 142:
+                # For now, we only care about french data
+                continue
+
+            parishes[wikidata_id] = {
+                'type': 'parish',
+                'wikidataId': wikidata_id,
+                'name': Query.ucfirst(label_fr),
+                'contactCountryCode': 'fr',
+                'contactZipcode': zip_code,
+                'parentWikidataId': diocese_id,
+                'messesInfoId': messesinfo_id,
+                'website': website,
+                'wikidataUpdatedAt': modified,
+            }
+        return parishes
+    
+    def church_type_to_string(self, type):
+        if type == 16970:
+            return 'cathedral'
+        elif type == 108325:
+            return 'chapel'
+        elif type == 317557:
+            return 'parishHall'
+        elif type == 160742:
+            return 'abbey'
+        else:
+            return 'church'
+    
+    def extractChurchesFromSparqlQuery(self, sparqlData):
+        churches = {}
+        for item in sparqlData:
+            wikidata_id = int(item['churches']['value'].split('/')[-1].replace('Q', ''))
+            modified = item['modified']['value'].replace('T', ' ').replace('Z', '')
+            type_ = Query.get_wikidata_id(item, 'P31')
+            if not type_ or int(type_) not in Query.building_types:
+                continue # ignore item FIXME we may want to delete if from the DB
+            # place_id = Query.get_wikidata_id(item, 'P131') # FIXME manage multiple places
+            # if not place_id:
+            #     print('No location for Q%s                    ' % (wikidata_id,))
+            #     continue
+            country_id = Query.get_wikidata_id(item, 'P17')
+            image = Query.get_decoded_value(item, 'P18', '')
+            zip_code = Query.get_value(item, 'P281', '')
+            diocese_id = Query.get_wikidata_id(item, 'P708')
+            parish_id = Query.get_wikidata_id(item, 'P5607')
+            point = Query.get_value(item, 'P625', '')
+            coordinates = point.replace('Point(', '').replace(')', '').split(' ') if point.startswith('Point') else ''
+            latitude = coordinates[1] if coordinates else 0
+            longitude = coordinates[0] if coordinates else 0
+            website = Query.get_decoded_value(item, 'P856', '')
+            label_fr = item['label_fr']['value'] if 'label_fr' in item.keys() else item['label_en']['value'] if 'label_en' in item.keys() else ''
+            messesinfo_id = item['P1644']['value'] if 'P1644' in item.keys() else ''
+            gcatholic_id = item['P2971']['value'] if 'P2971' in item.keys() else ''
+
+            if country_id != 142:
+                # For now, we only care about french data
+                continue
+
+            churches[wikidata_id] = {
+                'wikidataId': wikidata_id,
+                'type': self.church_type_to_string(type_),
+                'parentWikidataIds': [parish_id],
+                'countryCode': 'fr',
+                'messesInfoId': messesinfo_id,
+                'website': website,
+                'zipcode': zip_code,
+                'name': Query.ucfirst(label_fr),
+                'latitude': float(latitude),
+                'longitude': float(longitude),
+                'wikidataUpdatedAt': str(datetime.strptime(modified, Query.dateformat)),
+            }
+        return churches
+
+    def update_dioceses(self, sparqlData, client):
+        wikidataEntities = {'wikidataEntities': []}
+        wikidataIdDioceses = self.extractDiocesesFromSparqlQuery(sparqlData)
+        for wikidataId in wikidataIdDioceses:
+            fields = client.populate_fields(wikidataIdDioceses[wikidataId], wikidataId)
+            wikidataEntities['wikidataEntities'].append(fields)
+        if len(wikidataEntities['wikidataEntities']) > 0:
+            self.print_logs(wikidataEntities['wikidataEntities'], 2)
+            response = client.upsert_wikidata_entities('/communities/upsert', wikidataEntities)
+            self.print_logs(response, 1)
+            return response
+        return "skipped"
+
+    def update_parishes(self, sparqlData, client):
+        wikidataEntities = {'wikidataEntities': []}
+        wikidataIdParishes = self.extractParishesFromSparqlQuery(sparqlData)
+        for wikidataId in wikidataIdParishes:
+            fields = client.populate_fields(wikidataIdParishes[wikidataId], wikidataId)
+            wikidataEntities['wikidataEntities'].append(fields)
+        if len(wikidataEntities['wikidataEntities']) > 0:
+            self.print_logs(wikidataEntities['wikidataEntities'], 2)
+            response = client.upsert_wikidata_entities('/communities/upsert', wikidataEntities)
+            self.print_logs(response, 1)
+            return response
+        return "skipped"
+
+    def update_churches(self, sparqlData, client):
+        wikidataEntities = {'wikidataEntities': []}
+        wikidataIdChurches = self.extractChurchesFromSparqlQuery(sparqlData)
+        for wikidataId in wikidataIdChurches:
+            fields = client.populate_fields(wikidataIdChurches[wikidataId], wikidataId)
+            wikidataEntities['wikidataEntities'].append(fields)
+        if len(wikidataEntities['wikidataEntities']) > 0:
+            self.print_logs(wikidataEntities['wikidataEntities'], 2)
+            response = client.upsert_wikidata_entities('/places/upsert', wikidataEntities)
+            self.print_logs(response, 1)
+            return response
+        return "skipped"
+
+    def print_logs(self, data, required_level):
+        if self.verbosity_level >= required_level:
+            print(json.dumps(data, indent=4, ensure_ascii=False))
+
+class UuidDoesNotExistException(Exception):
+    pass
+
+class OpenChurchClient(object):
+    urllib3.disable_warnings(category=urllib3.exceptions.InsecureRequestWarning)
+    hostname = os.getenv('OPENCHURCH_HOST')
+    headers = {
+        'Authorization': 'Bearer ' + os.getenv('SYNCHRO_SECRET_KEY')
+    }
+    session = requests.Session()
+    # Configure retries and timeouts
+    retry_strategy = Retry(
+        total=1,
+        backoff_factor=1,
+        status_forcelist=[429, 500, 502, 503, 504]
+    )
+    # Configuration de l'adaptateur avec connection pooling
+    adapter = HTTPAdapter(
+        pool_connections=10,    # Nombre de connexions à garder
+        pool_maxsize=10,        # Taille maximale du pool
+        max_retries=retry_strategy,
+        pool_block=False        # Ne pas bloquer quand le pool est plein
+    )
+    # Monter l'adaptateur pour HTTP et HTTPS
+    session.mount("https://", adapter)
+    # Configuration des timeouts
+    session.request_timeout = (3.05, 27)
+        
+    def upsert_wikidata_entities(self, path, body):
+        try:
+            response = self.session.put(self.hostname + path, json=body, headers=self.headers, verify=False)
+            if response.status_code == 200:
+                data = response.json()
+                return data
+            else:
+                print(response.status_code, 'for PUT', path)
+                return None
+        except requests.exceptions.RequestException as e:
+            return None
+
+    def populate_fields(self, values, wikidata_id):
+        fields = []
+        for name, value in values.items():
+            if value:
+                fields.append({
+                    'name': name,
+                    'value': value,
+                    'reliability': 'high',
+                    'engine': 'scraper',
+                    'source': 'Wikidata',
+                    'explanation': 'https://www.wikidata.org/wiki/Q'+format(wikidata_id),
+                })
+        return fields
+    
+class Processor(object):
+    client = OpenChurchClient()
+    redis_url = os.getenv('REDIS_URL')
+    redis_client = redis.from_url(redis_url)
+
+    def __init__(self, verbosity_level, type, batch_size):
+        self.q = Query(verbosity_level=verbosity_level)
+        self.verbosity_level = verbosity_level
+        self.type = type
+        self.batch_size = batch_size
+
+    def process_batch(self, data, method, run_id):
+        batches = Query.split_into_batches(data, self.batch_size)
+        self.redis_client.hset(self.type, "batchCount", len(batches))
+        iteration = 1
+        for batch in batches:
+            can_process = True
+            self.redis_client.hset(self.type, "currentBatch", iteration)
+            key_batch = get_redis_key(self.type, (iteration - 1) * self.batch_size, (iteration) * self.batch_size)
+            value_batch = self.redis_client.hgetall(key_batch)
+            if value_batch:
+                # A key exist. We chek if we can process it
+                decoded_data = {key.decode('utf-8'): value_batch.decode('utf-8') for key, value_batch in value_batch.items()}
+                current_run_id = decoded_data.get('runId')
+                if current_run_id == run_id:
+                    can_process = False # This have already been processed. We skip it
+            if can_process:
+                self.redis_client.hset(key_batch, "status", "processing")
+                self.redis_client.hset(key_batch, "updatedAt", str(datetime.now()))
+                self.redis_client.hset(key_batch, "runId", run_id)
+                print("Processing batch %s/%s" % (iteration, len(batches)))
+                res = getattr(self.q, method)(batch, self.client)
+                if res == "skipped":
+                    self.redis_client.hset(key_batch, "successCount", "skipped")
+                    self.redis_client.hset(key_batch, "failureCount", "skipped")
+                    self.redis_client.hset(key_batch, "status", "skipped")
+                elif res:
+                    success_count = sum(1 for value in res.values() if value in {'Updated', 'Inserted'})
+                    self.redis_client.hset(key_batch, "successCount", success_count)
+                    self.redis_client.hset(key_batch, "failureCount", len(res) - success_count)
+                    self.redis_client.hset(key_batch, "status", "success")
                 else:
-                    church['wikidata_church_id'] = wikidata_id
-                    church['created_at'] = DB.now
-                    ins = insert(DB.churches)
-                    ins = ins.values(church)
-                    DB.session.execute(ins)
+                    self.redis_client.hset(key_batch, "status", "error")
+            else:
+                print("Ignore batch %s/%s" % (iteration, len(batches)))
+            sleep(int(sleep_time) * 0.001)
+            iteration += 1
 
-                self.cache_churches[wikidata_id] = datetime.datetime.strptime(modified, Query.dateformat)
-            DB.session.commit()
-            # FIXME then do: insert into churches (wikidata_church_id) select wikidata_church_id from wikidata_churches where wikidata_church_id not in (select wikidata_church_id from churches)
-            print('\nFinished')
+    def process_entity(self):
+        print("starting synchro for", self.type)
+        if self.type == "diocese":
+            data = self.q.fetch('wikidata_dioceses.json', dioceses_query)
+            method = "update_dioceses"
+        elif self.type == "parish":
+            data = self.q.fetch('wikidata_parishes.json', parishes_query)
+            method = "update_parishes"
+        elif self.type == "church":
+            data = self.q.fetch('wikidata_churches.json', churches_query)
+            method = "update_churches"
+        else:
+            raise("Unknown entity type %s" % self.type)
+        
+        value_entity = self.redis_client.hgetall(self.type)
+        if value_entity:
+            decoded_data = {key.decode('utf-8'): value_entity.decode('utf-8') for key, value_entity in value_entity.items()}
+            run_id = decoded_data.get('runId')
+            if decoded_data.get('status') in {'processing'}:
+                self.process_batch(data, method, run_id)
+            else:
+                self.clean_entity(int(run_id) + 1)
+                self.process_batch(data, method, int(run_id) + 1)
+        else:
+            self.clean_entity(1)
+            self.process_batch(data, method, 1)
 
-    def update_dioceses(self, data):
-        if 'results' in data.keys() and 'bindings' in data['results'].keys():
-            t = len(data['results']['bindings'])
-            print(t, 'dioceses loaded')
-            i = 0
-            j = 0
-            for item in data['results']['bindings']:
-                i += 1
-                if i % 1000 == 0:
-                    DB.session.commit()
-                wikidata_id = int(item['dioceses']['value'].split('/')[-1].replace('Q', ''))
-                modified = item['modified']['value'].replace('T', ' ').replace('Z', '')
-                if wikidata_id in self.cache_dioceses and self.cache_dioceses[wikidata_id].strftime(Query.dateformat) == modified:
-                    print('(%s/%s) Q%s' % (i, t, wikidata_id), '-> continue', end='    \r')
-                    continue
-                gcatholic_id = Query.get_value(item, 'P8389')
-                if not gcatholic_id:
-                    continue
-                print('(%s/%s) Q%s' % (i, t, wikidata_id), '-> update', end='    \r')
-                type_ = Query.get_wikidata_id(item, 'P31')
-                if not type_ or int(type_) not in Query.dioceses_types:
-                    continue # ignore item FIXME we may want to delete if from the DB
-                country_id = Query.get_wikidata_id(item, 'P17')
-                website = Query.get_decoded_value(item, 'P856', '')
-                label_fr = item['label_fr']['value'] if 'label_fr' in item.keys() else item['label_en']['value'] if 'label_en' in item.keys() else ''
+        self.redis_client.hset(self.type, "status", "success")
+        self.redis_client.hset(self.type, "endDate", str(datetime.now()))
+        print("ended synchro for", self.type)
 
-                # dirty hack so that Annecy appears in France and not in Switzerland
-                if wikidata_id == 866863: # Annecy
-                    country_id = 142 # France
-
-                if country_id and country_id not in self.cache_places:
-                    self.add_location(country_id, True)
-
-                diocese = {
-                  'name': Query.ucfirst(label_fr),
-                  'country_id': country_id,
-                  'gcatholic_id': gcatholic_id,
-                  'website': website,
-                  'updated_at': modified,
-                }
-
-                if wikidata_id in self.cache_dioceses:
-                    up = update(DB.dioceses, DB.dioceses.c.diocese_id==wikidata_id)
-                    up = up.values(diocese)
-                    DB.session.execute(up)
-                else:
-                    diocese['diocese_id'] = wikidata_id
-                    diocese['created_at'] = DB.now
-                    ins = insert(DB.dioceses)
-                    ins = ins.values(diocese)
-                    DB.session.execute(ins)
-
-                self.cache_dioceses[wikidata_id] = datetime.datetime.strptime(modified, Query.dateformat)
-            DB.session.commit()
-            print('\nFinished')
-
-    def update_parishes(self, data):
-        if 'results' in data.keys() and 'bindings' in data['results'].keys():
-            t = len(data['results']['bindings'])
-            print(t, 'parishes loaded')
-            i = 0
-            j = 0
-            for item in data['results']['bindings']:
-                i += 1
-                if i % 1000 == 0:
-                    DB.session.commit()
-                wikidata_id = int(item['parishes']['value'].split('/')[-1].replace('Q', ''))
-                modified = item['modified']['value'].replace('T', ' ').replace('Z', '')
-                if wikidata_id in self.cache_parishes and self.cache_parishes[wikidata_id].strftime(Query.dateformat) == modified:
-                    print('(%s/%s) Q%s' % (i, t, wikidata_id), '-> continue', end='    \r')
-                    continue
-                messesinfo_id = item['P6788']['value'] if 'P6788' in item.keys() else ''
-                print('(%s/%s) Q%s' % (i, t, wikidata_id), '-> update', end='    \r')
-                #type_ = Query.get_wikidata_id(item, 'P31')
-                #if not type_ or int(type_) not in Query.parishes_types:
-                #    continue # ignore item FIXME we may want to delete if from the DB
-                country_id = Query.get_wikidata_id(item, 'P17')
-                zip_code = Query.get_value(item, 'P281', '')
-                diocese_id = Query.get_wikidata_id(item, 'P708')
-                website = Query.get_decoded_value(item, 'P856', '')
-                label_fr = item['label_fr']['value'] if 'label_fr' in item.keys() else item['label_en']['value'] if 'label_en' in item.keys() else ''
-
-                if country_id and country_id not in self.cache_places:
-                    self.add_location(country_id, True)
-
-                if diocese_id and diocese_id not in self.cache_dioceses:
-                    diocese_id = None
-
-                parish = {
-                  'name': Query.ucfirst(label_fr),
-                  'country_id': country_id,
-                  'zip_code': zip_code,
-                  'diocese_id': diocese_id,
-                  'messesinfo_id': messesinfo_id,
-                  'website': website,
-                  'updated_at': modified,
-                }
-
-                if wikidata_id in self.cache_parishes:
-                    up = update(DB.parishes, DB.parishes.c.parish_id==wikidata_id)
-                    up = up.values(parish)
-                    DB.session.execute(up)
-                else:
-                    parish['parish_id'] = wikidata_id
-                    parish['created_at'] = DB.now
-                    ins = insert(DB.parishes)
-                    ins = ins.values(parish)
-                    DB.session.execute(ins)
-
-                self.cache_parishes[wikidata_id] = datetime.datetime.strptime(modified, Query.dateformat)
-            DB.session.commit()
-            print('\nFinished')
+    def clean_entity(self, run_id):
+        self.redis_client.hset(self.type, "runId", run_id)
+        self.redis_client.hset(self.type, "startDate", str(datetime.now()))
+        self.redis_client.hset(self.type, "status", "processing")
+        self.redis_client.hset(self.type, "batchSize", self.batch_size)
+        self.redis_client.hdel(self.type, "endDate")
 
 def percentage(num, total):
     return '%s = %s%%' % (num, (round(100 * num / total, 2)))
 
+def get_redis_key(type, origin, to):
+    return '%s_%s-%s' % (type, origin, to)
+
 if __name__ == '__main__':
-    arg = sys.argv[1] if len(sys.argv) > 1 else ''
-    if arg == 'stats':
-        print('Statistics')
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--entity-only", type=str, required=True, choices=["parish", "diocese", "church"], help="Spécifiez l'entité à traiter : 'diocese', 'parish' ou 'church'")
+    parser.add_argument("-v", "--verbose", action="count", default=0, help="Augmente le niveau de verbosité (utilisez -vvv pour plus de détails).")
+    args = parser.parse_args()
 
-        places = DB.con.execute('SELECT COUNT(*) FROM places').fetchone()[0]
-        print('Places:', places)
-
-        churches = DB.con.execute('SELECT COUNT(*) FROM wikidata_churches').fetchone()[0]
-        print('Churches:', churches)
-
-        catholic_churches = DB.con.execute('SELECT COUNT(*) FROM wikidata_churches WHERE messesinfo_id != ""').fetchone()[0]
-        print('\twith MessesInfoId:', percentage(catholic_churches, churches))
-
-        churches_diocese = DB.con.execute('SELECT COUNT(*) FROM wikidata_churches WHERE diocese_id IS NOT NULL').fetchone()[0]
-        print('\twith Diocese:', percentage(churches_diocese, churches))
-
-        churches_parish = DB.con.execute('SELECT COUNT(*) FROM wikidata_churches WHERE parish_id IS NOT NULL').fetchone()[0]
-        print('\twith Parish:', percentage(churches_parish, churches))
-
-        churches_diocese_or_parish = DB.con.execute('SELECT COUNT(*) FROM wikidata_churches WHERE parish_id IS NOT NULL OR diocese_id IS NOT NULL').fetchone()[0]
-        print('\twith Diocese or Parish:', percentage(churches_diocese_or_parish, churches))
-
-        dioceses = DB.con.execute('SELECT COUNT(*) FROM dioceses').fetchone()[0]
-        print('Dioceses:', dioceses)
-
-        catholic_dioceses = DB.con.execute('SELECT COUNT(*) FROM dioceses WHERE gcatholic_id != ""').fetchone()[0]
-        print('\twith GCatholicId:', percentage(catholic_dioceses, dioceses))
-
-        parishes = DB.con.execute('SELECT COUNT(*) FROM parishes').fetchone()[0]
-        print('Parishes:', parishes)
-
-        catholic_parishes = DB.con.execute('SELECT COUNT(*) FROM parishes WHERE messesinfo_id != ""').fetchone()[0]
-        print('\twith MessesInfoId:', percentage(catholic_parishes, parishes))
-    else:
-        q = Query()
-        q.init_caches()
-        dioceses = q.fetch('wikidata_dioceses.json', dioceses_query)
-        q.update_dioceses(dioceses)
-        parishes = q.fetch('wikidata_parishes.json', parishes_query)
-        q.update_parishes(parishes)
-        churches = q.fetch('wikidata_churches.json', churches_query)
-        q.update_churches(churches)
-
-        # Create missing Churches
-        DB.con.execute('''
-            INSERT INTO churches (`wikidata_church_id`)
-            SELECT `wikidata_church_id` FROM wikidata_churches WHERE wikidata_church_id NOT IN
-            (SELECT `wikidata_church_id` FROM `churches`);
-        ''')
+    processor = Processor(verbosity_level=args.verbose, type=args.entity_only, batch_size=30)
+    processor.process_entity()

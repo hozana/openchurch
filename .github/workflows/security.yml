@@ -1,0 +1,16 @@
+name: Security
+
+on:
+    push: ~
+    schedule:
+        - cron: "0 7 * * *"
+
+permissions:
+    contents: read
+
+jobs:
+    security-check:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: symfonycorp/security-checker-action@v5

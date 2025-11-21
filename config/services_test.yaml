@@ -1,0 +1,19 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
+  App\FieldHolder\Community\Infrastructure\Doctrine\DoctrineCommunityRepository:
+    public: true
+
+  # Services
+  App\FieldHolder\Community\Domain\Service\SearchHelperInterface:
+    class: App\FieldHolder\Community\Infrastructure\ElasticSearch\OfficialElasticSearchHelper
+    arguments:
+      $elasticsearchHost: "%env(ELASTICSEARCH_IRI)%"
+  App\FieldHolder\Community\Domain\Service\SearchServiceInterface:
+    class: App\FieldHolder\Community\Infrastructure\ElasticSearch\OfficialElasticSearchService
+
+  App\FieldHolder\Community\Infrastructure\ElasticSearch\OfficialElasticSearchHelper:
+    arguments:
+      $elasticsearchHost: "%env(ELASTICSEARCH_IRI)%"
