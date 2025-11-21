@@ -81,7 +81,7 @@ class DashboardController extends AbstractController
     private function calculateProgress(array $data): float
     {
         if (array_key_exists('currentBatch', $data)) {
-            return ceil($data['currentBatch'] / $data['batchCount']) * 100;
+            return round($data['currentBatch'] / $data['batchCount'], 2) * 100;
         }
 
         return 0;
