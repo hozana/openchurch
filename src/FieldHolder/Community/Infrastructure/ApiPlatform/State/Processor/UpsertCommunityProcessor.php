@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\FieldHolder\Community\Infrastructure\ApiPlatform\State\Processor;
 
-use App\Field\Domain\Model\Field;
 use ApiPlatform\Metadata\Exception\ProblemExceptionInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
@@ -12,10 +11,11 @@ use ApiPlatform\Validator\Exception\ValidationException;
 use App\Field\Application\FieldService;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Exception\FieldWikidataIdMissingException;
-use App\FieldHolder\FieldHolderUpsertService;
+use App\Field\Domain\Model\Field;
 use App\FieldHolder\Community\Domain\Model\Community;
 use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\FieldHolder\Community\Infrastructure\ApiPlatform\Input\CommunityWikidataInput;
+use App\FieldHolder\FieldHolderUpsertService;
 use App\Shared\Domain\Manager\TransactionManagerInterface;
 use Webmozart\Assert\Assert;
 

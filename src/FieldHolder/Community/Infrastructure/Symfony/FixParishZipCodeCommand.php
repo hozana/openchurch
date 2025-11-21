@@ -56,7 +56,7 @@ class FixParishZipCodeCommand extends Command
                 $parishName = $parish->getMostTrustableFieldByName(FieldCommunity::NAME)->getValue();
                 $zipCode = $parish->getMostTrustableFieldByName(FieldCommunity::CONTACT_ZIPCODE);
                 $wikidataId = $parish->getMostTrustableFieldByName(FieldCommunity::WIKIDATA_ID)->getValue();
-                
+
                 if ($zipCode === null) {
                     $this->onError($output, sprintf('%s with wikidata %s: has no zip code field', $parishName, $wikidataId), $parishName, $wikidataId);
                     continue;
@@ -71,8 +71,7 @@ class FixParishZipCodeCommand extends Command
                         $zipCode->value = $city['zipCode'];
                         $zipCode->applyValue();
                         $this->entityManager->flush();
-                    }
-                    else {
+                    } else {
                         $this->onError($output, sprintf('%s with wikidata %s: zip code "%s" is invalid', $parishName, $wikidataId, $zipCode->getValue()), $parishName, $wikidataId);
                     }
                 }
@@ -100,7 +99,7 @@ class FixParishZipCodeCommand extends Command
     private function onError(OutputInterface $output, string $message, string $parishName, int $wikidataId): void
     {
         $output->writeln($message);
-        $this->invalidZipCodeParishes["name"][] = $parishName;
-        $this->invalidZipCodeParishes["wikidataId"][] = $wikidataId;
+        $this->invalidZipCodeParishes['name'][] = $parishName;
+        $this->invalidZipCodeParishes['wikidataId'][] = $wikidataId;
     }
 }

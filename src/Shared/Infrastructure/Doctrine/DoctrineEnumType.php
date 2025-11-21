@@ -2,11 +2,11 @@
 
 namespace App\Shared\Infrastructure\Doctrine;
 
-use Override;
 use App\Shared\Domain\Enum\EnumTrait;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\Type;
 use LogicException;
+use Override;
 
 /**
  * Doctrine enum type.

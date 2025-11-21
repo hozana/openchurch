@@ -2,12 +2,12 @@
 
 namespace App\Agent\Domain\Model;
 
-use Stringable;
 use App\Field\Domain\Model\Field;
 use Deprecated;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
@@ -49,7 +49,7 @@ class Agent implements UserInterface, Stringable
         return ['ROLE_AGENT'];
     }
 
-    #[Deprecated('Implementing "' . Agent::class . '::eraseCredentials()" is deprecated since Symfony 7.3; add the #[\Deprecated] attribute on the method to signal its either empty or that you moved the logic elsewhere, typically to the "__serialize()" method.')]
+    #[Deprecated('Implementing "'.self::class.'::eraseCredentials()" is deprecated since Symfony 7.3; add the #[\Deprecated] attribute on the method to signal its either empty or that you moved the logic elsewhere, typically to the "__serialize()" method.')]
     public function eraseCredentials(): void
     {
     }

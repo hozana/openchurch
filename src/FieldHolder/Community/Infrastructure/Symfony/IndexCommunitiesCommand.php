@@ -100,7 +100,7 @@ class IndexCommunitiesCommand extends Command
 
                 if ($parentId) {
                     $parentDiocese =
-                        $dioceses->filter(fn(Community $diocese) => $diocese->id->toString() === $parentId)->first();
+                        $dioceses->filter(fn (Community $diocese) => $diocese->id->toString() === $parentId)->first();
 
                     if ($parentDiocese) {
                         $dioceseId = $parentDiocese->id->toString();

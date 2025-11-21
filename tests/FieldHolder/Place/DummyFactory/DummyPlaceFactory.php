@@ -2,9 +2,9 @@
 
 namespace App\Tests\FieldHolder\Place\DummyFactory;
 
-use Override;
 use App\FieldHolder\Place\Domain\Model\Place;
 use DateTimeImmutable;
+use Override;
 use Zenstruck\Foundry\Persistence\PersistentObjectFactory;
 
 /**

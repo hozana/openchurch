@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\FieldHolder\Community\Infrastructure\File;
 
-use RuntimeException;
 use App\FieldHolder\Community\Domain\Service\CityLoaderInterface;
 use App\Kernel;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
+use RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class FileCityLoader implements CityLoaderInterface
 {
@@ -19,11 +19,12 @@ class FileCityLoader implements CityLoaderInterface
         private readonly Filesystem $filesystem,
         private readonly Kernel $appKernel,
     ) {
-        $this->targetPath = $this->appKernel->getProjectDir() . '/var/cache/cities.csv';
+        $this->targetPath = $this->appKernel->getProjectDir().'/var/cache/cities.csv';
     }
 
     /** @return array<array{name: string, zipCode: string, inseeCode: string}> */
-    public function getCities(?string $citiesDownloadUrl): array {
+    public function getCities(?string $citiesDownloadUrl): array
+    {
         if (!file_exists($this->targetPath) || !is_readable($this->targetPath)) {
             $this->downloadFile($citiesDownloadUrl);
         }
@@ -69,7 +70,7 @@ class FileCityLoader implements CityLoaderInterface
         }
 
         // 3. Ouverture du fichier en écriture binaire
-        $fileHandler = fopen($this->targetPath, 'wb');
+        $fileHandler = fopen($this->targetPath, 'w');
         if (false === $fileHandler) {
             throw new RuntimeException('Unable to create local file.');
         }

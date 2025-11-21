@@ -2,8 +2,8 @@
 
 namespace App\Tests\Agent\DummyFactory;
 
-use Override;
 use App\Agent\Domain\Model\Agent;
+use Override;
 use Zenstruck\Foundry\Persistence\PersistentObjectFactory;
 
 /**

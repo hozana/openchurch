@@ -2,12 +2,12 @@
 
 namespace App\Tests\Field\DummyFactory;
 
-use Override;
 use App\Field\Domain\Enum\FieldEngine;
 use App\Field\Domain\Enum\FieldReliability;
 use App\Field\Domain\Model\Field;
 use App\Tests\Agent\DummyFactory\DummyAgentFactory;
 use DateTimeImmutable;
+use Override;
 use Zenstruck\Foundry\Persistence\PersistentObjectFactory;
 
 /**

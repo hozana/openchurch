@@ -32,7 +32,7 @@ class FieldHolder
             return null;
         }
 
-        usort($result, fn(Field $a, Field $b) => FieldReliability::compare($a->reliability, $b->reliability));
+        usort($result, fn (Field $a, Field $b) => FieldReliability::compare($a->reliability, $b->reliability));
 
         return $result[0];
     }

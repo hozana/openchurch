@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\FieldHolder\Place\Infrastructure\ApiPlatform\State\Processor;
 
-use App\Field\Domain\Model\Field;
 use ApiPlatform\Metadata\Exception\ProblemExceptionInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
@@ -12,6 +11,7 @@ use ApiPlatform\Validator\Exception\ValidationException;
 use App\Field\Application\FieldService;
 use App\Field\Domain\Enum\FieldPlace;
 use App\Field\Domain\Exception\FieldWikidataIdMissingException;
+use App\Field\Domain\Model\Field;
 use App\FieldHolder\FieldHolderUpsertService;
 use App\FieldHolder\Place\Domain\Model\Place;
 use App\FieldHolder\Place\Domain\Repository\PlaceRepositoryInterface;

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\FieldHolder\Place\Acceptance;
 
-use Override;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Enum\FieldPlace;
 use App\Field\Domain\Model\Field;
@@ -14,6 +13,7 @@ use App\Tests\FieldHolder\Community\DummyFactory\DummyCommunityFactory;
 use App\Tests\FieldHolder\Place\DummyFactory\DummyPlaceFactory;
 use App\Tests\Helper\AcceptanceTestHelper;
 use Doctrine\Common\Collections\ArrayCollection;
+use Override;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Zenstruck\Foundry\Test\Factories;
 
