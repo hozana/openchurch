@@ -15,7 +15,7 @@ final class FieldTypeFilter implements FilterInterface
         return [
             'type' => [
                 'property' => FieldCommunity::TYPE->value,
-                'type' => Type::string(),
+                'type' => Type::string()->__toString(),
                 'required' => false,
             ],
         ];

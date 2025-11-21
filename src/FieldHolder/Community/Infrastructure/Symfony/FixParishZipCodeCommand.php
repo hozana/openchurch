@@ -23,6 +23,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class FixParishZipCodeCommand extends Command
 {
     private const int BULK_SIZE = 100;
+    /** @var list<array{name: string, wikidataId: int}> */
     private array $invalidZipCodeParishes = [];
 
     public function __construct(

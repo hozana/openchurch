@@ -229,9 +229,7 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             $params = ['body' => []];
         }
 
-        if ($params['body'] !== []) {
-            $this->elasticsearchClient->bulk($params);
-        }
+        $this->elasticsearchClient->bulk($params);
     }
 
     public function createIndex(SearchIndex $index): Elasticsearch|Promise

@@ -15,7 +15,7 @@ final class FieldNameFilter implements FilterInterface
         return [
             'name' => [
                 'property' => FieldCommunity::NAME->value,
-                'type' => Type::string(),
+                'type' => Type::string()->__toString(),
                 'required' => false,
             ],
         ];

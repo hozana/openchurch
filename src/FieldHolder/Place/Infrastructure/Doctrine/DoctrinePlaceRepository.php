@@ -34,7 +34,7 @@ final class DoctrinePlaceRepository extends DoctrineRepository implements PlaceR
      */
     public function ofIds(array $ids): static
     {
-        if (!$ids || [] === $ids) {
+        if ([] === $ids) {
             return $this;
         }
 

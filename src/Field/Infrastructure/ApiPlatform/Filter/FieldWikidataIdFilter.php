@@ -15,7 +15,7 @@ final class FieldWikidataIdFilter implements FilterInterface
         return [
             'messeInfoId' => [
                 'property' => FieldCommunity::WIKIDATA_ID->value,
-                'type' => Type::int(),
+                'type' => Type::int()->__toString(),
                 'required' => false,
             ],
         ];

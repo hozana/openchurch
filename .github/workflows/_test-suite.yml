@@ -88,7 +88,6 @@ jobs:
         run: |
           php bin/console doctrine:migrations:migrate --no-interaction
         env:
-          DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/openchurch_test
           SYNCHRO_SECRET_KEY: secret
 
       - name: doctrine:schema:validate

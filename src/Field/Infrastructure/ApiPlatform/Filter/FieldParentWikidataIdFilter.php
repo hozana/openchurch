@@ -15,7 +15,7 @@ final class FieldParentWikidataIdFilter implements FilterInterface
         return [
             'parentWikidataId' => [
                 'property' => FieldCommunity::PARENT_WIKIDATA_ID->value,
-                'type' => Type::int(),
+                'type' => Type::int()->__toString(),
                 'required' => false,
             ],
         ];

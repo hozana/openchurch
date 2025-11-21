@@ -15,7 +15,7 @@ final class FieldParentCommunityIdFilter implements FilterInterface
         return [
             'parentCommunityId' => [
                 'property' => FieldCommunity::PARENT_COMMUNITY_ID->value,
-                'type' => Type::string(),
+                'type' => Type::string()->__toString(),
                 'required' => false,
             ],
         ];

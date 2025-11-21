@@ -7,7 +7,7 @@ namespace App\FieldHolder\Community\Domain\Service;
 interface CityLoaderInterface
 {
     /**
-     * @return array<{cityName: string, postCode: int}>
+     * @return array<array{name: string, zipCode: string, inseeCode: string}>
      */
     public function getCities(?string $citiesDownloadUrl): array;
 }

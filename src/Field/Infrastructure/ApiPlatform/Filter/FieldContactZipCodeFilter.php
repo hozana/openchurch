@@ -14,7 +14,7 @@ final class FieldContactZipCodeFilter implements FilterInterface
         return [
             'contactZipcodes' => [
                 'property' => 'contactZipcodes',
-                'type' => Type::array(Type::string()),
+                'type' => Type::array(Type::string())->__toString(),
                 'required' => false,
                 'schema' => [
                     'type' => 'array',
