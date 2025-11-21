@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Infrastructure\Symfony\Command;
+namespace App\FieldHolder\Community\Infrastructure\Symfony;
 
-use App\Core\Domain\Search\Service\CityLoaderInterface;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\FieldHolder\Community\Domain\Enum\CommunityType;
 use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
+use App\FieldHolder\Community\Domain\Service\CityLoaderInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;

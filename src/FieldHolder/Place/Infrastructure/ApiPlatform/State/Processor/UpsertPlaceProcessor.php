@@ -11,7 +11,7 @@ use ApiPlatform\Validator\Exception\ValidationException;
 use App\Field\Application\FieldService;
 use App\Field\Domain\Enum\FieldPlace;
 use App\Field\Domain\Exception\FieldWikidataIdMissingException;
-use App\FieldHolder\Application\FieldHolderUpsertService;
+use App\FieldHolder\FieldHolderUpsertService;
 use App\FieldHolder\Place\Domain\Model\Place;
 use App\FieldHolder\Place\Domain\Repository\PlaceRepositoryInterface;
 use App\FieldHolder\Place\Infrastructure\ApiPlatform\Input\PlaceWikidataInput;

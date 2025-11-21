@@ -4,7 +4,7 @@ namespace App\FieldHolder\Community\Domain\Model;
 
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Model\Field;
-use App\FieldHolder\Domain\Model\FieldHolder;
+use App\FieldHolder\FieldHolder;
 use App\Shared\Infrastructure\Doctrine\Trait\DoctrineTimestampableTrait;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;

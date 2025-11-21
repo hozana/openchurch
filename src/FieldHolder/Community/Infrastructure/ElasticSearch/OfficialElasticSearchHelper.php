@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Core\Infrastructure\ElasticSearch\Helper;
+namespace App\FieldHolder\Community\Infrastructure\ElasticSearch;
 
-use App\Core\Domain\Search\Helper\SearchHelperInterface;
+use App\FieldHolder\Community\Domain\Service\SearchHelperInterface;
 use App\Shared\Domain\Enum\SearchIndex;
 use Elastic\Elasticsearch\Client;
 use Elastic\Elasticsearch\ClientBuilder;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\FieldHolder\Application;
+namespace App\FieldHolder;
 
 use ApiPlatform\Metadata\Exception\ProblemExceptionInterface;
 use ApiPlatform\Validator\Exception\ValidationException;

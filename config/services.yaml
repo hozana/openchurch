@@ -48,16 +48,16 @@ services:
     class: App\Agent\Infrastructure\Doctrine\DoctrineAgentRepository
 
   # Services
-  App\Core\Domain\Search\Helper\SearchHelperInterface:
-    class: App\Core\Infrastructure\ElasticSearch\Helper\OfficialElasticSearchHelper
+  App\FieldHolder\Community\Domain\Service\SearchHelperInterface:
+    class: App\FieldHolder\Community\Infrastructure\ElasticSearch\OfficialElasticSearchHelper
     arguments:
       $elasticsearchHost: "%env(ELASTICSEARCH_IRI)%"
-  App\Core\Domain\Service\Search\SearchServiceInterface:
-    class: App\Core\Infrastructure\Service\OfficialElasticSearchService
-  App\Core\Domain\Service\Search\CityLoaderInterface:
-    class: App\Core\Infrastructure\Symfony\Service\FileCityLoader
+  App\FieldHolder\Community\Domain\Service\SearchServiceInterface:
+    class: App\FieldHolder\Community\Infrastructure\ElasticSearch\OfficialElasticSearchService
+  App\FieldHolder\Community\Domain\Service\CityLoaderInterface:
+    class: App\FieldHolder\Community\Infrastructure\File\FileCityLoader
 
-  App\Core\Infrastructure\ElasticSearch\Helper\OfficialElasticSearchHelper:
+  App\FieldHolder\Community\Infrastructure\ElasticSearch\OfficialElasticSearchHelper:
     arguments:
       $elasticsearchHost: "%env(ELASTICSEARCH_IRI)%"
   App\Field\Infrastructure\Doctrine\DoctrineFieldListener:

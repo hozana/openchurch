@@ -11,7 +11,7 @@ use ApiPlatform\Validator\Exception\ValidationException;
 use App\Field\Application\FieldService;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Exception\FieldWikidataIdMissingException;
-use App\FieldHolder\Application\FieldHolderUpsertService;
+use App\FieldHolder\FieldHolderUpsertService;
 use App\FieldHolder\Community\Domain\Model\Community;
 use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\FieldHolder\Community\Infrastructure\ApiPlatform\Input\CommunityWikidataInput;

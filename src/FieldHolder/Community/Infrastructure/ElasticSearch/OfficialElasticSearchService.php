@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Core\Infrastructure\ElasticSearch\Service;
+namespace App\FieldHolder\Community\Infrastructure\ElasticSearch;
 
-use App\Core\Domain\Search\Helper\SearchHelperInterface;
-use App\Core\Domain\Search\Service\SearchServiceInterface;
 use App\FieldHolder\Community\Domain\Model\Community;
 use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
+use App\FieldHolder\Community\Domain\Service\SearchHelperInterface;
+use App\FieldHolder\Community\Domain\Service\SearchServiceInterface;
 use App\Shared\Domain\Enum\SearchIndex;
 use stdClass;
 use Symfony\Component\Uid\Uuid;

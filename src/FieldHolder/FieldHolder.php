@@ -1,6 +1,6 @@
 <?php
 
-namespace App\FieldHolder\Domain\Model;
+namespace App\FieldHolder;
 
 use App\Agent\Domain\Model\Agent;
 use App\Field\Domain\Enum\FieldCommunity;

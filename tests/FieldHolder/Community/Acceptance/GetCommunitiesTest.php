@@ -2,13 +2,13 @@
 
 namespace App\Tests\FieldHolder\Community\Acceptance;
 
-use App\Core\Domain\Search\Helper\SearchHelperInterface;
-use App\Core\Domain\Search\Service\SearchServiceInterface;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Model\Field;
 use App\FieldHolder\Community\Domain\Enum\CommunityType;
 use App\FieldHolder\Community\Domain\Exception\CommunityTypeNotProvidedException;
 use App\FieldHolder\Community\Domain\Model\Community;
+use App\FieldHolder\Community\Domain\Service\SearchHelperInterface;
+use App\FieldHolder\Community\Domain\Service\SearchServiceInterface;
 use App\Shared\Domain\Enum\SearchIndex;
 use App\Tests\Field\DummyFactory\DummyFieldFactory;
 use App\Tests\FieldHolder\Community\DummyFactory\DummyCommunityFactory;

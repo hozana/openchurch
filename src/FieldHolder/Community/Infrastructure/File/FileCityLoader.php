@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Infrastructure\Symfony\Service;
+namespace App\FieldHolder\Community\Infrastructure\File;
 
-use App\Core\Domain\Search\Service\CityLoaderInterface;
+use App\FieldHolder\Community\Domain\Service\CityLoaderInterface;
 use App\Kernel;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\Filesystem\Filesystem;

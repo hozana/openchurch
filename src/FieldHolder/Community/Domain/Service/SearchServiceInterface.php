@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Domain\Search\Service;
+namespace App\FieldHolder\Community\Domain\Service;
 
 use App\FieldHolder\Community\Domain\Model\Community;
 
