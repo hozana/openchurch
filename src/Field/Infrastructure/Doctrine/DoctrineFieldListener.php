@@ -5,24 +5,24 @@ declare(strict_types=1);
 namespace App\Field\Infrastructure\Doctrine;
 
 use App\Agent\Domain\Model\Agent;
-use App\Core\Domain\Search\Helper\SearchHelperInterface;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Model\Field;
 use App\FieldHolder\Community\Domain\Enum\CommunityType;
 use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
+use App\FieldHolder\Community\Domain\Service\SearchHelperInterface;
 use App\Shared\Domain\Enum\SearchIndex;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 use Doctrine\ORM\Events;
 use Symfony\Bundle\SecurityBundle\Security;
 
 #[AsEntityListener(event: Events::postUpdate, method: 'postUpdate', entity: Field::class)]
-final class DoctrineFieldListener
+final readonly class DoctrineFieldListener
 {
     public function __construct(
-        private readonly string $synchroSecretKey,
-        private readonly Security $security,
-        private readonly SearchHelperInterface $searchHelper,
-        private readonly CommunityRepositoryInterface $communityRepo,
+        private string $synchroSecretKey,
+        private Security $security,
+        private SearchHelperInterface $searchHelper,
+        private CommunityRepositoryInterface $communityRepo,
     ) {
     }
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\FieldHolder\Domain\Model;
+namespace App\FieldHolder;
 
 use App\Agent\Domain\Model\Agent;
 use App\Field\Domain\Enum\FieldCommunity;
@@ -32,9 +32,7 @@ class FieldHolder
             return null;
         }
 
-        usort($result, function (Field $a, Field $b) {
-            return FieldReliability::compare($a->reliability, $b->reliability);
-        });
+        usort($result, fn (Field $a, Field $b) => FieldReliability::compare($a->reliability, $b->reliability));
 
         return $result[0];
     }

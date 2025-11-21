@@ -6,7 +6,7 @@ namespace App\Field\Infrastructure\ApiPlatform\Filter;
 
 use ApiPlatform\Metadata\FilterInterface;
 use App\Field\Domain\Enum\FieldCommunity;
-use Symfony\Component\PropertyInfo\Type;
+use Symfony\Component\TypeInfo\Type;
 
 final class FieldWikidataIdFilter implements FilterInterface
 {
@@ -15,7 +15,7 @@ final class FieldWikidataIdFilter implements FilterInterface
         return [
             'messeInfoId' => [
                 'property' => FieldCommunity::WIKIDATA_ID->value,
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => Type::int()->__toString(),
                 'required' => false,
             ],
         ];

@@ -7,11 +7,11 @@ namespace App\FieldHolder\Community\Infrastructure\ApiPlatform\State\Provider;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\Pagination\Pagination;
 use ApiPlatform\State\ProviderInterface;
-use App\Core\Domain\Search\Service\SearchServiceInterface;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\FieldHolder\Community\Domain\Enum\CommunityType;
 use App\FieldHolder\Community\Domain\Exception\CommunityTypeNotProvidedException;
 use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
+use App\FieldHolder\Community\Domain\Service\SearchServiceInterface;
 use App\FieldHolder\Community\Infrastructure\ApiPlatform\Resource\CommunityResource;
 use App\Shared\Infrastructure\ApiPlatform\State\Paginator;
 use ArrayIterator;
@@ -21,7 +21,7 @@ use Symfony\Component\Uid\Uuid;
 /**
  * @implements ProviderInterface<CommunityResource>
  */
-final class CommunityCollectionProvider implements ProviderInterface
+final readonly class CommunityCollectionProvider implements ProviderInterface
 {
     public function __construct(
         private Pagination $pagination,
@@ -66,13 +66,13 @@ final class CommunityCollectionProvider implements ProviderInterface
                 default => throw new InvalidArgumentException(sprintf('Invalid type %s', $type)),
             };
 
-            if (0 === count($entityIds)) {
+            if ([] === $entityIds) {
                 return [];
             }
         }
 
         $models = $this->communityRepo
-            ->ofIds(array_map(fn (string $entityId) => Uuid::fromString($entityId), $entityIds ?? []))
+            ->ofIds(array_map(Uuid::fromString(...), $entityIds ?? []))
             ->withType($type)
             ->withWikidataId((int) $wikidataId)
             ->withParentCommunityId($parentCommunity->id ?? null)

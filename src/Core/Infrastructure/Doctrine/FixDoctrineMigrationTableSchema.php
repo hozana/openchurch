@@ -12,12 +12,12 @@ use Doctrine\ORM\Tools\Event\GenerateSchemaEventArgs;
 use Webmozart\Assert\Assert;
 
 /** @see https://github.com/doctrine/migrations/issues/1406 */
-final class FixDoctrineMigrationTableSchema
+final readonly class FixDoctrineMigrationTableSchema
 {
     private TableMetadataStorageConfiguration $configuration;
 
     public function __construct(
-        private readonly DependencyFactory $dependencyFactory,
+        private DependencyFactory $dependencyFactory,
     ) {
         $configuration = $this->dependencyFactory->getConfiguration()->getMetadataStorageConfiguration();
 

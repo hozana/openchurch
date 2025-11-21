@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\FieldHolder\Place\Acceptance;
 
 use App\Field\Domain\Enum\FieldEngine;
@@ -12,14 +14,14 @@ use App\Tests\Helper\AcceptanceTestHelper;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Zenstruck\Foundry\Test\Factories;
 
-class CreatePlaceTest extends AcceptanceTestHelper
+final class CreatePlaceTest extends AcceptanceTestHelper
 {
     use Factories;
 
     public function testShouldPassWithGoodData(): void
     {
         /** @var PlaceRepositoryInterface $placeRepository */
-        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
+        $placeRepository = self::getContainer()->get(PlaceRepositoryInterface::class);
 
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
@@ -54,7 +56,7 @@ class CreatePlaceTest extends AcceptanceTestHelper
     public function testShouldThrowIfFieldNameNotValid(): void
     {
         /** @var PlaceRepositoryInterface $placeRepository */
-        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
+        $placeRepository = self::getContainer()->get(PlaceRepositoryInterface::class);
 
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
@@ -78,7 +80,7 @@ class CreatePlaceTest extends AcceptanceTestHelper
     public function testShouldThrowIfFieldValueNotValid(): void
     {
         /** @var PlaceRepositoryInterface $placeRepository */
-        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
+        $placeRepository = self::getContainer()->get(PlaceRepositoryInterface::class);
 
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
@@ -102,7 +104,7 @@ class CreatePlaceTest extends AcceptanceTestHelper
     public function testShouldThrowIfWikidataIdAlreadyExists(): void
     {
         /** @var PlaceRepositoryInterface $placeRepository */
-        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
+        $placeRepository = self::getContainer()->get(PlaceRepositoryInterface::class);
 
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
@@ -139,7 +141,7 @@ class CreatePlaceTest extends AcceptanceTestHelper
     public function testShouldThrowIfMesseInfoIdAlreadyExists(): void
     {
         /** @var PlaceRepositoryInterface $placeRepository */
-        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
+        $placeRepository = self::getContainer()->get(PlaceRepositoryInterface::class);
 
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();

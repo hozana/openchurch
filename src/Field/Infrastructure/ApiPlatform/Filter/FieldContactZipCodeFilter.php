@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Field\Infrastructure\ApiPlatform\Filter;
 
 use ApiPlatform\Metadata\FilterInterface;
-use Symfony\Component\PropertyInfo\Type;
+use Symfony\Component\TypeInfo\Type;
 
 final class FieldContactZipCodeFilter implements FilterInterface
 {
@@ -14,7 +14,7 @@ final class FieldContactZipCodeFilter implements FilterInterface
         return [
             'contactZipcodes' => [
                 'property' => 'contactZipcodes',
-                'type' => Type::BUILTIN_TYPE_ARRAY,
+                'type' => Type::array(Type::string())->__toString(),
                 'required' => false,
                 'schema' => [
                     'type' => 'array',

@@ -7,12 +7,13 @@ use App\Field\Domain\Enum\FieldReliability;
 use App\Field\Domain\Model\Field;
 use App\Tests\Agent\DummyFactory\DummyAgentFactory;
 use DateTimeImmutable;
-use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
+use Override;
+use Zenstruck\Foundry\Persistence\PersistentObjectFactory;
 
 /**
- * @extends PersistentProxyObjectFactory<Field>
+ * @extends PersistentObjectFactory<Field>
  */
-final class DummyFieldFactory extends PersistentProxyObjectFactory
+final class DummyFieldFactory extends PersistentObjectFactory
 {
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
@@ -47,6 +48,7 @@ final class DummyFieldFactory extends PersistentProxyObjectFactory
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#initialization
      */
+    #[Override]
     protected function initialize(): static
     {
         return $this

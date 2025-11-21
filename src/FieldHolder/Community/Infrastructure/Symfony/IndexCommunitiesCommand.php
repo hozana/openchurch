@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Infrastructure\Symfony\Command;
+namespace App\FieldHolder\Community\Infrastructure\Symfony;
 
-use App\Core\Domain\Search\Helper\SearchHelperInterface;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\FieldHolder\Community\Domain\Enum\CommunityType;
 use App\FieldHolder\Community\Domain\Model\Community;
 use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
+use App\FieldHolder\Community\Domain\Service\SearchHelperInterface;
 use App\Shared\Domain\Enum\SearchIndex;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -19,11 +19,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand('app:index:communities')]
 class IndexCommunitiesCommand extends Command
 {
-    private const BULK_SIZE = 100;
+    private const int BULK_SIZE = 100;
 
     public function __construct(
-        private SearchHelperInterface $elasticHelper,
-        private CommunityRepositoryInterface $communityRepo,
+        private readonly SearchHelperInterface $elasticHelper,
+        private readonly CommunityRepositoryInterface $communityRepo,
     ) {
         parent::__construct();
     }
@@ -100,9 +100,7 @@ class IndexCommunitiesCommand extends Command
 
                 if ($parentId) {
                     $parentDiocese =
-                        $dioceses->filter(function (Community $diocese) use ($parentId) {
-                            return $diocese->id->toString() === $parentId;
-                        })->first();
+                        $dioceses->filter(fn (Community $diocese) => $diocese->id->toString() === $parentId)->first();
 
                     if ($parentDiocese) {
                         $dioceseId = $parentDiocese->id->toString();

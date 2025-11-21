@@ -14,7 +14,7 @@ use Symfony\Component\Uid\Uuid;
 class CommunityNotFoundException extends Exception implements ProblemExceptionInterface
 {
     public function __construct(
-        private Uuid $communityId,
+        private readonly Uuid $communityId,
     ) {
     }
 

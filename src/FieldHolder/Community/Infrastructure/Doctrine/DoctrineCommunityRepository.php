@@ -17,8 +17,8 @@ use Symfony\Component\Uid\Uuid;
  */
 final class DoctrineCommunityRepository extends DoctrineRepository implements CommunityRepositoryInterface
 {
-    private const ENTITY_CLASS = Community::class;
-    private const ALIAS = 'community';
+    private const string ENTITY_CLASS = Community::class;
+    private const string ALIAS = 'community';
 
     public function __construct(EntityManagerInterface $em)
     {
@@ -44,9 +44,9 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
     /**
      * @param array<Uuid> $ids
      */
-    public function ofIds(array $ids): static
+    public function ofIds(?array $ids): static
     {
-        if (!$ids || 0 === count($ids)) {
+        if ($ids === null || [] == $ids) {
             return $this;
         }
 
@@ -95,7 +95,7 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
 
     public function withContactZipcodes(?array $values): static
     {
-        if (!$values || 0 === count($values)) {
+        if ($values === null || [] == $values) {
             return $this;
         }
 
@@ -129,7 +129,7 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
 
     public function withParentCommunityId(?Uuid $parentId): static
     {
-        if (!$parentId) {
+        if (!$parentId instanceof Uuid) {
             return $this;
         }
 

@@ -1,34 +1,37 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\FieldHolder\Community\Acceptance;
 
-use App\Core\Domain\Search\Helper\SearchHelperInterface;
-use App\Core\Domain\Search\Service\SearchServiceInterface;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Model\Field;
 use App\FieldHolder\Community\Domain\Enum\CommunityType;
 use App\FieldHolder\Community\Domain\Exception\CommunityTypeNotProvidedException;
 use App\FieldHolder\Community\Domain\Model\Community;
+use App\FieldHolder\Community\Domain\Service\SearchHelperInterface;
+use App\FieldHolder\Community\Domain\Service\SearchServiceInterface;
 use App\Shared\Domain\Enum\SearchIndex;
 use App\Tests\Field\DummyFactory\DummyFieldFactory;
 use App\Tests\FieldHolder\Community\DummyFactory\DummyCommunityFactory;
 use App\Tests\Helper\AcceptanceTestHelper;
+use Override;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Zenstruck\Foundry\Test\Factories;
 
-class GetCommunitiesTest extends AcceptanceTestHelper
+final class GetCommunitiesTest extends AcceptanceTestHelper
 {
     use Factories;
 
     public SearchHelperInterface $searchHelper;
-    public SearchServiceInterface $searchService;
 
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->searchHelper = static::getContainer()->get(SearchHelperInterface::class);
-        $this->searchService = static::getContainer()->get(SearchServiceInterface::class);
+        $this->searchHelper = self::getContainer()->get(SearchHelperInterface::class);
+        self::getContainer()->get(SearchServiceInterface::class);
     }
 
     public function testFilterByWikidataId(): void
@@ -96,7 +99,7 @@ class GetCommunitiesTest extends AcceptanceTestHelper
                     Field::getPropertyName(FieldCommunity::NAME) => 'Paroisse Saint-Domice',
                 ]),
             ],
-        ])->_real();
+        ]);
         $community2 = DummyCommunityFactory::createOne([
             'fields' => [
                 DummyFieldFactory::createOne([
@@ -108,7 +111,7 @@ class GetCommunitiesTest extends AcceptanceTestHelper
                     Field::getPropertyName(FieldCommunity::NAME) => 'Paroisse Notre-Dame-du-Mont-Carmel',
                 ]),
             ],
-        ])->_real();
+        ]);
         $community3 = DummyCommunityFactory::createOne([
             'fields' => [
                 DummyFieldFactory::createOne([
@@ -120,7 +123,7 @@ class GetCommunitiesTest extends AcceptanceTestHelper
                     Field::getPropertyName(FieldCommunity::NAME) => 'Paroisse Saint-Pierre-Saint-Paul-du-Marsan',
                 ]),
             ],
-        ])->_real();
+        ]);
 
         $this->searchHelper->bulkIndex(
             SearchIndex::PARISH,
@@ -134,8 +137,8 @@ class GetCommunitiesTest extends AcceptanceTestHelper
             $this->get('/communities', querystring: [
                 FieldCommunity::NAME->value => 'carmel',
             ]),
-            (new CommunityTypeNotProvidedException())->getStatus(),
-            (new CommunityTypeNotProvidedException())->getDetail()
+            new CommunityTypeNotProvidedException()->getStatus(),
+            new CommunityTypeNotProvidedException()->getDetail()
         );
 
         $response = self::assertResponse($this->get('/communities', querystring: [

@@ -12,9 +12,9 @@ use Traversable;
  * @template T of object
  *
  * @implements PaginatorInterface<T>
- * @implements \IteratorAggregate<T>
+ * @implements IteratorAggregate<T>
  */
-final class Paginator implements PaginatorInterface, IteratorAggregate
+final readonly class Paginator implements PaginatorInterface, IteratorAggregate
 {
     /**
      * @param Traversable<T> $items
@@ -50,7 +50,7 @@ final class Paginator implements PaginatorInterface, IteratorAggregate
 
     public function count(): int
     {
-        return iterator_count($this->getIterator());
+        return iterator_count($this->items);
     }
 
     /**

@@ -4,12 +4,13 @@ namespace App\Tests\FieldHolder\Community\DummyFactory;
 
 use App\FieldHolder\Community\Domain\Model\Community;
 use DateTimeImmutable;
-use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
+use Override;
+use Zenstruck\Foundry\Persistence\PersistentObjectFactory;
 
 /**
- * @extends PersistentProxyObjectFactory<Community>
+ * @extends PersistentObjectFactory<Community>
  */
-final class DummyCommunityFactory extends PersistentProxyObjectFactory
+final class DummyCommunityFactory extends PersistentObjectFactory
 {
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
@@ -30,7 +31,7 @@ final class DummyCommunityFactory extends PersistentProxyObjectFactory
      *
      * @return array<string, mixed>
      */
-    protected function defaults(): array|callable
+    protected function defaults(): array
     {
         return [
             'createdAt' => DateTimeImmutable::createFromMutable(self::faker()->dateTime()),
@@ -40,6 +41,7 @@ final class DummyCommunityFactory extends PersistentProxyObjectFactory
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#initialization
      */
+    #[Override]
     protected function initialize(): static
     {
         return $this

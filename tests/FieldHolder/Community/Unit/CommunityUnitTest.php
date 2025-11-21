@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\FieldHolder\Community\Unit;
 
 use App\Field\Domain\Enum\FieldCommunity;
@@ -12,7 +14,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Zenstruck\Foundry\Test\Factories;
 
-class CommunityUnitTest extends KernelTestCase
+final class CommunityUnitTest extends KernelTestCase
 {
     use Factories;
 
@@ -20,7 +22,7 @@ class CommunityUnitTest extends KernelTestCase
 
     protected function setUp(): void
     {
-        $this->validator = static::getContainer()->get(ValidatorInterface::class);
+        $this->validator = self::getContainer()->get(ValidatorInterface::class);
     }
 
     public function testStateDeletedWithoutReason(): void
@@ -32,8 +34,8 @@ class CommunityUnitTest extends KernelTestCase
         ]]);
 
         $violations = $this->validator->validate($community);
-        static::assertCount(1, $violations);
-        static::assertEquals('Deletion reason is mandatory when reporting a state=deleted state.', $violations->get(0)->getMessage());
+        self::assertCount(1, $violations);
+        self::assertSame('Deletion reason is mandatory when reporting a state=deleted state.', $violations->get(0)->getMessage());
     }
 
     public function testCountryCodeValidation(): void
@@ -45,8 +47,8 @@ class CommunityUnitTest extends KernelTestCase
         ]]);
 
         $violations = $this->validator->validate($community);
-        static::assertCount(1, $violations);
-        static::assertEquals("Country code '-1' is not valid.", $violations->get(0)->getMessage());
+        self::assertCount(1, $violations);
+        self::assertSame("Country code '-1' is not valid.", $violations->get(0)->getMessage());
     }
 
     public function testGetMostTrustableFieldByName(): void
@@ -65,14 +67,15 @@ class CommunityUnitTest extends KernelTestCase
                 'reliability' => FieldReliability::MEDIUM,
             ]),
         ],
-        ])->_real();
+        ]);
 
         $result = $community->getMostTrustableFieldByName(FieldCommunity::NAME);
-        static::assertEquals('high reliability name', $result->getValue());
+        $this->assertInstanceOf(Field::class, $result);
+        self::assertEquals('high reliability name', $result->getValue());
 
-        $community = DummyCommunityFactory::new()->withoutPersisting()->create()->_real();
+        $community = DummyCommunityFactory::new()->withoutPersisting()->create();
         $result = $community->getMostTrustableFieldByName(FieldCommunity::NAME);
-        static::assertEmpty($result);
+        self::assertEmpty($result);
     }
 
     public function testGetFieldsByName(): void
@@ -99,13 +102,13 @@ class CommunityUnitTest extends KernelTestCase
                 'reliability' => FieldReliability::MEDIUM,
             ]),
         ],
-        ])->_real();
+        ]);
 
         $results = $community->getFieldsByName(FieldCommunity::NAME);
-        static::assertCount(3, $results);
+        self::assertCount(3, $results);
 
         foreach ($results as $result) {
-            static::assertEquals(FieldCommunity::NAME->value, $result->name);
+            self::assertEquals(FieldCommunity::NAME->value, $result->name);
         }
     }
 
@@ -114,15 +117,15 @@ class CommunityUnitTest extends KernelTestCase
         $field = DummyFieldFactory::new()->withoutPersisting()->create([
             'name' => FieldCommunity::NAME->value,
             Field::getPropertyName(FieldCommunity::NAME) => 'mon nom',
-        ])->_real();
+        ]);
 
         $community = DummyCommunityFactory::new()->withoutPersisting()->create([
             'fields' => [$field],
-        ])->_real();
+        ]);
 
-        static::assertCount(1, $community->fields);
+        self::assertCount(1, $community->fields);
         $community->removeField($field);
-        static::assertCount(0, $community->fields);
-        static::assertNull($field->place);
+        self::assertCount(0, $community->fields);
+        self::assertNull($field->place);
     }
 }

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Core\Infrastructure\ElasticSearch\Helper;
+namespace App\FieldHolder\Community\Infrastructure\ElasticSearch;
 
-use App\Core\Domain\Search\Helper\SearchHelperInterface;
+use App\FieldHolder\Community\Domain\Service\SearchHelperInterface;
 use App\Shared\Domain\Enum\SearchIndex;
 use Elastic\Elasticsearch\Client;
 use Elastic\Elasticsearch\ClientBuilder;
@@ -13,7 +13,7 @@ use stdClass;
 
 class OfficialElasticSearchHelper implements SearchHelperInterface
 {
-    private Client $elasticsearchClient;
+    private readonly Client $elasticsearchClient;
 
     public function __construct(string $elasticsearchHost)
     {
@@ -212,9 +212,11 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             throw new InvalidArgumentException('ids and bodies should be of same size');
         }
 
+        /** @var array{body: array{}} $params */
         $params = ['body' => []];
+        $counter = count($ids);
 
-        for ($i = 0; $i < count($ids); ++$i) {
+        for ($i = 0; $i < $counter; ++$i) {
             $params['body'][] = [
                 'index' => [
                     '_index' => $index->value,
@@ -228,7 +230,7 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             $params = ['body' => []];
         }
 
-        if (count($params['body']) > 0) {
+        if ($params['body'] !== []) {
             $this->elasticsearchClient->bulk($params);
         }
     }

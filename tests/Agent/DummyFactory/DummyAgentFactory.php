@@ -3,12 +3,13 @@
 namespace App\Tests\Agent\DummyFactory;
 
 use App\Agent\Domain\Model\Agent;
-use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
+use Override;
+use Zenstruck\Foundry\Persistence\PersistentObjectFactory;
 
 /**
- * @extends PersistentProxyObjectFactory<Agent>
+ * @extends PersistentObjectFactory<Agent>
  */
-final class DummyAgentFactory extends PersistentProxyObjectFactory
+final class DummyAgentFactory extends PersistentObjectFactory
 {
     public function __construct()
     {
@@ -35,6 +36,7 @@ final class DummyAgentFactory extends PersistentProxyObjectFactory
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#initialization
      */
+    #[Override]
     protected function initialize(): static
     {
         return $this

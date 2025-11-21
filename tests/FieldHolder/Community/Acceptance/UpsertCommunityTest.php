@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\FieldHolder\Community\Acceptance;
 
 use App\Field\Domain\Enum\FieldCommunity;
@@ -18,14 +20,14 @@ use Zenstruck\Foundry\Test\Factories;
 
 use function Zenstruck\Foundry\Persistence\flush_after;
 
-class UpsertCommunityTest extends AcceptanceTestHelper
+final class UpsertCommunityTest extends AcceptanceTestHelper
 {
     use Factories;
 
     public function testShouldPassWithGoodData(): void
     {
         /** @var CommunityRepositoryInterface $communityRepository */
-        $communityRepository = static::getContainer()->get(CommunityRepositoryInterface::class);
+        $communityRepository = self::getContainer()->get(CommunityRepositoryInterface::class);
 
         self::assertCount(0, $communityRepository);
         $agent = DummyAgentFactory::createOne();
@@ -40,7 +42,7 @@ class UpsertCommunityTest extends AcceptanceTestHelper
 
             DummyCommunityFactory::createOne([
                 'fields' => [
-                    $fieldWikidata->_real(),
+                    $fieldWikidata,
                     DummyFieldFactory::createOne([
                         'name' => FieldCommunity::TYPE->value,
                         Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::PARISH->value,
@@ -51,7 +53,7 @@ class UpsertCommunityTest extends AcceptanceTestHelper
                         'agent' => $agent,
                     ]),
                 ],
-            ])->_real();
+            ]);
 
             return [
                 $fieldWikidata,
@@ -97,7 +99,7 @@ class UpsertCommunityTest extends AcceptanceTestHelper
                     ],
                     [
                         'name' => FieldCommunity::WIKIDATA_UPDATED_AT,
-                        'value' => (new DateTime())->format('Y-m-d H:i:s'),
+                        'value' => new DateTime()->format('Y-m-d H:i:s'),
                         'reliability' => FieldReliability::HIGH,
                         'source' => 'custom_source',
                         'explanation' => 'yolo',
@@ -117,7 +119,7 @@ class UpsertCommunityTest extends AcceptanceTestHelper
     public function testShouldInsertWhenProvidingParentWikidataId(): void
     {
         /** @var CommunityRepositoryInterface $communityRepository */
-        $communityRepository = static::getContainer()->get(CommunityRepositoryInterface::class);
+        $communityRepository = self::getContainer()->get(CommunityRepositoryInterface::class);
 
         self::assertCount(0, $communityRepository);
         $agent = DummyAgentFactory::createOne();
@@ -133,7 +135,7 @@ class UpsertCommunityTest extends AcceptanceTestHelper
             return [
                 DummyCommunityFactory::createOne([
                     'fields' => [
-                        $fieldWikidata->_real(),
+                        $fieldWikidata,
                         DummyFieldFactory::createOne([
                             'name' => FieldCommunity::TYPE->value,
                             Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::DIOCESE->value,
@@ -144,7 +146,7 @@ class UpsertCommunityTest extends AcceptanceTestHelper
                             'agent' => $agent,
                         ]),
                     ],
-                ])->_real(),
+                ]),
                 $fieldWikidata,
             ];
         });
@@ -185,16 +187,17 @@ class UpsertCommunityTest extends AcceptanceTestHelper
         self::assertCount(2, $communityRepository);
         self::assertEquals($response, [880099 => 'Inserted']);
         self::assertEquals($insertedField->name, FieldCommunity::PARENT_COMMUNITY_ID->value);
+        $this->assertInstanceOf(Field::class, $insertedField);
         self::assertEquals($insertedField->getValue(), $parentCommunity);
     }
 
     public function testShouldUpdateWhenProvidingParentWikidataId(): void
     {
         /** @var CommunityRepositoryInterface $communityRepository */
-        $communityRepository = static::getContainer()->get(CommunityRepositoryInterface::class);
+        $communityRepository = self::getContainer()->get(CommunityRepositoryInterface::class);
 
         self::assertCount(0, $communityRepository);
-        $agent = DummyAgentFactory::createOne()->_real();
+        $agent = DummyAgentFactory::createOne();
 
         [$parentCommunity, $fieldParentWikidata, $fieldWikidata] = flush_after(function () use ($agent) {
             $fieldInitialWikidata = DummyFieldFactory::createOne([
@@ -205,7 +208,7 @@ class UpsertCommunityTest extends AcceptanceTestHelper
             ]);
             $initialParentCommunity = DummyCommunityFactory::createOne([
                 'fields' => [
-                    $fieldInitialWikidata->_real(),
+                    $fieldInitialWikidata,
                     DummyFieldFactory::createOne([
                         'name' => FieldCommunity::TYPE->value,
                         Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::DIOCESE->value,
@@ -216,7 +219,7 @@ class UpsertCommunityTest extends AcceptanceTestHelper
                         'agent' => $agent,
                     ]),
                 ],
-            ])->_real();
+            ]);
 
             $fieldWikidata = DummyFieldFactory::createOne([
                 'name' => FieldCommunity::WIKIDATA_ID->value,
@@ -226,7 +229,7 @@ class UpsertCommunityTest extends AcceptanceTestHelper
             ]);
             $community = DummyCommunityFactory::createOne([
                 'fields' => [
-                    $fieldWikidata->_real(),
+                    $fieldWikidata,
                     DummyFieldFactory::createOne([
                         'name' => FieldCommunity::TYPE->value,
                         Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::PARISH->value,
@@ -246,7 +249,7 @@ class UpsertCommunityTest extends AcceptanceTestHelper
                         'agent' => $agent,
                     ]),
                 ],
-            ])->_real();
+            ]);
 
             $fieldParentWikidata = DummyFieldFactory::createOne([
                 'name' => FieldCommunity::WIKIDATA_ID->value,
@@ -258,7 +261,7 @@ class UpsertCommunityTest extends AcceptanceTestHelper
             return [
                 DummyCommunityFactory::createOne([
                     'fields' => [
-                        $fieldParentWikidata->_real(),
+                        $fieldParentWikidata,
                         DummyFieldFactory::createOne([
                             'name' => FieldCommunity::TYPE->value,
                             Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::DIOCESE->value,
@@ -269,7 +272,7 @@ class UpsertCommunityTest extends AcceptanceTestHelper
                             'agent' => $agent,
                         ]),
                     ],
-                ])->_real(),
+                ]),
                 $fieldParentWikidata,
                 $fieldWikidata,
                 $initialParentCommunity,
@@ -314,13 +317,14 @@ class UpsertCommunityTest extends AcceptanceTestHelper
 
         self::assertEquals($response, [$fieldWikidata->getValue() => 'Updated']);
         self::assertCount(1, $parentCommunityFields);
+        $this->assertInstanceOf(Field::class, $parentCommunityField);
         self::assertEquals($parentCommunityField->getValue()->id, $parentCommunity->id);
     }
 
     public function testShouldErrorIfParentWikidataIdNotFound(): void
     {
         /** @var CommunityRepositoryInterface $communityRepository */
-        $communityRepository = static::getContainer()->get(CommunityRepositoryInterface::class);
+        $communityRepository = self::getContainer()->get(CommunityRepositoryInterface::class);
 
         self::assertCount(0, $communityRepository);
         $agent = DummyAgentFactory::createOne();
@@ -334,7 +338,7 @@ class UpsertCommunityTest extends AcceptanceTestHelper
             ]);
             DummyCommunityFactory::createOne([
                 'fields' => [
-                    $fieldWikidata1->_real(),
+                    $fieldWikidata1,
                     DummyFieldFactory::createOne([
                         'name' => FieldCommunity::TYPE->value,
                         Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::DIOCESE->value,
@@ -345,7 +349,7 @@ class UpsertCommunityTest extends AcceptanceTestHelper
                         'agent' => $agent,
                     ]),
                 ],
-            ])->_real();
+            ]);
 
             return [$fieldWikidata1];
         });
@@ -388,7 +392,7 @@ class UpsertCommunityTest extends AcceptanceTestHelper
     public function testShouldErrorIfFieldNameNotValid(): void
     {
         /** @var CommunityRepositoryInterface $communityRepository */
-        $communityRepository = static::getContainer()->get(CommunityRepositoryInterface::class);
+        $communityRepository = self::getContainer()->get(CommunityRepositoryInterface::class);
 
         self::assertCount(0, $communityRepository);
         $agent = DummyAgentFactory::createOne();
@@ -444,7 +448,7 @@ class UpsertCommunityTest extends AcceptanceTestHelper
     public function testShouldErrorIfFieldValueNotValid(): void
     {
         /** @var CommunityRepositoryInterface $communityRepository */
-        $communityRepository = static::getContainer()->get(CommunityRepositoryInterface::class);
+        $communityRepository = self::getContainer()->get(CommunityRepositoryInterface::class);
 
         self::assertCount(0, $communityRepository);
         $agent = DummyAgentFactory::createOne();
@@ -481,7 +485,7 @@ class UpsertCommunityTest extends AcceptanceTestHelper
     public function testShouldErrorIfWikidataIdNotProvided(): void
     {
         /** @var CommunityRepositoryInterface $communityRepository */
-        $communityRepository = static::getContainer()->get(CommunityRepositoryInterface::class);
+        $communityRepository = self::getContainer()->get(CommunityRepositoryInterface::class);
 
         self::assertCount(0, $communityRepository);
         $agent = DummyAgentFactory::createOne();
@@ -506,7 +510,7 @@ class UpsertCommunityTest extends AcceptanceTestHelper
     public function testShouldErrorIfMesseInfoIdAlreadyExists(): void
     {
         /** @var CommunityRepositoryInterface $communityRepository */
-        $communityRepository = static::getContainer()->get(CommunityRepositoryInterface::class);
+        $communityRepository = self::getContainer()->get(CommunityRepositoryInterface::class);
 
         self::assertCount(0, $communityRepository);
         $agent = DummyAgentFactory::createOne();
@@ -522,7 +526,7 @@ class UpsertCommunityTest extends AcceptanceTestHelper
             return [
                 DummyCommunityFactory::createOne([
                     'fields' => [
-                        $fieldWikidata->_real(),
+                        $fieldWikidata,
                         DummyFieldFactory::createOne([
                             'name' => FieldCommunity::MESSESINFO_ID->value,
                             Field::getPropertyName(FieldCommunity::MESSESINFO_ID) => 'messeInfoId',
@@ -533,7 +537,7 @@ class UpsertCommunityTest extends AcceptanceTestHelper
                             'agent' => $agent,
                         ]),
                     ],
-                ])->_real(),
+                ]),
                 $fieldWikidata,
             ];
         });

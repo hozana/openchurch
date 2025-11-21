@@ -44,12 +44,12 @@ class DashboardController extends AbstractController
                 'count' => $count,
                 'status' => $redisData['status'] ?? 'undefined',
                 'progress' => $this->calculateProgress($redisData),
-                'startDate' => array_key_exists('startDate', $redisData) ? (new DateTime($redisData['startDate']))->format('Y-m-d H:i:s') : 'undefined',
-                'endDate' => array_key_exists('endDate', $redisData) ? (new DateTime($redisData['endDate']))->format('Y-m-d H:i:s') : 'undefined',
+                'startDate' => array_key_exists('startDate', $redisData) ? new DateTime($redisData['startDate'])->format('Y-m-d H:i:s') : 'undefined',
+                'endDate' => array_key_exists('endDate', $redisData) ? new DateTime($redisData['endDate'])->format('Y-m-d H:i:s') : 'undefined',
             ];
         }
 
-        return $this->render('@dashboard/index.html.twig', compact('input'));
+        return $this->render('@dashboard/index.html.twig', ['input' => $input]);
     }
 
     #[Route('/dashboard/{type}', name: 'dashboard_detail', requirements: ['type' => 'diocese|parish|church'])]

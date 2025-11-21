@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\FieldHolder\Place\Acceptance;
 
 use App\Field\Domain\Enum\FieldCommunity;
@@ -21,14 +23,14 @@ use Zenstruck\Foundry\Test\Factories;
 
 use function Zenstruck\Foundry\Persistence\flush_after;
 
-class UpsertPlaceTest extends AcceptanceTestHelper
+final class UpsertPlaceTest extends AcceptanceTestHelper
 {
     use Factories;
 
     public function testShouldPassWithGoodData(): void
     {
         /** @var PlaceRepositoryInterface $placeRepository */
-        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
+        $placeRepository = self::getContainer()->get(PlaceRepositoryInterface::class);
 
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
@@ -43,7 +45,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
 
             DummyPlaceFactory::createOne([
                 'fields' => [
-                    $fieldWikidata->_real(),
+                    $fieldWikidata,
                     DummyFieldFactory::createOne([
                         'name' => FieldPlace::TYPE->value,
                         Field::getPropertyName(FieldPlace::TYPE) => PlaceType::CHURCH->value,
@@ -54,7 +56,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
                         'agent' => $agent,
                     ]),
                 ],
-            ])->_real();
+            ]);
 
             return [
                 $fieldWikidata,
@@ -100,7 +102,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
                     ],
                     [
                         'name' => FieldPlace::WIKIDATA_UPDATED_AT,
-                        'value' => (new DateTime())->format('Y-m-d H:i:s'),
+                        'value' => new DateTime()->format('Y-m-d H:i:s'),
                         'reliability' => FieldReliability::HIGH,
                         'source' => 'custom_source',
                         'explanation' => 'yolo',
@@ -120,7 +122,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
     public function testShouldPassWhenProvidingParentCommunities(): void
     {
         /** @var PlaceRepositoryInterface $placeRepository */
-        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
+        $placeRepository = self::getContainer()->get(PlaceRepositoryInterface::class);
 
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
@@ -134,7 +136,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
             ]);
             DummyPlaceFactory::createOne([
                 'fields' => [
-                    $fieldWikidata->_real(),
+                    $fieldWikidata,
                     DummyFieldFactory::createOne([
                         'name' => FieldPlace::TYPE->value,
                         Field::getPropertyName(FieldPlace::TYPE) => PlaceType::CHURCH->value,
@@ -150,7 +152,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
             return [
                 DummyCommunityFactory::createOne([
                     'fields' => [
-                        $fieldWikidata->_real(),
+                        $fieldWikidata,
                         DummyFieldFactory::createOne([
                             'name' => FieldPlace::TYPE->value,
                             Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::PARISH->value,
@@ -161,7 +163,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
                             'agent' => $agent,
                         ]),
                     ],
-                ])->_real(),
+                ]),
                 $fieldWikidata,
             ];
         });
@@ -203,13 +205,14 @@ class UpsertPlaceTest extends AcceptanceTestHelper
         self::assertCount(2, $placeRepository);
         self::assertEquals($response, [880099 => 'Inserted']);
         self::assertEquals($insertedField->name, FieldPlace::PARENT_COMMUNITIES->value);
+        $this->assertInstanceOf(Field::class, $insertedField);
         self::assertEquals($insertedField->getValue(), [$parentCommunity]);
     }
 
     public function testShouldInsertWhenProvidingParentWikidataIds(): void
     {
         /** @var PlaceRepositoryInterface $placeRepository */
-        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
+        $placeRepository = self::getContainer()->get(PlaceRepositoryInterface::class);
 
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
@@ -235,7 +238,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
             ]);
             $community1 = DummyCommunityFactory::createOne([
                 'fields' => [
-                    $fieldWikidata1->_real(),
+                    $fieldWikidata1,
                     DummyFieldFactory::createOne([
                         'name' => FieldPlace::TYPE->value,
                         Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::PARISH->value,
@@ -246,10 +249,10 @@ class UpsertPlaceTest extends AcceptanceTestHelper
                         'agent' => $agent,
                     ]),
                 ],
-            ])->_real();
+            ]);
             $community2 = DummyCommunityFactory::createOne([
                 'fields' => [
-                    $fieldWikidata2->_real(),
+                    $fieldWikidata2,
                     DummyFieldFactory::createOne([
                         'name' => FieldPlace::TYPE->value,
                         Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::DIOCESE->value,
@@ -260,7 +263,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
                         'agent' => $agent,
                     ]),
                 ],
-            ])->_real();
+            ]);
 
             return [[$community1, $community2], $fieldWikidataPlace, $fieldWikidata1, $fieldWikidata2];
         });
@@ -301,13 +304,14 @@ class UpsertPlaceTest extends AcceptanceTestHelper
         self::assertCount(1, $placeRepository);
         self::assertEquals($response, [$fieldWikidataPlace->getValue() => 'Inserted']);
         self::assertEquals($insertedField->name, FieldPlace::PARENT_COMMUNITIES->value);
+        $this->assertInstanceOf(Field::class, $insertedField);
         self::assertEquals($insertedField->getValue(), $parentCommunities);
     }
 
     public function testShouldUpdateWhenProvidingParentWikidataIds(): void
     {
         /** @var PlaceRepositoryInterface $placeRepository */
-        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
+        $placeRepository = self::getContainer()->get(PlaceRepositoryInterface::class);
 
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
@@ -321,7 +325,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
             ]);
             DummyPlaceFactory::createOne([
                 'fields' => [
-                    $fieldWikidataPlace->_real(),
+                    $fieldWikidataPlace,
                     DummyFieldFactory::createOne([
                         'name' => FieldPlace::TYPE->value,
                         Field::getPropertyName(FieldPlace::TYPE) => PlaceType::ABBEY->value,
@@ -332,7 +336,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
                         'agent' => $agent,
                     ]),
                 ],
-            ])->_real();
+            ]);
             $fieldWikidataCommunity = DummyFieldFactory::createOne([
                 'name' => FieldCommunity::WIKIDATA_ID->value,
                 Field::getPropertyName(FieldCommunity::WIKIDATA_ID) => 9999999,
@@ -341,7 +345,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
             ]);
             $community = DummyCommunityFactory::createOne([
                 'fields' => [
-                    $fieldWikidataCommunity->_real(),
+                    $fieldWikidataCommunity,
                     DummyFieldFactory::createOne([
                         'name' => FieldPlace::TYPE->value,
                         Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::PARISH->value,
@@ -352,7 +356,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
                         'agent' => $agent,
                     ]),
                 ],
-            ])->_real();
+            ]);
 
             return [$fieldWikidataPlace, $fieldWikidataCommunity, $community];
         });
@@ -396,13 +400,14 @@ class UpsertPlaceTest extends AcceptanceTestHelper
 
         self::assertEquals([$fieldWikidataPlace->getValue() => 'Updated'], $response);
         self::assertCount(1, $parentCommunities);
+        $this->assertInstanceOf(Field::class, $updatedField);
         self::assertEquals($updatedField->getValue(), [$community]);
     }
 
     public function testShouldErrorIfParentWikidataIdsNotFound(): void
     {
         /** @var PlaceRepositoryInterface $placeRepository */
-        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
+        $placeRepository = self::getContainer()->get(PlaceRepositoryInterface::class);
 
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
@@ -416,7 +421,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
             ]);
             DummyCommunityFactory::createOne([
                 'fields' => [
-                    $fieldWikidata1->_real(),
+                    $fieldWikidata1,
                     DummyFieldFactory::createOne([
                         'name' => FieldPlace::TYPE->value,
                         Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::PARISH->value,
@@ -427,7 +432,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
                         'agent' => $agent,
                     ]),
                 ],
-            ])->_real();
+            ]);
 
             return [$fieldWikidata1];
         });
@@ -471,7 +476,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
     public function testShouldErrorIfFieldNameNotValid(): void
     {
         /** @var PlaceRepositoryInterface $placeRepository */
-        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
+        $placeRepository = self::getContainer()->get(PlaceRepositoryInterface::class);
 
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
@@ -527,7 +532,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
     public function testShouldErrorIfFieldValueNotValid(): void
     {
         /** @var PlaceRepositoryInterface $placeRepository */
-        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
+        $placeRepository = self::getContainer()->get(PlaceRepositoryInterface::class);
 
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
@@ -564,7 +569,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
     public function testShouldErrorIfWikidataIdNotProvided(): void
     {
         /** @var PlaceRepositoryInterface $placeRepository */
-        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
+        $placeRepository = self::getContainer()->get(PlaceRepositoryInterface::class);
 
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
@@ -589,7 +594,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
     public function testShouldErrorIfMesseInfoIdAlreadyExists(): void
     {
         /** @var PlaceRepositoryInterface $placeRepository */
-        $placeRepository = static::getContainer()->get(PlaceRepositoryInterface::class);
+        $placeRepository = self::getContainer()->get(PlaceRepositoryInterface::class);
 
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
@@ -605,7 +610,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
             return [
                 DummyPlaceFactory::createOne([
                     'fields' => [
-                        $fieldWikidata->_real(),
+                        $fieldWikidata,
                         DummyFieldFactory::createOne([
                             'name' => FieldPlace::MESSESINFO_ID->value,
                             Field::getPropertyName(FieldPlace::MESSESINFO_ID) => 'messeInfoId',
@@ -616,7 +621,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
                             'agent' => $agent,
                         ]),
                     ],
-                ])->_real(),
+                ]),
                 $fieldWikidata,
             ];
         });

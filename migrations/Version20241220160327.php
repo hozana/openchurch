@@ -6,6 +6,7 @@ namespace DoctrineMigrations;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
+use Override;
 use RuntimeException;
 use Symfony\Component\Uid\Uuid;
 
@@ -28,6 +29,7 @@ final class Version20241220160327 extends AbstractMigration
         );
     }
 
+    #[Override]
     public function down(Schema $schema): void
     {
         $this->addSql('DELETE FROM agent WHERE name = "CLI_SYNCHRO"');

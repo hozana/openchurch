@@ -11,7 +11,8 @@ use ApiPlatform\Validator\Exception\ValidationException;
 use App\Field\Application\FieldService;
 use App\Field\Domain\Enum\FieldPlace;
 use App\Field\Domain\Exception\FieldWikidataIdMissingException;
-use App\FieldHolder\Application\FieldHolderUpsertService;
+use App\Field\Domain\Model\Field;
+use App\FieldHolder\FieldHolderUpsertService;
 use App\FieldHolder\Place\Domain\Model\Place;
 use App\FieldHolder\Place\Domain\Repository\PlaceRepositoryInterface;
 use App\FieldHolder\Place\Infrastructure\ApiPlatform\Input\PlaceWikidataInput;
@@ -21,7 +22,7 @@ use Webmozart\Assert\Assert;
 /**
  * @implements ProcessorInterface<PlaceWikidataInput, array<int, string>>
  */
-final class UpsertPlaceProcessor implements ProcessorInterface
+final readonly class UpsertPlaceProcessor implements ProcessorInterface
 {
     public function __construct(
         private PlaceRepositoryInterface $placeRepo,
@@ -46,7 +47,7 @@ final class UpsertPlaceProcessor implements ProcessorInterface
 
             $wikidataIds = array_map(function (array $fields) use (&$wikidataIdFields) {
                 $wikidataField = $this->fieldHolderUpsertService->getFieldByName($fields, FieldPlace::WIKIDATA_ID->value);
-                if (!$wikidataField) {
+                if (!$wikidataField instanceof Field) {
                     throw new FieldWikidataIdMissingException();
                 }
                 $wikidataId = $wikidataField->value;

@@ -11,17 +11,18 @@ use ApiPlatform\Validator\Exception\ValidationException;
 use App\Field\Application\FieldService;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Exception\FieldWikidataIdMissingException;
-use App\FieldHolder\Application\FieldHolderUpsertService;
+use App\Field\Domain\Model\Field;
 use App\FieldHolder\Community\Domain\Model\Community;
 use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\FieldHolder\Community\Infrastructure\ApiPlatform\Input\CommunityWikidataInput;
+use App\FieldHolder\FieldHolderUpsertService;
 use App\Shared\Domain\Manager\TransactionManagerInterface;
 use Webmozart\Assert\Assert;
 
 /**
  * @implements ProcessorInterface<CommunityWikidataInput, array<int, string>>
  */
-final class UpsertCommunityProcessor implements ProcessorInterface
+final readonly class UpsertCommunityProcessor implements ProcessorInterface
 {
     public function __construct(
         private CommunityRepositoryInterface $communityRepo,
@@ -44,7 +45,7 @@ final class UpsertCommunityProcessor implements ProcessorInterface
 
             $wikidataIds = array_map(function (array $fields) use (&$wikidataIdFields) {
                 $wikidataField = $this->fieldHolderUpsertService->getFieldByName($fields, FieldCommunity::WIKIDATA_ID->value);
-                if (!$wikidataField) {
+                if (!$wikidataField instanceof Field) {
                     throw new FieldWikidataIdMissingException();
                 }
 

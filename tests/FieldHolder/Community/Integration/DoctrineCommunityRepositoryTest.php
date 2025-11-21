@@ -24,61 +24,61 @@ final class DoctrineCommunityRepositoryTest extends KernelTestCase
 
     protected function setUp(): void
     {
-        static::$em = static::getContainer()->get(EntityManagerInterface::class);
+        self::$em = self::getContainer()->get(EntityManagerInterface::class);
     }
 
     public function testSave(): void
     {
         /** @var DoctrineCommunityRepository $repository */
-        $repository = static::getContainer()->get(DoctrineCommunityRepository::class);
-        static::assertCount(0, $repository);
+        $repository = self::getContainer()->get(DoctrineCommunityRepository::class);
+        self::assertCount(0, $repository);
 
-        $community = DummyCommunityFactory::createOne()->_real();
+        $community = DummyCommunityFactory::createOne();
         $repository->add($community);
         self::$em->flush();
 
-        static::assertCount(1, $repository);
+        self::assertCount(1, $repository);
     }
 
     public function testOfId(): void
     {
         /** @var DoctrineCommunityRepository $repository */
-        $repository = static::getContainer()->get(DoctrineCommunityRepository::class);
+        $repository = self::getContainer()->get(DoctrineCommunityRepository::class);
 
-        static::assertCount(0, $repository);
+        self::assertCount(0, $repository);
 
-        $community = DummyCommunityFactory::createOne()->_real();
+        $community = DummyCommunityFactory::createOne();
         $repository->add($community);
         self::$em->flush();
 
-        static::assertEquals($community, $repository->ofId($community->id));
+        self::assertEquals($community, $repository->ofId($community->id));
     }
 
     public function testOfIds(): void
     {
         /** @var DoctrineCommunityRepository $repository */
-        $repository = static::getContainer()->get(DoctrineCommunityRepository::class);
+        $repository = self::getContainer()->get(DoctrineCommunityRepository::class);
 
-        static::assertCount(0, $repository);
+        self::assertCount(0, $repository);
         $community1 = DummyCommunityFactory::createOne();
         DummyCommunityFactory::createOne();
         DummyCommunityFactory::createOne();
 
         self::$em->flush();
-        static::assertCount(1, $repository->ofIds([$community1->id]));
+        self::assertCount(1, $repository->ofIds([$community1->id]));
     }
 
     public function testWithType(): void
     {
         /** @var DoctrineCommunityRepository $repository */
-        $repository = static::getContainer()->get(DoctrineCommunityRepository::class);
+        $repository = self::getContainer()->get(DoctrineCommunityRepository::class);
 
         DummyCommunityFactory::createMany(2, ['fields' => [DummyFieldFactory::new(['name' => FieldCommunity::TYPE->value, 'stringVal' => CommunityType::DIOCESE->value])]]);
         DummyCommunityFactory::createOne(['fields' => [DummyFieldFactory::new(['name' => FieldCommunity::TYPE->value, 'stringVal' => CommunityType::PARISH->value])]]);
 
         self::$em->flush();
         $results = $repository->withType(CommunityType::DIOCESE->value);
-        static::assertCount(2, $results);
+        self::assertCount(2, $results);
 
         foreach ($results as $result) {
             self::assertSame(CommunityType::DIOCESE->value, $result->fields[0]->stringVal);
@@ -88,7 +88,7 @@ final class DoctrineCommunityRepositoryTest extends KernelTestCase
     public function testWikidataId(): void
     {
         /** @var DoctrineCommunityRepository $repository */
-        $repository = static::getContainer()->get(DoctrineCommunityRepository::class);
+        $repository = self::getContainer()->get(DoctrineCommunityRepository::class);
 
         $field1 = DummyFieldFactory::createOne(['name' => FieldCommunity::WIKIDATA_ID->value, 'intVal' => 1]);
         $field2 = DummyFieldFactory::createOne(['name' => FieldCommunity::WIKIDATA_ID->value, 'intVal' => 2]);
@@ -101,7 +101,7 @@ final class DoctrineCommunityRepositoryTest extends KernelTestCase
         self::$em->flush();
 
         $results = $repository->withWikidataId(3);
-        static::assertCount(1, $results);
+        self::assertCount(1, $results);
 
         foreach ($results as $result) {
             self::assertSame(3, $result->fields[0]->intVal);
@@ -111,7 +111,7 @@ final class DoctrineCommunityRepositoryTest extends KernelTestCase
     public function testContactZipcodes(): void
     {
         /** @var DoctrineCommunityRepository $repository */
-        $repository = static::getContainer()->get(DoctrineCommunityRepository::class);
+        $repository = self::getContainer()->get(DoctrineCommunityRepository::class);
 
         $field1 = DummyFieldFactory::createOne(['name' => FieldCommunity::CONTACT_ZIPCODE->value, 'stringVal' => '75001']);
         $field2 = DummyFieldFactory::createOne(['name' => FieldCommunity::CONTACT_ZIPCODE->value, 'stringVal' => '40270']);
@@ -124,76 +124,76 @@ final class DoctrineCommunityRepositoryTest extends KernelTestCase
         self::$em->flush();
 
         $results = $repository->withContactZipcodes(['40270', '30000']);
-        static::assertCount(2, $results);
+        self::assertCount(2, $results);
 
-        static::assertSame($communityGrenade->_real(), $results->asCollection()->get(0));
-        static::assertSame($communityNimes->_real(), $results->asCollection()->get(1));
+        self::assertSame($communityGrenade, $results->asCollection()->get(0));
+        self::assertSame($communityNimes, $results->asCollection()->get(1));
     }
 
     public function testAddSelectField(): void
     {
         /** @var DoctrineCommunityRepository $repository */
-        $repository = static::getContainer()->get(DoctrineCommunityRepository::class);
+        $repository = self::getContainer()->get(DoctrineCommunityRepository::class);
 
-        static::assertStringNotContainsString('JOIN', $repository->getDQL());
-        static::assertStringNotContainsString('fields', $repository->getDQL());
+        self::assertStringNotContainsString('JOIN', $repository->getDQL());
+        self::assertStringNotContainsString('fields', $repository->getDQL());
 
         $result = $repository->addSelectField();
-        static::assertStringContainsString('JOIN', $result->getDQL());
-        static::assertStringContainsString('fields', $result->getDQL());
+        self::assertStringContainsString('JOIN', $result->getDQL());
+        self::assertStringContainsString('fields', $result->getDQL());
     }
 
     public function testAsCollection(): void
     {
         /** @var DoctrineCommunityRepository $repository */
-        $repository = static::getContainer()->get(DoctrineCommunityRepository::class);
+        $repository = self::getContainer()->get(DoctrineCommunityRepository::class);
 
-        static::assertCount(0, $repository);
+        self::assertCount(0, $repository);
         $community1 = DummyCommunityFactory::createOne();
         DummyCommunityFactory::createOne();
         DummyCommunityFactory::createOne();
 
         self::$em->flush();
-        static::assertInstanceOf(Collection::class, $repository->ofIds([$community1->id])->asCollection());
+        self::assertInstanceOf(Collection::class, $repository->ofIds([$community1->id])->asCollection());
     }
 
     public function testWithPagination(): void
     {
         /** @var DoctrineCommunityRepository $repository */
-        $repository = static::getContainer()->get(DoctrineCommunityRepository::class);
-        static::assertNull($repository->paginator());
+        $repository = self::getContainer()->get(DoctrineCommunityRepository::class);
+        self::assertNull($repository->paginator());
 
         $repository = $repository->withPagination(1, 2);
 
-        static::assertInstanceOf(DoctrinePaginator::class, $repository->paginator());
+        self::assertInstanceOf(DoctrinePaginator::class, $repository->paginator());
     }
 
     public function testWithoutPagination(): void
     {
         /** @var DoctrineCommunityRepository $repository */
-        $repository = static::getContainer()->get(DoctrineCommunityRepository::class);
+        $repository = self::getContainer()->get(DoctrineCommunityRepository::class);
         $repository = $repository->withPagination(1, 2);
-        static::assertNotNull($repository->paginator());
+        self::assertNotNull($repository->paginator());
 
         $repository = $repository->withoutPagination();
-        static::assertNull($repository->paginator());
+        self::assertNull($repository->paginator());
     }
 
     public function testIteratorWithoutPagination(): void
     {
         /** @var DoctrineCommunityRepository $repository */
-        $repository = static::getContainer()->get(DoctrineCommunityRepository::class);
-        static::assertNull($repository->paginator());
+        $repository = self::getContainer()->get(DoctrineCommunityRepository::class);
+        self::assertNull($repository->paginator());
 
         $communities = DummyCommunityFactory::createMany(3);
         foreach ($communities as $community) {
-            $repository->add($community->_real());
+            $repository->add($community);
         }
         self::$em->flush();
 
         $i = 0;
         foreach ($repository as $community) {
-            static::assertSame($communities[$i]->_real(), $community);
+            self::assertSame($communities[$i], $community);
             ++$i;
         }
     }
@@ -201,11 +201,11 @@ final class DoctrineCommunityRepositoryTest extends KernelTestCase
     public function testIteratorWithPagination(): void
     {
         /** @var DoctrineCommunityRepository $repository */
-        $repository = static::getContainer()->get(DoctrineCommunityRepository::class);
-        static::assertNull($repository->paginator());
+        $repository = self::getContainer()->get(DoctrineCommunityRepository::class);
+        self::assertNull($repository->paginator());
 
         $communities = array_map(
-            fn (Community $community) => $community->_real(),
+            fn (Community $community) => $community,
             DummyCommunityFactory::createMany(3)
         );
 
@@ -218,30 +218,30 @@ final class DoctrineCommunityRepositoryTest extends KernelTestCase
 
         $i = 0;
         foreach ($repository as $community) {
-            static::assertContains($community, $communities);
+            self::assertContains($community, $communities);
             ++$i;
         }
 
-        static::assertSame(2, $i);
+        self::assertSame(2, $i);
 
         $repository = $repository->withPagination(2, 2);
 
         $i = 0;
         foreach ($repository as $community) {
-            static::assertContains($community, $communities);
+            self::assertContains($community, $communities);
             ++$i;
         }
 
-        static::assertSame(1, $i);
+        self::assertSame(1, $i);
     }
 
     public function testCount(): void
     {
         /** @var DoctrineCommunityRepository $repository */
-        $repository = static::getContainer()->get(DoctrineCommunityRepository::class);
+        $repository = self::getContainer()->get(DoctrineCommunityRepository::class);
 
         $communities = array_map(
-            fn (Community $community) => $community->_real(),
+            fn (Community $community) => $community,
             DummyCommunityFactory::createMany(3)
         );
         foreach ($communities as $community) {
@@ -249,7 +249,7 @@ final class DoctrineCommunityRepositoryTest extends KernelTestCase
         }
         self::$em->flush();
 
-        static::assertCount(count($communities), $repository);
-        static::assertCount(2, $repository->withPagination(1, 2));
+        self::assertCount(count($communities), $repository);
+        self::assertCount(2, $repository->withPagination(1, 2));
     }
 }

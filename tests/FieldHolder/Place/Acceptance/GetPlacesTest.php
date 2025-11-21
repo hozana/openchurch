@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\FieldHolder\Place\Acceptance;
 
 use App\Field\Domain\Enum\FieldCommunity;
@@ -11,13 +13,15 @@ use App\Tests\FieldHolder\Community\DummyFactory\DummyCommunityFactory;
 use App\Tests\FieldHolder\Place\DummyFactory\DummyPlaceFactory;
 use App\Tests\Helper\AcceptanceTestHelper;
 use Doctrine\Common\Collections\ArrayCollection;
+use Override;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Zenstruck\Foundry\Test\Factories;
 
-class GetPlacesTest extends AcceptanceTestHelper
+final class GetPlacesTest extends AcceptanceTestHelper
 {
     use Factories;
 
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -40,7 +44,7 @@ class GetPlacesTest extends AcceptanceTestHelper
             'fields' => [
                 DummyFieldFactory::createOne([
                     'name' => FieldPlace::PARENT_COMMUNITIES->value,
-                    Field::getPropertyName(FieldPlace::PARENT_COMMUNITIES) => new ArrayCollection([$community1->_real()]),
+                    Field::getPropertyName(FieldPlace::PARENT_COMMUNITIES) => new ArrayCollection([$community1]),
                 ]),
             ],
         ]);
@@ -49,7 +53,7 @@ class GetPlacesTest extends AcceptanceTestHelper
             'fields' => [
                 DummyFieldFactory::createOne([
                     'name' => FieldPlace::PARENT_COMMUNITIES->value,
-                    Field::getPropertyName(FieldPlace::PARENT_COMMUNITIES) => new ArrayCollection([$community1->_real()]),
+                    Field::getPropertyName(FieldPlace::PARENT_COMMUNITIES) => new ArrayCollection([$community1]),
                 ]),
             ],
         ]);
@@ -58,7 +62,7 @@ class GetPlacesTest extends AcceptanceTestHelper
             'fields' => [
                 DummyFieldFactory::createOne([
                     'name' => FieldPlace::PARENT_COMMUNITIES->value,
-                    Field::getPropertyName(FieldPlace::PARENT_COMMUNITIES) => new ArrayCollection([$community2->_real()]),
+                    Field::getPropertyName(FieldPlace::PARENT_COMMUNITIES) => new ArrayCollection([$community2]),
                 ]),
             ],
         ]);
@@ -67,7 +71,7 @@ class GetPlacesTest extends AcceptanceTestHelper
             'fields' => [
                 DummyFieldFactory::createOne([
                     'name' => FieldPlace::PARENT_COMMUNITIES->value,
-                    Field::getPropertyName(FieldPlace::PARENT_COMMUNITIES) => new ArrayCollection([$community2->_real()]),
+                    Field::getPropertyName(FieldPlace::PARENT_COMMUNITIES) => new ArrayCollection([$community2]),
                 ]),
             ],
         ]);
@@ -91,7 +95,7 @@ class GetPlacesTest extends AcceptanceTestHelper
 
     public function testShouldErrorIfParentCommunityIdNotAUuid(): void
     {
-        $response = self::assertErrorResponse(
+        self::assertErrorResponse(
             $this->get('/places', querystring: [
                 FieldCommunity::PARENT_COMMUNITY_ID->value => 123,
             ]),

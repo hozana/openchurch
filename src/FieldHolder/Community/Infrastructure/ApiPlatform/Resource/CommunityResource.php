@@ -35,27 +35,28 @@ use Symfony\Component\Uid\Uuid;
     ],
     operations: [
         new Post(
-            security: 'is_granted("ROLE_AGENT")',
             uriTemplate: '/communities',
             status: 200,
-            processor: CreateCommunityProcessor::class,
             normalizationContext: ['groups' => ['communities']],
+            security: 'is_granted("ROLE_AGENT")',
+            processor: CreateCommunityProcessor::class,
         ),
         new Patch(
-            securityPostDenormalize: 'is_granted("ROLE_AGENT")',
             uriTemplate: '/communities/{id}',
             status: 200,
+            normalizationContext: ['groups' => ['communities']],
+            securityPostDenormalize: 'is_granted("ROLE_AGENT")',
             provider: CommunityItemProvider::class,
             processor: UpdateCommunityProcessor::class,
-            normalizationContext: ['groups' => ['communities']],
         ),
         new Put(
             uriTemplate: '/communities/upsert',
             status: 200,
-            processor: UpsertCommunityProcessor::class,
             input: CommunityWikidataInput::class,
+            processor: UpsertCommunityProcessor::class,
         ),
         new GetCollection(
+            normalizationContext: ['groups' => ['communities']],
             filters: [
                 FieldTypeFilter::class,
                 FieldWikidataIdFilter::class,
@@ -64,11 +65,10 @@ use Symfony\Component\Uid\Uuid;
                 FieldContactZipCodeFilter::class,
             ],
             provider: CommunityCollectionProvider::class,
-            normalizationContext: ['groups' => ['communities']],
         ),
         new Get(
-            provider: CommunityItemProvider::class,
             normalizationContext: ['groups' => ['communities']],
+            provider: CommunityItemProvider::class,
         ),
     ],
 )]

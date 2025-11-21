@@ -1,4 +1,5 @@
 when@dev:
   zenstruck_foundry:
+    enable_auto_refresh_with_lazy_objects: true
     make_factory:
       default_namespace: 'App\\Test\\Factory'

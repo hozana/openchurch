@@ -4,12 +4,13 @@ namespace App\FieldHolder\Community\Domain\Model;
 
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Model\Field;
-use App\FieldHolder\Domain\Model\FieldHolder;
+use App\FieldHolder\FieldHolder;
 use App\Shared\Infrastructure\Doctrine\Trait\DoctrineTimestampableTrait;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Symfony\Component\Intl\Countries;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Uid\Uuid;
@@ -18,7 +19,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity]
 #[ORM\Table]
-class Community extends FieldHolder
+class Community extends FieldHolder implements Stringable
 {
     use DoctrineTimestampableTrait;
 
@@ -55,7 +56,7 @@ class Community extends FieldHolder
         $this->fieldsAsCommunitiesVal = new ArrayCollection();
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->id->toString();
     }
@@ -96,11 +97,9 @@ class Community extends FieldHolder
 
     public function removeField(Field $field): static
     {
-        if ($this->fields->removeElement($field)) {
-            // set the owning side to null (unless already changed)
-            if ($field->community === $this) {
-                $field->community = null;
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->fields->removeElement($field) && $field->community === $this) {
+            $field->community = null;
         }
 
         return $this;

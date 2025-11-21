@@ -16,8 +16,8 @@ use Symfony\Component\Uid\Uuid;
  */
 final class DoctrinePlaceRepository extends DoctrineRepository implements PlaceRepositoryInterface
 {
-    private const ENTITY_CLASS = Place::class;
-    private const ALIAS = 'place';
+    private const string ENTITY_CLASS = Place::class;
+    private const string ALIAS = 'place';
 
     public function __construct(EntityManagerInterface $em)
     {
@@ -34,7 +34,7 @@ final class DoctrinePlaceRepository extends DoctrineRepository implements PlaceR
      */
     public function ofIds(array $ids): static
     {
-        if (!$ids || 0 === count($ids)) {
+        if ([] === $ids) {
             return $this;
         }
 
@@ -95,7 +95,7 @@ final class DoctrinePlaceRepository extends DoctrineRepository implements PlaceR
 
     public function withParentCommunityId(?Uuid $parentId): static
     {
-        if (!$parentId) {
+        if (!$parentId instanceof Uuid) {
             return $this;
         }
 

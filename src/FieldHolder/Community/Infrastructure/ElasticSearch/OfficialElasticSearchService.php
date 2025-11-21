@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Core\Infrastructure\ElasticSearch\Service;
+namespace App\FieldHolder\Community\Infrastructure\ElasticSearch;
 
-use App\Core\Domain\Search\Helper\SearchHelperInterface;
-use App\Core\Domain\Search\Service\SearchServiceInterface;
 use App\FieldHolder\Community\Domain\Model\Community;
 use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
+use App\FieldHolder\Community\Domain\Service\SearchHelperInterface;
+use App\FieldHolder\Community\Domain\Service\SearchServiceInterface;
 use App\Shared\Domain\Enum\SearchIndex;
 use stdClass;
 use Symfony\Component\Uid\Uuid;
@@ -13,8 +13,8 @@ use Symfony\Component\Uid\Uuid;
 class OfficialElasticSearchService implements SearchServiceInterface
 {
     public function __construct(
-        private SearchHelperInterface $elasticSearchHelper,
-        private CommunityRepositoryInterface $communityRepo,
+        private readonly SearchHelperInterface $elasticSearchHelper,
+        private readonly CommunityRepositoryInterface $communityRepo,
     ) {
     }
 
@@ -29,9 +29,8 @@ class OfficialElasticSearchService implements SearchServiceInterface
         );
 
         $results = $this->elasticSearchHelper->search(SearchIndex::PARISH, $body);
-        $entityIds = array_map(static fn (array $hit): string => $hit['_id'], $results['hits']['hits']);
 
-        return $entityIds;
+        return array_map(static fn (array $hit): string => $hit['_id'], $results['hits']['hits']);
     }
 
     /**
@@ -236,9 +235,7 @@ class OfficialElasticSearchService implements SearchServiceInterface
         );
         $results = $this->elasticSearchHelper->search(SearchIndex::DIOCESE, $body);
 
-        $entityIds = array_unique(array_map(static fn (array $hit): string => $hit['_id'], $results['hits']['hits']));
-
-        return $entityIds;
+        return array_unique(array_map(static fn (array $hit): string => $hit['_id'], $results['hits']['hits']));
     }
 
     /** @return string[] */
@@ -246,9 +243,7 @@ class OfficialElasticSearchService implements SearchServiceInterface
     {
         $results = $this->elasticSearchHelper->all(SearchIndex::PARISH, $offset, $limit);
 
-        $entityIds = array_map(static fn (array $hit): string => $hit['_id'], $results['hits']['hits']);
-
-        return $entityIds;
+        return array_map(static fn (array $hit): string => $hit['_id'], $results['hits']['hits']);
     }
 
     /** @return string[] */
@@ -256,8 +251,6 @@ class OfficialElasticSearchService implements SearchServiceInterface
     {
         $results = $this->elasticSearchHelper->all(SearchIndex::DIOCESE, $offset, $limit);
 
-        $entityIds = array_map(static fn (array $hit): string => $hit['_id'], $results['hits']['hits']);
-
-        return $entityIds;
+        return array_map(static fn (array $hit): string => $hit['_id'], $results['hits']['hits']);
     }
 }

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\FieldHolder\Community\Integration;
 
-use App\Core\Domain\Search\Helper\SearchHelperInterface;
-use App\Core\Domain\Search\Service\SearchServiceInterface;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Model\Field;
 use App\FieldHolder\Community\Domain\Enum\CommunityType;
+use App\FieldHolder\Community\Domain\Service\SearchHelperInterface;
+use App\FieldHolder\Community\Domain\Service\SearchServiceInterface;
 use App\FieldHolder\Community\Infrastructure\Doctrine\DoctrineCommunityListener;
 use App\Shared\Domain\Enum\SearchIndex;
 use App\Tests\Field\DummyFactory\DummyFieldFactory;
@@ -19,16 +19,13 @@ use Zenstruck\Foundry\Test\Factories;
 final class DoctrineCommunityListenerTest extends KernelTestCase
 {
     use Factories;
-
-    private DoctrineCommunityListener $listener;
-    public SearchServiceInterface $searchService;
     public SearchHelperInterface $searchHelper;
 
     protected function setUp(): void
     {
-        $this->listener = static::getContainer()->get(DoctrineCommunityListener::class);
-        $this->searchService = static::getContainer()->get(SearchServiceInterface::class);
-        $this->searchHelper = static::getContainer()->get(SearchHelperInterface::class);
+        self::getContainer()->get(DoctrineCommunityListener::class);
+        self::getContainer()->get(SearchServiceInterface::class);
+        $this->searchHelper = self::getContainer()->get(SearchHelperInterface::class);
 
         $this->searchHelper->deleteIndex(SearchIndex::DIOCESE);
         $this->searchHelper->createIndex(SearchIndex::DIOCESE);
@@ -63,17 +60,17 @@ final class DoctrineCommunityListenerTest extends KernelTestCase
                 ]),
                 DummyFieldFactory::createOne([
                     'name' => FieldCommunity::PARENT_COMMUNITY_ID->value,
-                    Field::getPropertyName(FieldCommunity::PARENT_COMMUNITY_ID) => $diocese->_real(),
+                    Field::getPropertyName(FieldCommunity::PARENT_COMMUNITY_ID) => $diocese,
                 ]),
             ],
         ]);
         $this->searchHelper->refresh(SearchIndex::PARISH);
 
         $parish = $this->searchHelper->getDocument(SearchIndex::PARISH, $parish->id->toString());
-        self::assertSame($parish['_source']['parishName'], 'Paroisse du Haillon');
-        self::assertSame($parish['_source']['dioceseName'], 'Diocèse de Nantes');
+        self::assertSame('Paroisse du Haillon', $parish['_source']['parishName']);
+        self::assertSame('Diocèse de Nantes', $parish['_source']['dioceseName']);
 
-        $diocese = $this->searchHelper->getDocument(SearchIndex::DIOCESE, $diocese->id->toString());
-        self::assertSame($parish['_source']['dioceseName'], 'Diocèse de Nantes');
+        $this->searchHelper->getDocument(SearchIndex::DIOCESE, $diocese->id->toString());
+        self::assertSame('Diocèse de Nantes', $parish['_source']['dioceseName']);
     }
 }

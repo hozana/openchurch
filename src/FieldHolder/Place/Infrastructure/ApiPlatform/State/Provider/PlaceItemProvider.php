@@ -14,10 +14,10 @@ use Symfony\Component\Uid\Uuid;
 /**
  * @implements ProviderInterface<PlaceResource>
  */
-final class PlaceItemProvider implements ProviderInterface
+final readonly class PlaceItemProvider implements ProviderInterface
 {
     public function __construct(
-        private readonly PlaceRepositoryInterface $placeRepo,
+        private PlaceRepositoryInterface $placeRepo,
     ) {
     }
 

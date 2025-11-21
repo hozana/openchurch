@@ -1,0 +1,1 @@
+%The "ApiPlatform\\Hydra\\Serializer\\HydraPrefixNameConverter" class implements "Symfony\\Component\\Serializer\\NameConverter\\AdvancedNameConverterInterface" that is deprecated since Symfony 7\.2, use NameConverterInterface instead\.%
