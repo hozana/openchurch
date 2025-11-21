@@ -37,7 +37,7 @@ class UpdateCommunityTest extends AcceptanceTestHelper
             return [
                 DummyCommunityFactory::createOne([
                     'fields' => [
-                        $fieldWikidata->_real(),
+                        $fieldWikidata,
                         DummyFieldFactory::createOne([
                             'name' => FieldCommunity::TYPE->value,
                             Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::PARISH->value,
@@ -47,7 +47,7 @@ class UpdateCommunityTest extends AcceptanceTestHelper
                             'engine' => FieldEngine::AI,
                         ]),
                     ],
-                ])->_real(),
+                ]),
                 $fieldWikidata,
             ];
         });

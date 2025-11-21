@@ -43,7 +43,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
 
             DummyPlaceFactory::createOne([
                 'fields' => [
-                    $fieldWikidata->_real(),
+                    $fieldWikidata,
                     DummyFieldFactory::createOne([
                         'name' => FieldPlace::TYPE->value,
                         Field::getPropertyName(FieldPlace::TYPE) => PlaceType::CHURCH->value,
@@ -54,7 +54,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
                         'agent' => $agent,
                     ]),
                 ],
-            ])->_real();
+            ]);
 
             return [
                 $fieldWikidata,
@@ -134,7 +134,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
             ]);
             DummyPlaceFactory::createOne([
                 'fields' => [
-                    $fieldWikidata->_real(),
+                    $fieldWikidata,
                     DummyFieldFactory::createOne([
                         'name' => FieldPlace::TYPE->value,
                         Field::getPropertyName(FieldPlace::TYPE) => PlaceType::CHURCH->value,
@@ -150,7 +150,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
             return [
                 DummyCommunityFactory::createOne([
                     'fields' => [
-                        $fieldWikidata->_real(),
+                        $fieldWikidata,
                         DummyFieldFactory::createOne([
                             'name' => FieldPlace::TYPE->value,
                             Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::PARISH->value,
@@ -161,7 +161,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
                             'agent' => $agent,
                         ]),
                     ],
-                ])->_real(),
+                ]),
                 $fieldWikidata,
             ];
         });
@@ -235,7 +235,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
             ]);
             $community1 = DummyCommunityFactory::createOne([
                 'fields' => [
-                    $fieldWikidata1->_real(),
+                    $fieldWikidata1,
                     DummyFieldFactory::createOne([
                         'name' => FieldPlace::TYPE->value,
                         Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::PARISH->value,
@@ -246,10 +246,10 @@ class UpsertPlaceTest extends AcceptanceTestHelper
                         'agent' => $agent,
                     ]),
                 ],
-            ])->_real();
+            ]);
             $community2 = DummyCommunityFactory::createOne([
                 'fields' => [
-                    $fieldWikidata2->_real(),
+                    $fieldWikidata2,
                     DummyFieldFactory::createOne([
                         'name' => FieldPlace::TYPE->value,
                         Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::DIOCESE->value,
@@ -260,7 +260,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
                         'agent' => $agent,
                     ]),
                 ],
-            ])->_real();
+            ]);
 
             return [[$community1, $community2], $fieldWikidataPlace, $fieldWikidata1, $fieldWikidata2];
         });
@@ -321,7 +321,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
             ]);
             DummyPlaceFactory::createOne([
                 'fields' => [
-                    $fieldWikidataPlace->_real(),
+                    $fieldWikidataPlace,
                     DummyFieldFactory::createOne([
                         'name' => FieldPlace::TYPE->value,
                         Field::getPropertyName(FieldPlace::TYPE) => PlaceType::ABBEY->value,
@@ -332,7 +332,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
                         'agent' => $agent,
                     ]),
                 ],
-            ])->_real();
+            ]);
             $fieldWikidataCommunity = DummyFieldFactory::createOne([
                 'name' => FieldCommunity::WIKIDATA_ID->value,
                 Field::getPropertyName(FieldCommunity::WIKIDATA_ID) => 9999999,
@@ -341,7 +341,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
             ]);
             $community = DummyCommunityFactory::createOne([
                 'fields' => [
-                    $fieldWikidataCommunity->_real(),
+                    $fieldWikidataCommunity,
                     DummyFieldFactory::createOne([
                         'name' => FieldPlace::TYPE->value,
                         Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::PARISH->value,
@@ -352,7 +352,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
                         'agent' => $agent,
                     ]),
                 ],
-            ])->_real();
+            ]);
 
             return [$fieldWikidataPlace, $fieldWikidataCommunity, $community];
         });
@@ -416,7 +416,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
             ]);
             DummyCommunityFactory::createOne([
                 'fields' => [
-                    $fieldWikidata1->_real(),
+                    $fieldWikidata1,
                     DummyFieldFactory::createOne([
                         'name' => FieldPlace::TYPE->value,
                         Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::PARISH->value,
@@ -427,7 +427,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
                         'agent' => $agent,
                     ]),
                 ],
-            ])->_real();
+            ]);
 
             return [$fieldWikidata1];
         });
@@ -605,7 +605,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
             return [
                 DummyPlaceFactory::createOne([
                     'fields' => [
-                        $fieldWikidata->_real(),
+                        $fieldWikidata,
                         DummyFieldFactory::createOne([
                             'name' => FieldPlace::MESSESINFO_ID->value,
                             Field::getPropertyName(FieldPlace::MESSESINFO_ID) => 'messeInfoId',
@@ -616,7 +616,7 @@ class UpsertPlaceTest extends AcceptanceTestHelper
                             'agent' => $agent,
                         ]),
                     ],
-                ])->_real(),
+                ]),
                 $fieldWikidata,
             ];
         });

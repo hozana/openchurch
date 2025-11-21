@@ -65,7 +65,7 @@ class IndexCommunitiesCommandTest extends AcceptanceTestHelper
             ]),
             DummyFieldFactory::createOne([
                 'name' => FieldCommunity::PARENT_COMMUNITY_ID->value,
-                Field::getPropertyName(FieldCommunity::PARENT_COMMUNITY_ID) => $diocese2->_real(),
+                Field::getPropertyName(FieldCommunity::PARENT_COMMUNITY_ID) => $diocese2,
             ]),
         ],
         ]);
@@ -80,7 +80,7 @@ class IndexCommunitiesCommandTest extends AcceptanceTestHelper
             ]),
             DummyFieldFactory::createOne([
                 'name' => FieldCommunity::PARENT_COMMUNITY_ID->value,
-                Field::getPropertyName(FieldCommunity::PARENT_COMMUNITY_ID) => $diocese1->_real(),
+                Field::getPropertyName(FieldCommunity::PARENT_COMMUNITY_ID) => $diocese1,
             ]),
         ],
         ]);

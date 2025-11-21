@@ -65,12 +65,12 @@ class CommunityUnitTest extends KernelTestCase
                 'reliability' => FieldReliability::MEDIUM,
             ]),
         ],
-        ])->_real();
+        ]);
 
         $result = $community->getMostTrustableFieldByName(FieldCommunity::NAME);
         static::assertEquals('high reliability name', $result->getValue());
 
-        $community = DummyCommunityFactory::new()->withoutPersisting()->create()->_real();
+        $community = DummyCommunityFactory::new()->withoutPersisting()->create();
         $result = $community->getMostTrustableFieldByName(FieldCommunity::NAME);
         static::assertEmpty($result);
     }
@@ -99,7 +99,7 @@ class CommunityUnitTest extends KernelTestCase
                 'reliability' => FieldReliability::MEDIUM,
             ]),
         ],
-        ])->_real();
+        ]);
 
         $results = $community->getFieldsByName(FieldCommunity::NAME);
         static::assertCount(3, $results);
@@ -114,11 +114,11 @@ class CommunityUnitTest extends KernelTestCase
         $field = DummyFieldFactory::new()->withoutPersisting()->create([
             'name' => FieldCommunity::NAME->value,
             Field::getPropertyName(FieldCommunity::NAME) => 'mon nom',
-        ])->_real();
+        ]);
 
         $community = DummyCommunityFactory::new()->withoutPersisting()->create([
             'fields' => [$field],
-        ])->_real();
+        ]);
 
         static::assertCount(1, $community->fields);
         $community->removeField($field);

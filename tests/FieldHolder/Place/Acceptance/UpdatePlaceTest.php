@@ -41,7 +41,7 @@ class UpdatePlaceTest extends AcceptanceTestHelper
             return [
                 DummyPlaceFactory::createOne([
                     'fields' => [
-                        $fieldWikidata->_real(),
+                        $fieldWikidata,
                         DummyFieldFactory::createOne([
                             'name' => FieldPlace::TYPE->value,
                             Field::getPropertyName(FieldPlace::TYPE) => PlaceType::CHURCH->value,
@@ -51,7 +51,7 @@ class UpdatePlaceTest extends AcceptanceTestHelper
                             'engine' => FieldEngine::AI,
                         ]),
                     ],
-                ])->_real(),
+                ]),
                 $fieldWikidata,
             ];
         });
@@ -127,7 +127,7 @@ class UpdatePlaceTest extends AcceptanceTestHelper
         //         'value' => '123456'
         //     ])
         //     ->create()
-        //     ->_real();
+        //     ;
 
         // TODO change me when https://github.com/zenstruck/foundry/issues/710 is fixed
         $agent = new Agent();

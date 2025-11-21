@@ -33,7 +33,7 @@ final class DoctrineCommunityRepositoryTest extends KernelTestCase
         $repository = static::getContainer()->get(DoctrineCommunityRepository::class);
         static::assertCount(0, $repository);
 
-        $community = DummyCommunityFactory::createOne()->_real();
+        $community = DummyCommunityFactory::createOne();
         $repository->add($community);
         self::$em->flush();
 
@@ -47,7 +47,7 @@ final class DoctrineCommunityRepositoryTest extends KernelTestCase
 
         static::assertCount(0, $repository);
 
-        $community = DummyCommunityFactory::createOne()->_real();
+        $community = DummyCommunityFactory::createOne();
         $repository->add($community);
         self::$em->flush();
 
@@ -126,8 +126,8 @@ final class DoctrineCommunityRepositoryTest extends KernelTestCase
         $results = $repository->withContactZipcodes(['40270', '30000']);
         static::assertCount(2, $results);
 
-        static::assertSame($communityGrenade->_real(), $results->asCollection()->get(0));
-        static::assertSame($communityNimes->_real(), $results->asCollection()->get(1));
+        static::assertSame($communityGrenade, $results->asCollection()->get(0));
+        static::assertSame($communityNimes, $results->asCollection()->get(1));
     }
 
     public function testAddSelectField(): void
@@ -187,13 +187,13 @@ final class DoctrineCommunityRepositoryTest extends KernelTestCase
 
         $communities = DummyCommunityFactory::createMany(3);
         foreach ($communities as $community) {
-            $repository->add($community->_real());
+            $repository->add($community);
         }
         self::$em->flush();
 
         $i = 0;
         foreach ($repository as $community) {
-            static::assertSame($communities[$i]->_real(), $community);
+            static::assertSame($communities[$i], $community);
             ++$i;
         }
     }
@@ -205,7 +205,7 @@ final class DoctrineCommunityRepositoryTest extends KernelTestCase
         static::assertNull($repository->paginator());
 
         $communities = array_map(
-            fn (Community $community) => $community->_real(),
+            fn (Community $community) => $community,
             DummyCommunityFactory::createMany(3)
         );
 
@@ -241,7 +241,7 @@ final class DoctrineCommunityRepositoryTest extends KernelTestCase
         $repository = static::getContainer()->get(DoctrineCommunityRepository::class);
 
         $communities = array_map(
-            fn (Community $community) => $community->_real(),
+            fn (Community $community) => $community,
             DummyCommunityFactory::createMany(3)
         );
         foreach ($communities as $community) {

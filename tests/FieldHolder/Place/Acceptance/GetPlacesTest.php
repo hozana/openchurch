@@ -40,7 +40,7 @@ class GetPlacesTest extends AcceptanceTestHelper
             'fields' => [
                 DummyFieldFactory::createOne([
                     'name' => FieldPlace::PARENT_COMMUNITIES->value,
-                    Field::getPropertyName(FieldPlace::PARENT_COMMUNITIES) => new ArrayCollection([$community1->_real()]),
+                    Field::getPropertyName(FieldPlace::PARENT_COMMUNITIES) => new ArrayCollection([$community1]),
                 ]),
             ],
         ]);
@@ -49,7 +49,7 @@ class GetPlacesTest extends AcceptanceTestHelper
             'fields' => [
                 DummyFieldFactory::createOne([
                     'name' => FieldPlace::PARENT_COMMUNITIES->value,
-                    Field::getPropertyName(FieldPlace::PARENT_COMMUNITIES) => new ArrayCollection([$community1->_real()]),
+                    Field::getPropertyName(FieldPlace::PARENT_COMMUNITIES) => new ArrayCollection([$community1]),
                 ]),
             ],
         ]);
@@ -58,7 +58,7 @@ class GetPlacesTest extends AcceptanceTestHelper
             'fields' => [
                 DummyFieldFactory::createOne([
                     'name' => FieldPlace::PARENT_COMMUNITIES->value,
-                    Field::getPropertyName(FieldPlace::PARENT_COMMUNITIES) => new ArrayCollection([$community2->_real()]),
+                    Field::getPropertyName(FieldPlace::PARENT_COMMUNITIES) => new ArrayCollection([$community2]),
                 ]),
             ],
         ]);
@@ -67,7 +67,7 @@ class GetPlacesTest extends AcceptanceTestHelper
             'fields' => [
                 DummyFieldFactory::createOne([
                     'name' => FieldPlace::PARENT_COMMUNITIES->value,
-                    Field::getPropertyName(FieldPlace::PARENT_COMMUNITIES) => new ArrayCollection([$community2->_real()]),
+                    Field::getPropertyName(FieldPlace::PARENT_COMMUNITIES) => new ArrayCollection([$community2]),
                 ]),
             ],
         ]);

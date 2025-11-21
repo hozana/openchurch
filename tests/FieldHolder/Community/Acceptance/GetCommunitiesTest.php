@@ -96,7 +96,7 @@ class GetCommunitiesTest extends AcceptanceTestHelper
                     Field::getPropertyName(FieldCommunity::NAME) => 'Paroisse Saint-Domice',
                 ]),
             ],
-        ])->_real();
+        ]);
         $community2 = DummyCommunityFactory::createOne([
             'fields' => [
                 DummyFieldFactory::createOne([
@@ -108,7 +108,7 @@ class GetCommunitiesTest extends AcceptanceTestHelper
                     Field::getPropertyName(FieldCommunity::NAME) => 'Paroisse Notre-Dame-du-Mont-Carmel',
                 ]),
             ],
-        ])->_real();
+        ]);
         $community3 = DummyCommunityFactory::createOne([
             'fields' => [
                 DummyFieldFactory::createOne([
@@ -120,7 +120,7 @@ class GetCommunitiesTest extends AcceptanceTestHelper
                     Field::getPropertyName(FieldCommunity::NAME) => 'Paroisse Saint-Pierre-Saint-Paul-du-Marsan',
                 ]),
             ],
-        ])->_real();
+        ]);
 
         $this->searchHelper->bulkIndex(
             SearchIndex::PARISH,

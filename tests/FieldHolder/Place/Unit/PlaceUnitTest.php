@@ -69,10 +69,10 @@ class PlaceUnitTest extends KernelTestCase
                     Field::getPropertyName(FieldPlace::NAME) => 'mon nom',
                 ]),
             ],
-        ])->_real();
+        ]);
 
         $result = $place->getFieldsByName(FieldPlace::MESSESINFO_ID);
-        static::assertEquals(new ArrayCollection([$field->_real()]), $result);
+        static::assertEquals(new ArrayCollection([$field]), $result);
     }
 
     public function testGetFieldByNameAndAgent(): void
@@ -95,19 +95,19 @@ class PlaceUnitTest extends KernelTestCase
                     'agent' => DummyAgentFactory::new()->withoutPersisting()->create(),
                 ]),
             ],
-        ])->_real();
+        ]);
 
-        $result = $place->getFieldByNameAndAgent(FieldPlace::MESSESINFO_ID, $agent->_real());
+        $result = $place->getFieldByNameAndAgent(FieldPlace::MESSESINFO_ID, $agent);
         static::assertEquals($result->getValue(), 789456);
     }
 
     public function testAddField(): void
     {
-        $place = DummyPlaceFactory::new()->withoutPersisting()->create()->_real();
+        $place = DummyPlaceFactory::new()->withoutPersisting()->create();
         $field = DummyFieldFactory::new()->withoutPersisting()->create([
             'name' => FieldPlace::NAME->value,
             Field::getPropertyName(FieldPlace::NAME) => 'mon nom',
-        ])->_real();
+        ]);
 
         static::assertCount(0, $place->fields);
         $place->addField($field);
@@ -122,11 +122,11 @@ class PlaceUnitTest extends KernelTestCase
         $field = DummyFieldFactory::new()->withoutPersisting()->create([
             'name' => FieldPlace::NAME->value,
             Field::getPropertyName(FieldPlace::NAME) => 'mon nom',
-        ])->_real();
+        ]);
 
         $place = DummyPlaceFactory::new()->withoutPersisting()->create([
             'fields' => [$field],
-        ])->_real();
+        ]);
 
         static::assertCount(1, $place->fields);
         $place->removeField($field);

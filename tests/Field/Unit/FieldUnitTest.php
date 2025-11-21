@@ -72,7 +72,7 @@ class FieldUnitTest extends KernelTestCase
         $field = DummyFieldFactory::new()->withoutPersisting()->create([
             'community' => DummyCommunityFactory::new()->withoutPersisting()->create(),
             'name' => FieldCommunity::REPLACES->value,
-            'value' => DummyCommunityFactory::new()->withoutPersisting()->create()->_real(),
+            'value' => DummyCommunityFactory::new()->withoutPersisting()->create(),
         ]);
         $violations = $this->validator->validate($field);
 
@@ -82,7 +82,7 @@ class FieldUnitTest extends KernelTestCase
         $field = DummyFieldFactory::new()->withoutPersisting()->create([
             'community' => DummyCommunityFactory::new()->withoutPersisting()->create(),
             'name' => FieldCommunity::REPLACES->value,
-            'value' => [DummyPlaceFactory::new()->withoutPersisting()->create()->_real()],
+            'value' => [DummyPlaceFactory::new()->withoutPersisting()->create()],
         ]);
         $violations = $this->validator->validate($field);
         static::assertEquals('Field replaces expected value of type Community[]', $violations->get(0)->getMessage());
@@ -93,7 +93,7 @@ class FieldUnitTest extends KernelTestCase
         $field = DummyFieldFactory::new()->withoutPersisting()->create([
             'place' => DummyPlaceFactory::new()->withoutPersisting()->create(),
             'name' => FieldPlace::REPLACES->value,
-            'value' => DummyPlaceFactory::new()->withoutPersisting()->create()->_real(),
+            'value' => DummyPlaceFactory::new()->withoutPersisting()->create(),
         ]);
         $violations = $this->validator->validate($field);
 
@@ -103,7 +103,7 @@ class FieldUnitTest extends KernelTestCase
         $field = DummyFieldFactory::new()->withoutPersisting()->create([
             'place' => DummyPlaceFactory::new()->withoutPersisting()->create(),
             'name' => FieldPlace::REPLACES->value,
-            'value' => [DummyCommunityFactory::new()->withoutPersisting()->create()->_real()],
+            'value' => [DummyCommunityFactory::new()->withoutPersisting()->create()],
         ]);
         $violations = $this->validator->validate($field);
         static::assertEquals('Field replaces expected value of type Place[]', $violations->get(0)->getMessage());

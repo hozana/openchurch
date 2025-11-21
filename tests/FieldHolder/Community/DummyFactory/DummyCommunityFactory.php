@@ -4,12 +4,12 @@ namespace App\Tests\FieldHolder\Community\DummyFactory;
 
 use App\FieldHolder\Community\Domain\Model\Community;
 use DateTimeImmutable;
-use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
+use Zenstruck\Foundry\Persistence\PersistentObjectFactory;
 
 /**
- * @extends PersistentProxyObjectFactory<Community>
+ * @extends PersistentObjectFactory<Community>
  */
-final class DummyCommunityFactory extends PersistentProxyObjectFactory
+final class DummyCommunityFactory extends PersistentObjectFactory
 {
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services

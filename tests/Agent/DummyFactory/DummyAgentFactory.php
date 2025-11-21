@@ -3,12 +3,12 @@
 namespace App\Tests\Agent\DummyFactory;
 
 use App\Agent\Domain\Model\Agent;
-use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
+use Zenstruck\Foundry\Persistence\PersistentObjectFactory;
 
 /**
- * @extends PersistentProxyObjectFactory<Agent>
+ * @extends PersistentObjectFactory<Agent>
  */
-final class DummyAgentFactory extends PersistentProxyObjectFactory
+final class DummyAgentFactory extends PersistentObjectFactory
 {
     public function __construct()
     {

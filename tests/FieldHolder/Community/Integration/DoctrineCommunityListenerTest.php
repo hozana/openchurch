@@ -63,7 +63,7 @@ final class DoctrineCommunityListenerTest extends KernelTestCase
                 ]),
                 DummyFieldFactory::createOne([
                     'name' => FieldCommunity::PARENT_COMMUNITY_ID->value,
-                    Field::getPropertyName(FieldCommunity::PARENT_COMMUNITY_ID) => $diocese->_real(),
+                    Field::getPropertyName(FieldCommunity::PARENT_COMMUNITY_ID) => $diocese,
                 ]),
             ],
         ]);

@@ -4,12 +4,12 @@ namespace App\Tests\FieldHolder\Place\DummyFactory;
 
 use App\FieldHolder\Place\Domain\Model\Place;
 use DateTimeImmutable;
-use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
+use Zenstruck\Foundry\Persistence\PersistentObjectFactory;
 
 /**
- * @extends PersistentProxyObjectFactory<Place>
+ * @extends PersistentObjectFactory<Place>
  */
-final class DummyPlaceFactory extends PersistentProxyObjectFactory
+final class DummyPlaceFactory extends PersistentObjectFactory
 {
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services

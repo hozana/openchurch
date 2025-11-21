@@ -67,11 +67,11 @@ final class DoctrineFieldListenerTest extends KernelTestCase
                 ]),
                 DummyFieldFactory::createOne([
                     'name' => FieldCommunity::PARENT_COMMUNITY_ID->value,
-                    Field::getPropertyName(FieldCommunity::PARENT_COMMUNITY_ID) => $diocese->_real(),
+                    Field::getPropertyName(FieldCommunity::PARENT_COMMUNITY_ID) => $diocese,
                 ]),
                 $fieldParishName,
             ],
-        ])->_real();
+        ]);
 
         $this->searchHelper->refresh(SearchIndex::PARISH);
         $document = $this->searchHelper->getDocument(SearchIndex::PARISH, $parish->id->toString());
@@ -117,7 +117,7 @@ final class DoctrineFieldListenerTest extends KernelTestCase
                 ]),
                 DummyFieldFactory::createOne([
                     'name' => FieldCommunity::PARENT_COMMUNITY_ID->value,
-                    Field::getPropertyName(FieldCommunity::PARENT_COMMUNITY_ID) => $diocese->_real(),
+                    Field::getPropertyName(FieldCommunity::PARENT_COMMUNITY_ID) => $diocese,
                 ]),
             ],
         ]),
@@ -135,7 +135,7 @@ final class DoctrineFieldListenerTest extends KernelTestCase
                 ]),
                 DummyFieldFactory::createOne([
                     'name' => FieldCommunity::PARENT_COMMUNITY_ID->value,
-                    Field::getPropertyName(FieldCommunity::PARENT_COMMUNITY_ID) => $diocese->_real(),
+                    Field::getPropertyName(FieldCommunity::PARENT_COMMUNITY_ID) => $diocese,
                 ]),
             ],
         ]),
@@ -149,7 +149,7 @@ final class DoctrineFieldListenerTest extends KernelTestCase
         self::assertSame($document2['_source']['parishName'], 'Paroisse 2');
         self::assertSame($document2['_source']['dioceseName'], 'Super Diocèse');
 
-        $dioceseFieldName = $diocese->_real()->getMostTrustableFieldByName(FieldCommunity::NAME);
+        $dioceseFieldName = $diocese->getMostTrustableFieldByName(FieldCommunity::NAME);
         $accessor = Field::getPropertyName(FieldCommunity::NAME);
         $dioceseFieldName->$accessor = 'Hyper Diocèse';
         $this->em->flush();
