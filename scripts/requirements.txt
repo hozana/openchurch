@@ -1,6 +1,6 @@
 PyMySQL==0.10.1
 python-dotenv==0.14.0
-pywikibot==7.6.0
+pywikibot==10.7.1
 requests==2.24.0
 SPARQLWrapper==1.8.5
 SQLAlchemy==1.3.20
