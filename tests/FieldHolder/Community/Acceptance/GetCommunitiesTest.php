@@ -6,6 +6,7 @@ namespace App\Tests\FieldHolder\Community\Acceptance;
 
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Model\Field;
+use App\FieldHolder\Community\Domain\Enum\CommunityState;
 use App\FieldHolder\Community\Domain\Enum\CommunityType;
 use App\FieldHolder\Community\Domain\Exception\CommunityTypeNotProvidedException;
 use App\FieldHolder\Community\Domain\Model\Community;
@@ -80,6 +81,33 @@ final class GetCommunitiesTest extends AcceptanceTestHelper
 
         self::assertCount(1, $response);
         self::assertEquals($communities[1]->id, $response[0]['id']);
+    }
+
+    public function testInactiveCommunitiesAreNotReturned(): void
+    {
+        /** @var Community[] $communities */
+        $communities = DummyCommunityFactory::createMany(3);
+
+        DummyFieldFactory::createOne([
+            'name' => FieldCommunity::STATE->value,
+            Field::getPropertyName(FieldCommunity::STATE) => CommunityState::ACTIVE->value,
+            'community' => $communities[0],
+        ]);
+        DummyFieldFactory::createOne([
+            'name' => FieldCommunity::STATE->value,
+            Field::getPropertyName(FieldCommunity::STATE) => CommunityState::DELETED->value,
+            'community' => $communities[1],
+        ]);
+        // communities[2] has no state field — should still be returned
+
+        $response = self::assertResponse($this->get('/communities'), HttpFoundationResponse::HTTP_OK);
+
+        self::assertCount(2, $response);
+
+        $returnedIds = array_map(fn (array $r) => $r['id'], $response);
+        self::assertContains($communities[0]->id->toString(), $returnedIds);
+        self::assertContains($communities[2]->id->toString(), $returnedIds);
+        self::assertNotContains($communities[1]->id->toString(), $returnedIds);
     }
 
     public function testFilterByName(): void
