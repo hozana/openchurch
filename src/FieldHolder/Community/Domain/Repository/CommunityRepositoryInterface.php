@@ -40,5 +40,7 @@ interface CommunityRepositoryInterface extends RepositoryInterface
      */
     public function withContactZipcodes(array $contactZipcodes): static;
 
+    public function withActive(): static;
+
     public function sortByName(): static;
 }
