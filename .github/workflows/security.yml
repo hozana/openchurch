@@ -12,5 +12,25 @@ jobs:
     security-check:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v4
-            - uses: symfonycorp/security-checker-action@v5
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Run symfonycorp/security-checker
+              uses: symfonycorp/security-checker-action@v5
+
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: "8.4"
+
+            - name: Cache Composer
+              uses: actions/cache@v3
+              with:
+                  path: vendor
+                  key: composer-${{ hashFiles('composer.lock') }}
+
+            - name: Install dependencies
+              run: composer install --prefer-dist --no-progress
+
+            - name: Run compose audit
+              run: composer audit

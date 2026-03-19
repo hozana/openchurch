@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\FieldHolder\Community\Integration;
 
 use App\Field\Domain\Enum\FieldCommunity;
+use App\FieldHolder\Community\Domain\Enum\CommunityState;
 use App\FieldHolder\Community\Domain\Enum\CommunityType;
 use App\FieldHolder\Community\Domain\Model\Community;
 use App\FieldHolder\Community\Infrastructure\Doctrine\DoctrineCommunityRepository;
@@ -128,6 +129,20 @@ final class DoctrineCommunityRepositoryTest extends KernelTestCase
 
         self::assertSame($communityGrenade, $results->asCollection()->get(0));
         self::assertSame($communityNimes, $results->asCollection()->get(1));
+    }
+
+    public function testWithActive(): void
+    {
+        /** @var DoctrineCommunityRepository $repository */
+        $repository = self::getContainer()->get(DoctrineCommunityRepository::class);
+
+        DummyCommunityFactory::createOne(['fields' => [DummyFieldFactory::new(['name' => FieldCommunity::STATE->value, 'stringVal' => CommunityState::ACTIVE->value])]]);
+        DummyCommunityFactory::createOne(['fields' => [DummyFieldFactory::new(['name' => FieldCommunity::STATE->value, 'stringVal' => CommunityState::DELETED->value])]]);
+        DummyCommunityFactory::createOne(); // no state field at all
+
+        self::$em->flush();
+        $results = $repository->withActive();
+        self::assertCount(2, $results);
     }
 
     public function testAddSelectField(): void

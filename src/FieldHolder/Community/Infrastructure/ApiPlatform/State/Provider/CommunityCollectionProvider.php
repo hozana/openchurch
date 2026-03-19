@@ -77,6 +77,7 @@ final readonly class CommunityCollectionProvider implements ProviderInterface
             ->withWikidataId((int) $wikidataId)
             ->withParentCommunityId($parentCommunity->id ?? null)
             ->withContactZipcodes($contactZipcodes)
+            ->withActive()
             ->withPagination($page, $itemsPerPage);
 
         if ($name === null) {

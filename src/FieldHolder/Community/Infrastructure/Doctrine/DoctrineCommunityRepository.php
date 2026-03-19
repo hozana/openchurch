@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\FieldHolder\Community\Infrastructure\Doctrine;
 
+use App\FieldHolder\Community\Domain\Enum\CommunityState;
 use App\FieldHolder\Community\Domain\Model\Community;
 use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\Shared\Infrastructure\Doctrine\DoctrineRepository;
@@ -124,6 +125,19 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
                         AND f_wikidata.name = 'wikidataId' AND f_wikidata.intVal IN(:valueWikidataIds))
                     ")
                     ->setParameter('valueWikidataIds', $wikidataIds);
+            });
+    }
+
+    public function withActive(): static
+    {
+        return
+            $this->filter(static function (QueryBuilder $qb): void {
+                $qb->andWhere("
+                        NOT EXISTS (SELECT 1 FROM App\Field\Domain\Model\Field f_is_active
+                        WHERE f_is_active.community = community
+                        AND f_is_active.name = 'state' AND f_is_active.stringVal = :deleted)
+                    ")
+                    ->setParameter('deleted', CommunityState::DELETED->value);
             });
     }
 
