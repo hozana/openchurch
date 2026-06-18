@@ -32,7 +32,7 @@ final class UpdatePlaceTest extends AcceptanceTestHelper
     {
         $agent = DummyAgentFactory::createOne();
 
-        [$place, $field] = flush_after(function () use ($agent) {
+        [$place, $field] = flush_after(static function () use ($agent) {
             $fieldWikidata = DummyFieldFactory::createOne([
                 'name' => FieldPlace::WIKIDATA_ID->value,
                 Field::getPropertyName(FieldPlace::WIKIDATA_ID) => 484848151,

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\FieldHolder\Place\Domain\Enum;
 
 enum PlaceState: string

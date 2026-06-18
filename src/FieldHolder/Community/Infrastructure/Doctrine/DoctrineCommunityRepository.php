@@ -19,6 +19,7 @@ use Symfony\Component\Uid\Uuid;
 final class DoctrineCommunityRepository extends DoctrineRepository implements CommunityRepositoryInterface
 {
     private const string ENTITY_CLASS = Community::class;
+
     private const string ALIAS = 'community';
 
     public function __construct(EntityManagerInterface $em)
@@ -55,7 +56,7 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
             $this->filter(static function (QueryBuilder $qb) use ($ids): void {
                 $qb->addSelect('FIELD(community.id, :ids) AS HIDDEN orderField')
                     ->andWhere('community.id IN (:ids)')
-                    ->setParameter('ids', array_map(fn (Uuid $id) => $id->toBinary(), $ids))
+                    ->setParameter('ids', array_map(static fn (Uuid $id) => $id->toBinary(), $ids))
                     ->addOrderBy('orderField');
             });
     }

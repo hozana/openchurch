@@ -22,6 +22,7 @@ use Webmozart\Assert\Assert;
 abstract class DoctrineRepository implements RepositoryInterface
 {
     private ?int $page = null;
+
     private ?int $itemsPerPage = null;
 
     private QueryBuilder $queryBuilder;

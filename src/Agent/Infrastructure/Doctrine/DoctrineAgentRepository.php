@@ -13,6 +13,7 @@ use Doctrine\ORM\EntityManagerInterface;
 class DoctrineAgentRepository extends DoctrineRepository implements AgentRepositoryInterface
 {
     private const string ENTITY_CLASS = Agent::class;
+
     private const string ALIAS = 'agent';
 
     public function __construct(EntityManagerInterface $em)

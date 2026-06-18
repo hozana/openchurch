@@ -27,51 +27,47 @@ use App\FieldHolder\Community\Infrastructure\ApiPlatform\State\Provider\Communit
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
 
-#[ApiResource(
-    shortName: 'Community',
-    cacheHeaders: [
-        'public' => true,
-        'max_age' => 3600,
-    ],
-    operations: [
-        new Post(
-            uriTemplate: '/communities',
-            status: 200,
-            normalizationContext: ['groups' => ['communities']],
-            security: 'is_granted("ROLE_AGENT")',
-            processor: CreateCommunityProcessor::class,
-        ),
-        new Patch(
-            uriTemplate: '/communities/{id}',
-            status: 200,
-            normalizationContext: ['groups' => ['communities']],
-            securityPostDenormalize: 'is_granted("ROLE_AGENT")',
-            provider: CommunityItemProvider::class,
-            processor: UpdateCommunityProcessor::class,
-        ),
-        new Put(
-            uriTemplate: '/communities/upsert',
-            status: 200,
-            input: CommunityWikidataInput::class,
-            processor: UpsertCommunityProcessor::class,
-        ),
-        new GetCollection(
-            normalizationContext: ['groups' => ['communities']],
-            filters: [
-                FieldTypeFilter::class,
-                FieldWikidataIdFilter::class,
-                FieldParentWikidataIdFilter::class,
-                FieldNameFilter::class,
-                FieldContactZipCodeFilter::class,
-            ],
-            provider: CommunityCollectionProvider::class,
-        ),
-        new Get(
-            normalizationContext: ['groups' => ['communities']],
-            provider: CommunityItemProvider::class,
-        ),
-    ],
-)]
+#[ApiResource(shortName: 'Community', operations: [
+    new Post(
+        uriTemplate: '/communities',
+        status: 200,
+        normalizationContext: ['groups' => ['communities']],
+        security: 'is_granted("ROLE_AGENT")',
+        processor: CreateCommunityProcessor::class,
+    ),
+    new Patch(
+        uriTemplate: '/communities/{id}',
+        status: 200,
+        normalizationContext: ['groups' => ['communities']],
+        securityPostDenormalize: 'is_granted("ROLE_AGENT")',
+        provider: CommunityItemProvider::class,
+        processor: UpdateCommunityProcessor::class,
+    ),
+    new Put(
+        uriTemplate: '/communities/upsert',
+        status: 200,
+        input: CommunityWikidataInput::class,
+        processor: UpsertCommunityProcessor::class,
+    ),
+    new GetCollection(
+        normalizationContext: ['groups' => ['communities']],
+        filters: [
+            FieldTypeFilter::class,
+            FieldWikidataIdFilter::class,
+            FieldParentWikidataIdFilter::class,
+            FieldNameFilter::class,
+            FieldContactZipCodeFilter::class,
+        ],
+        provider: CommunityCollectionProvider::class,
+    ),
+    new Get(
+        normalizationContext: ['groups' => ['communities']],
+        provider: CommunityItemProvider::class,
+    ),
+], cacheHeaders: [
+    'public' => true,
+    'max_age' => 3600,
+])]
 final class CommunityResource
 {
     /**
@@ -79,7 +75,7 @@ final class CommunityResource
      */
     public function __construct(
         #[Groups(['communities'])]
-        #[ApiProperty(identifier: true, readable: true, writable: false)]
+        #[ApiProperty(readable: true, writable: false, identifier: true)]
         public ?Uuid $id = null,
 
         #[Groups(['communities'])]

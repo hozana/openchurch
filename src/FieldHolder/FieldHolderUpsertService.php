@@ -26,7 +26,7 @@ final readonly class FieldHolderUpsertService
      */
     public function getFieldByName(array $fields, string $fieldName): ?Field
     {
-        return array_find($fields, fn (Field $field) => $field->name === $fieldName);
+        return array_find($fields, static fn (Field $field) => $field->name === $fieldName);
     }
 
     public function handleError(Community|Place $entity, ProblemExceptionInterface|ValidationException $e): string

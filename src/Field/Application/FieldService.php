@@ -152,17 +152,16 @@ final readonly class FieldService
             }
 
             return $instances->toArray();
-        } else {
-            // That's an object
-            assert(is_string($value));
-            $instance = $repo->ofId(Uuid::fromString($value));
-
-            if ($instance === null) {
-                throw new FieldEntityNotFoundException($value);
-            }
-
-            return $instance;
         }
+        // That's an object
+        assert(is_string($value));
+        $instance = $repo->ofId(Uuid::fromString($value));
+
+        if ($instance === null) {
+            throw new FieldEntityNotFoundException($value);
+        }
+
+        return $instance;
     }
 
     private function maybeTransformAlias(Place|Community $entity, FieldCommunity|FieldPlace &$enumValue, Field $fieldPayload): void
@@ -204,12 +203,12 @@ final readonly class FieldService
     private function wikidataIdsToCommunityIds(array $wikidataIds): array
     {
         $fields = $this->fieldRepo->getNameValueFields(FieldCommunity::WIKIDATA_ID, $wikidataIds);
-        $foundWikidataIds = array_map(fn (Field $field) => $field->getValue(), $fields);
+        $foundWikidataIds = array_map(static fn (Field $field) => $field->getValue(), $fields);
         $missingWikidataIds = array_diff($wikidataIds, $foundWikidataIds);
         if (count($fields) !== count($wikidataIds)) {
             throw new FieldParentWikidataIdNotFoundException($missingWikidataIds);
         }
 
-        return array_map(fn (Field $field) => $field->community->id->toString() ?? $field->place->id->toString(), $fields);
+        return array_map(static fn (Field $field) => $field->community->id->toString() ?? $field->place->id->toString(), $fields);
     }
 }
