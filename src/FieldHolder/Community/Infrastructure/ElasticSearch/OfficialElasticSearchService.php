@@ -30,7 +30,36 @@ class OfficialElasticSearchService implements SearchServiceInterface
 
         $results = $this->elasticSearchHelper->search(SearchIndex::PARISH, $body);
 
-        return array_map(static fn (array $hit): string => $hit['_id'], $results['hits']['hits']);
+        return $this->extractHitIds($results);
+    }
+
+    /**
+     * Extracts document ids out of a raw (untyped) Elasticsearch response.
+     *
+     * @param array<mixed> $results
+     *
+     * @return list<string>
+     */
+    private function extractHitIds(array $results): array
+    {
+        $hits = $results['hits'] ?? null;
+        if (!is_array($hits)) {
+            return [];
+        }
+
+        $rows = $hits['hits'] ?? null;
+        if (!is_array($rows)) {
+            return [];
+        }
+
+        $ids = [];
+        foreach ($rows as $row) {
+            if (is_array($row) && is_string($row['_id'] ?? null)) {
+                $ids[] = $row['_id'];
+            }
+        }
+
+        return $ids;
     }
 
     /**
@@ -39,6 +68,7 @@ class OfficialElasticSearchService implements SearchServiceInterface
     private function buildQueryForParishes(string $text, ?string $dioceseId, int $limit, int $offset): array
     {
         $analyzedText = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $text);
+        $analyzedText = false === $analyzedText ? '' : $analyzedText;
 
         if (trim($analyzedText) === '') {
             return [
@@ -146,6 +176,7 @@ class OfficialElasticSearchService implements SearchServiceInterface
     private function buildQueryForDioceses(string $text, int $limit, int $offset): array
     {
         $analyzedText = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $text);
+        $analyzedText = false === $analyzedText ? '' : $analyzedText;
 
         if (trim($analyzedText) === '') {
             return [
@@ -208,7 +239,7 @@ class OfficialElasticSearchService implements SearchServiceInterface
     public function findParish(string $id): ?Community
     {
         $document = $this->elasticSearchHelper->getDocument(SearchIndex::PARISH, $id);
-        if ($document) {
+        if ($document && is_string($document['id'] ?? null)) {
             return $this->communityRepo->ofId(Uuid::fromString($document['id']));
         }
 
@@ -218,7 +249,7 @@ class OfficialElasticSearchService implements SearchServiceInterface
     public function findDiocese(string $id): ?Community
     {
         $document = $this->elasticSearchHelper->getDocument(SearchIndex::DIOCESE, $id);
-        if ($document) {
+        if ($document && is_string($document['id'] ?? null)) {
             return $this->communityRepo->ofId(Uuid::fromString($document['id']));
         }
 
@@ -235,22 +266,22 @@ class OfficialElasticSearchService implements SearchServiceInterface
         );
         $results = $this->elasticSearchHelper->search(SearchIndex::DIOCESE, $body);
 
-        return array_unique(array_map(static fn (array $hit): string => $hit['_id'], $results['hits']['hits']));
+        return array_unique($this->extractHitIds($results));
     }
 
     /** @return string[] */
     public function allParishes(?int $limit = 100, ?int $offset = 0): array
     {
-        $results = $this->elasticSearchHelper->all(SearchIndex::PARISH, $offset, $limit);
+        $results = $this->elasticSearchHelper->all(SearchIndex::PARISH, $offset ?? 0, $limit ?? 100);
 
-        return array_map(static fn (array $hit): string => $hit['_id'], $results['hits']['hits']);
+        return $this->extractHitIds($results);
     }
 
     /** @return string[] */
     public function allDioceses(?int $limit = 100, ?int $offset = 0): array
     {
-        $results = $this->elasticSearchHelper->all(SearchIndex::DIOCESE, $offset, $limit);
+        $results = $this->elasticSearchHelper->all(SearchIndex::DIOCESE, $offset ?? 0, $limit ?? 100);
 
-        return array_map(static fn (array $hit): string => $hit['_id'], $results['hits']['hits']);
+        return $this->extractHitIds($results);
     }
 }

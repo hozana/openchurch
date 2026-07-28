@@ -74,7 +74,11 @@ class Place extends FieldHolder
 
         // Country code validation
         foreach ($this->getFieldsByName(FieldPlace::COUNTRY_CODE) as $countryCodeField) {
-            if ((null !== $countryCode = $countryCodeField->getValue()) && !Countries::exists($countryCode)) {
+            if (!is_string($countryCode = $countryCodeField->getValue())) {
+                continue;
+            }
+
+            if (!Countries::exists($countryCode)) {
                 $context->buildViolation("Country code '$countryCode' is not valid.")
                     ->atPath('fields')
                     ->addViolation();

@@ -8,6 +8,7 @@ use App\Agent\Domain\Model\Agent;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Model\Field;
 use App\FieldHolder\Community\Domain\Enum\CommunityType;
+use App\FieldHolder\Community\Domain\Model\Community;
 use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\FieldHolder\Community\Domain\Service\SearchHelperInterface;
 use App\Shared\Domain\Enum\SearchIndex;
@@ -45,13 +46,20 @@ final readonly class DoctrineFieldListener
     private function onFieldNameChange(Field $field): void
     {
         $community = $field->community;
+        if (null === $community || null === $communityId = $community->id) {
+            return;
+        }
+
         $typeField = $community->getMostTrustableFieldByName(FieldCommunity::TYPE);
+        if (null === $typeField) {
+            return;
+        }
 
         if ($typeField->getValue() === CommunityType::PARISH->value) {
             // We updated the name of a parish. We need to update the index
             $this->searchHelper->upsertElement(
                 SearchIndex::PARISH,
-                $community->id->toString(),
+                $communityId->toString(),
                 [
                     'parishName' => $field->getValue(),
                 ]
@@ -60,21 +68,25 @@ final readonly class DoctrineFieldListener
 
         if ($typeField->getValue() === CommunityType::DIOCESE->value) {
             // We updated the name of a diocese. We need to update the index
-            $dioceseName = $community->getMostTrustableFieldByName(FieldCommunity::NAME)->getValue();
+            $dioceseName = $community->getMostTrustableFieldByName(FieldCommunity::NAME)?->getValue();
             $this->searchHelper->upsertElement(
                 SearchIndex::DIOCESE,
-                $community->id->toString(),
+                $communityId->toString(),
                 [
                     'dioceseName' => $dioceseName,
                 ]
             );
 
             // We updated the name of a diocese. We have to update all parish children
-            $parishes = $this->communityRepo->addSelectField()->withParentCommunityId($community->id);
+            $parishes = $this->communityRepo->addSelectField()->withParentCommunityId($communityId);
             foreach ($parishes as $parish) {
+                if (null === $parishId = $parish->id) {
+                    continue;
+                }
+
                 $this->searchHelper->upsertElement(
                     SearchIndex::PARISH,
-                    $parish->id->toString(),
+                    $parishId->toString(),
                     [
                         'dioceseName' => $dioceseName,
                     ]
@@ -86,21 +98,38 @@ final readonly class DoctrineFieldListener
     private function onFieldParentCommunityChange(Field $field): void
     {
         $community = $field->community;
-        $typeField = $community->getMostTrustableFieldByName(FieldCommunity::TYPE);
-        if ($typeField->getValue() === CommunityType::PARISH->value) {
-            // parent of parish have been updated. We need to update the index if the parent is a diocese
-            $parent = $this->communityRepo->addSelectField()->ofId($field->getValue()->id);
-            $parentTypeField = $parent->getMostTrustableFieldByName(FieldCommunity::TYPE);
-            if ($parentTypeField->getValue() === CommunityType::DIOCESE->value) {
-                $dioceseName = $parent->getMostTrustableFieldByName(FieldCommunity::NAME)?->getValue();
-                $this->searchHelper->upsertElement(
-                    SearchIndex::PARISH,
-                    $community->id->toString(),
-                    [
-                        'dioceseName' => $dioceseName,
-                    ]
-                );
-            }
+        if (null === $community || null === $communityId = $community->id) {
+            return;
         }
+
+        $typeField = $community->getMostTrustableFieldByName(FieldCommunity::TYPE);
+        if (null === $typeField || $typeField->getValue() !== CommunityType::PARISH->value) {
+            return;
+        }
+
+        // parent of parish have been updated. We need to update the index if the parent is a diocese
+        $newParent = $field->getValue();
+        if (!$newParent instanceof Community || null === $newParent->id) {
+            return;
+        }
+
+        $parent = $this->communityRepo->addSelectField()->ofId($newParent->id);
+        if (null === $parent) {
+            return;
+        }
+
+        $parentTypeField = $parent->getMostTrustableFieldByName(FieldCommunity::TYPE);
+        if (null === $parentTypeField || $parentTypeField->getValue() !== CommunityType::DIOCESE->value) {
+            return;
+        }
+
+        $dioceseName = $parent->getMostTrustableFieldByName(FieldCommunity::NAME)?->getValue();
+        $this->searchHelper->upsertElement(
+            SearchIndex::PARISH,
+            $communityId->toString(),
+            [
+                'dioceseName' => $dioceseName,
+            ]
+        );
     }
 }

@@ -25,6 +25,7 @@ class DoctrineAgentRepository extends DoctrineRepository implements AgentReposit
     {
         $qb = $this->query();
 
+        /** @var array{name: string}|null $row */
         $row = $qb->select('agent.name')
             ->where('agent.apiKey = :apiKey')
             ->setParameter('apiKey', $apiKey)
