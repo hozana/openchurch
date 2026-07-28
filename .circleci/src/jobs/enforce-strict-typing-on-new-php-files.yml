@@ -1,0 +1,30 @@
+executor: openchurch-app-hetzner
+working_directory: ~/project
+steps:
+  - checkout:
+      path: ~/project
+  - run:
+      name: Enforce strict_types=1 on new PHP files
+      command: |
+        FAILED=0
+        NEW_PHP_FILES=$(git diff --name-only --diff-filter=A origin/master...HEAD -- '*.php' 2>/dev/null || echo "")
+
+        if [ -z "$NEW_PHP_FILES" ]; then
+            echo "No new PHP files detected."
+            exit 0
+        fi
+
+        printf '%s\n' "$NEW_PHP_FILES" | while IFS= read -r FILE; do
+            if ! head -20 "$FILE" | grep -q "^declare(strict_types=1);"; then
+                echo "❌ Missing declare(strict_types=1); in: $FILE"
+                FAILED=1
+            else
+                echo "✓ $FILE"
+            fi
+        done
+
+        if [ $FAILED -eq 1 ]; then
+            echo ""
+            echo "Error: New PHP files must include 'declare(strict_types=1);' at the top."
+            exit 1
+        fi
