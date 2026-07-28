@@ -16,6 +16,7 @@ use App\FieldHolder\Community\Domain\Model\Community;
 use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\FieldHolder\Place\Domain\Model\Place;
 use App\FieldHolder\Place\Domain\Repository\PlaceRepositoryInterface;
+use App\Shared\Domain\Cast;
 use RuntimeException;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -195,15 +196,13 @@ final readonly class FieldService
     }
 
     /**
-     * A wikidata id is always an integer; anything else in the payload is a client error.
+     * A wikidata id is an integer, accepted either as a JSON number or as its string form;
+     * anything else in the payload is a client error.
      */
     private function toWikidataId(mixed $value): int
     {
-        if (!is_int($value)) {
-            throw new BadRequestHttpException(sprintf('wikidataId should be an integer, %s given', get_debug_type($value)));
-        }
-
-        return $value;
+        return Cast::toIntOrNull($value)
+            ?? throw new BadRequestHttpException(sprintf('wikidataId should be an integer, %s given', get_debug_type($value)));
     }
 
     private function wikidataIdToCommunityId(int $wikidataId): string
