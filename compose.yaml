@@ -37,6 +37,10 @@ services:
       - bootstrap.memory_lock=true
       - ES_JAVA_OPTS=-Xms512m -Xmx512m # 512mo HEAP
       - ELASTIC_PASSWORD=admin
+      # Cluster de dev : quelques centaines de Ko de données. Sans ça, un disque
+      # hôte rempli à >90% laisse les shards non assignés (cluster red) et à >95%
+      # passe les index en read-only, ce qui fait échouer toute la suite de tests.
+      - cluster.routing.allocation.disk.threshold_enabled=false
     healthcheck:
       test: "curl -s -u elastic:$$ELASTIC_PASSWORD -f -X GET localhost:9200/_cluster/health || exit 1"
       interval: 10s
