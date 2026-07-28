@@ -1,0 +1,65 @@
+executors:
+  default:
+    docker:
+      - image: docker:24.0.0
+        auth:
+          username: hozanaci
+          password: $DOCKERHUB_PASSWORD
+    resource_class: medium
+
+  # Standalone PHP image for jobs that only need the sources (no database, no search engine).
+  php-executor:
+    docker:
+      - image: jakzal/phpqa:php8.5-alpine
+        auth:
+          username: hozanaci
+          password: $DOCKERHUB_PASSWORD
+    resource_class: hozana/hetzner
+
+  # Application image built by the pipeline, with the full service stack the test suite needs.
+  openchurch-app-hetzner:
+    docker:
+      - image: hozanaci/openchurch-backend:$CIRCLE_SHA1
+        auth:
+          username: hozanaci
+          password: $DOCKERHUB_PASSWORD
+        entrypoint: ""
+        environment:
+          APP_ENV: test
+          REDIS_URL: redis://127.0.0.1:6379
+          ELASTICSEARCH_IRI: http://elastic:admin@127.0.0.1:9200
+          HOST_API: http://api.openchurch.local/api
+          APP_SECRET: secret
+          SYNCHRO_SECRET_KEY: secret
+      # Doctrine appends a "_test" suffix in the test environment (config/packages/doctrine.yaml),
+      # so the database created here must already carry it.
+      - image: mariadb:11.5.2
+        command:
+          - --performance_schema=OFF
+          - --innodb_buffer_pool_size=128M
+          - --innodb_log_buffer_size=8M
+          - --max_connections=20
+          - --innodb_flush_log_at_trx_commit=2
+          - --innodb_doublewrite=0
+          - --sort_buffer_size=256K
+          - --sql-mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION
+        environment:
+          MYSQL_ALLOW_EMPTY_PASSWORD: "false"
+          MYSQL_DATABASE: openchurch_test
+          MYSQL_ROOT_PASSWORD: symfony
+          TZ: Europe/Paris
+      # The parish/diocese mappings rely on the icu_collation_keyword type, which the official
+      # image does not ship. CircleCI cannot exec into a secondary container, so the plugin is
+      # installed by overriding the entrypoint before handing over to the normal startup script.
+      - image: elasticsearch:8.18.1
+        entrypoint: /bin/sh
+        command:
+          - -c
+          - bin/elasticsearch-plugin install --batch analysis-icu && exec /usr/local/bin/docker-entrypoint.sh elasticsearch
+        environment:
+          discovery.type: single-node
+          xpack.security.enabled: "true"
+          ELASTIC_PASSWORD: admin
+          ES_JAVA_OPTS: -Xms512m -Xmx512m
+      - image: redis:5
+    resource_class: hozana/hetzner
