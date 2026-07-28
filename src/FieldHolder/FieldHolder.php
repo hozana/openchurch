@@ -22,7 +22,7 @@ class FieldHolder
     public function getFieldsByName(FieldCommunity|FieldPlace $name): Collection
     {
         return $this->fields
-            ->filter(fn (Field $field) => $field->name === $name->value);
+            ->filter(static fn (Field $field) => $field->name === $name->value);
     }
 
     public function getMostTrustableFieldByName(FieldCommunity|FieldPlace $name): ?Field
@@ -32,7 +32,7 @@ class FieldHolder
             return null;
         }
 
-        usort($result, fn (Field $a, Field $b) => FieldReliability::compare($a->reliability, $b->reliability));
+        usort($result, static fn (Field $a, Field $b) => FieldReliability::compare($a->reliability, $b->reliability));
 
         return $result[0];
     }
@@ -40,7 +40,7 @@ class FieldHolder
     public function getFieldByNameAndAgent(FieldCommunity|FieldPlace $name, Agent $agent): ?Field
     {
         return $this->getFieldsByName($name)
-            ->filter(fn (Field $field) => $field->agent === $agent)
+            ->filter(static fn (Field $field) => $field->agent === $agent)
             ->first() ?: null;
     }
 }

@@ -23,6 +23,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class FixParishZipCodeCommand extends Command
 {
     private const int BULK_SIZE = 100;
+
     /** @var list<array{name: string, wikidataId: int}> */
     private array $invalidZipCodeParishes = [];
 
@@ -61,11 +62,11 @@ class FixParishZipCodeCommand extends Command
                     $this->onError($output, sprintf('%s with wikidata %s: has no zip code field', $parishName, $wikidataId), $parishName, $wikidataId);
                     continue;
                 }
-                $city = array_find($cities, fn ($city) => $city['zipCode'] === $zipCode->getValue());
+                $city = array_find($cities, static fn ($city) => $city['zipCode'] === $zipCode->getValue());
 
                 if ($city === null) {
                     // No city found with this zip code. It means the zip code is invalid or the zipCode is an inseeCode
-                    $city = array_find($cities, fn ($city) => $city['inseeCode'] === $zipCode->getValue());
+                    $city = array_find($cities, static fn ($city) => $city['inseeCode'] === $zipCode->getValue());
                     if ($city) {
                         $output->writeln(sprintf('%s with wikidata %s: zip code "%s" is an INSEE code. We fix it', $parishName, $wikidataId, $zipCode->getValue()));
                         $zipCode->value = $city['zipCode'];
@@ -99,7 +100,6 @@ class FixParishZipCodeCommand extends Command
     private function onError(OutputInterface $output, string $message, string $parishName, int $wikidataId): void
     {
         $output->writeln($message);
-        $this->invalidZipCodeParishes['name'][] = $parishName;
-        $this->invalidZipCodeParishes['wikidataId'][] = $wikidataId;
+        $this->invalidZipCodeParishes[] = ['name' => $parishName, 'wikidataId' => $wikidataId];
     }
 }

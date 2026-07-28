@@ -13,20 +13,19 @@ use App\Shared\Domain\Enum\SearchIndex;
 use App\Tests\Field\DummyFactory\DummyFieldFactory;
 use App\Tests\FieldHolder\Community\DummyFactory\DummyCommunityFactory;
 use App\Tests\Helper\AcceptanceTestHelper;
-use Override;
 use Zenstruck\Foundry\Test\Factories;
 
 final class IndexCommunitiesCommandTest extends AcceptanceTestHelper
 {
     use Factories;
+
     private SearchHelperInterface $searchHelper;
+
     private SearchServiceInterface $searchService;
 
-    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
-
         $this->searchHelper = self::getContainer()->get(SearchHelperInterface::class);
         $this->searchService = self::getContainer()->get(SearchServiceInterface::class);
     }

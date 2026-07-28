@@ -28,7 +28,7 @@ final class UpdateCommunityTest extends AcceptanceTestHelper
     {
         $agent = DummyAgentFactory::createOne();
 
-        [$community, $field] = flush_after(function () use ($agent) {
+        [$community, $field] = flush_after(static function () use ($agent) {
             $fieldWikidata = DummyFieldFactory::createOne([
                 'name' => FieldCommunity::WIKIDATA_ID->value,
                 Field::getPropertyName(FieldCommunity::WIKIDATA_ID) => 484848151,
@@ -115,7 +115,7 @@ final class UpdateCommunityTest extends AcceptanceTestHelper
     public function testShouldThrowIfUnicityConstraintViolation(): void
     {
         $agent = DummyAgentFactory::createOne();
-        $community = flush_after(fn () => DummyCommunityFactory::createOne([
+        $community = flush_after(static fn () => DummyCommunityFactory::createOne([
             'fields' => [
                 DummyFieldFactory::createOne([
                     'name' => FieldCommunity::WIKIDATA_ID->value,
@@ -127,7 +127,7 @@ final class UpdateCommunityTest extends AcceptanceTestHelper
             ],
         ]));
 
-        flush_after(fn () => DummyCommunityFactory::createOne([
+        flush_after(static fn () => DummyCommunityFactory::createOne([
             'fields' => [
                 DummyFieldFactory::createOne([
                     'name' => FieldCommunity::WIKIDATA_ID->value,

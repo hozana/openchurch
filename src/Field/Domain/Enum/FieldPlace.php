@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Field\Domain\Enum;
 
 use App\FieldHolder\Place\Domain\Enum\PlaceDeletionReason;

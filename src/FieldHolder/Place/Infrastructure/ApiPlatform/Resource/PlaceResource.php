@@ -23,49 +23,45 @@ use App\FieldHolder\Place\Infrastructure\ApiPlatform\State\Provider\PlaceItemPro
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
 
-#[ApiResource(
-    shortName: 'Place',
-    cacheHeaders: [
-        'public' => true,
-        'max_age' => 3600,
-    ],
-    operations: [
-        new Post(
-            uriTemplate: '/places',
-            status: 200,
-            normalizationContext: ['groups' => ['places']],
-            security: 'is_granted("ROLE_AGENT")',
-            processor: CreatePlaceProcessor::class
-        ),
-        new Patch(
-            uriTemplate: '/places/{id}',
-            status: 200,
-            normalizationContext: ['groups' => ['places']],
-            securityPostDenormalize: 'is_granted("ROLE_AGENT")',
-            provider: PlaceItemProvider::class,
-            processor: UpdatePlaceProcessor::class,
-        ),
-        new Get(
-            normalizationContext: ['groups' => ['places']],
-            provider: PlaceItemProvider::class,
-        ),
-        new Put(
-            uriTemplate: '/places/upsert',
-            status: 200,
-            security: 'is_granted("ROLE_AGENT")',
-            input: PlaceWikidataInput::class,
-            processor: UpsertPlaceProcessor::class,
-        ),
-        new GetCollection(
-            uriTemplate: '/places',
-            normalizationContext: ['groups' => ['places']],
-            filters: [
-                FieldParentCommunityIdFilter::class,
-            ],
-            provider: PlaceCollectionProvider::class,
-        ),
-    ],
-)]
+#[ApiResource(shortName: 'Place', operations: [
+    new Post(
+        uriTemplate: '/places',
+        status: 200,
+        normalizationContext: ['groups' => ['places']],
+        security: 'is_granted("ROLE_AGENT")',
+        processor: CreatePlaceProcessor::class
+    ),
+    new Patch(
+        uriTemplate: '/places/{id}',
+        status: 200,
+        normalizationContext: ['groups' => ['places']],
+        securityPostDenormalize: 'is_granted("ROLE_AGENT")',
+        provider: PlaceItemProvider::class,
+        processor: UpdatePlaceProcessor::class,
+    ),
+    new Get(
+        normalizationContext: ['groups' => ['places']],
+        provider: PlaceItemProvider::class,
+    ),
+    new Put(
+        uriTemplate: '/places/upsert',
+        status: 200,
+        security: 'is_granted("ROLE_AGENT")',
+        input: PlaceWikidataInput::class,
+        processor: UpsertPlaceProcessor::class,
+    ),
+    new GetCollection(
+        uriTemplate: '/places',
+        normalizationContext: ['groups' => ['places']],
+        filters: [
+            FieldParentCommunityIdFilter::class,
+        ],
+        provider: PlaceCollectionProvider::class,
+    ),
+], cacheHeaders: [
+    'public' => true,
+    'max_age' => 3600,
+])]
 final class PlaceResource
 {
     /**
@@ -73,7 +69,7 @@ final class PlaceResource
      */
     public function __construct(
         #[Groups(['places'])]
-        #[ApiProperty(identifier: true, readable: true, writable: false)]
+        #[ApiProperty(readable: true, writable: false, identifier: true)]
         public ?Uuid $id = null,
 
         #[Groups(['places'])]

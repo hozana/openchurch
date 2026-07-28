@@ -41,7 +41,7 @@ class FieldEntityNotFoundException extends Exception implements ProblemException
         return sprintf('%s": Could not find some values from provided ID(s)', rtrim(
             array_reduce(
                 (array) $this->value,
-                fn ($value, $prev) => "$prev, $value",
+                static fn ($value, $prev) => "$prev, $value",
                 ''
             ),
             ','

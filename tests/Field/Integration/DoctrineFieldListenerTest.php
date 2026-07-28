@@ -24,6 +24,7 @@ final class DoctrineFieldListenerTest extends KernelTestCase
     use Factories;
 
     private EntityManagerInterface $em;
+
     public SearchHelperInterface $searchHelper;
 
     protected function setUp(): void
@@ -88,7 +89,7 @@ final class DoctrineFieldListenerTest extends KernelTestCase
 
     public function testPostUpdateDioceseName(): void
     {
-        $diocese = flush_after(fn () => DummyCommunityFactory::createOne(
+        $diocese = flush_after(static fn () => DummyCommunityFactory::createOne(
             [
                 'fields' => [
                     DummyFieldFactory::createOne([
@@ -103,7 +104,7 @@ final class DoctrineFieldListenerTest extends KernelTestCase
             ]),
         );
 
-        $parish1 = flush_after(fn () => DummyCommunityFactory::createOne([
+        $parish1 = flush_after(static fn () => DummyCommunityFactory::createOne([
             'fields' => [
                 DummyFieldFactory::createOne([
                     'name' => FieldCommunity::TYPE->value,
@@ -121,7 +122,7 @@ final class DoctrineFieldListenerTest extends KernelTestCase
         ]),
         );
 
-        $parish2 = flush_after(fn () => DummyCommunityFactory::createOne([
+        $parish2 = flush_after(static fn () => DummyCommunityFactory::createOne([
             'fields' => [
                 DummyFieldFactory::createOne([
                     'name' => FieldCommunity::TYPE->value,

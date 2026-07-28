@@ -43,6 +43,7 @@ final readonly class UpsertCommunityProcessor implements ProcessorInterface
             $wikidataIdFields = [];
             $result = [];
 
+            $wikidataEntities = $this->fieldHolderUpsertService->toFieldEntities($data->wikidataEntities);
             $wikidataIds = array_map(function (array $fields) use (&$wikidataIdFields) {
                 $wikidataField = $this->fieldHolderUpsertService->getFieldByName($fields, FieldCommunity::WIKIDATA_ID->value);
                 if (!$wikidataField instanceof Field) {
@@ -53,7 +54,7 @@ final readonly class UpsertCommunityProcessor implements ProcessorInterface
                 $wikidataIdFields[$wikidataId] = $fields;
 
                 return $wikidataId;
-            }, $data->wikidataEntities);
+            }, $wikidataEntities);
 
             // Update...
             $communities = $this->communityRepo->addSelectField()->withWikidataIds($wikidataIds)->asCollection();

@@ -8,7 +8,6 @@ use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use ApiPlatform\Symfony\Bundle\Test\Client;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
-use Override;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -18,7 +17,9 @@ use Symfony\Component\HttpFoundation\Response;
 abstract class AcceptanceTestHelper extends ApiTestCase
 {
     protected Client $client;
+
     protected EntityManagerInterface $em;
+
     public static Request $lastRequest;
 
     protected function setUp(): void
@@ -30,13 +31,11 @@ abstract class AcceptanceTestHelper extends ApiTestCase
         $this->em = static::getContainer()->get('doctrine.orm.entity_manager');
     }
 
-    #[Override]
     protected function tearDown(): void
     {
         $this->em->clear();
         $this->em->getConnection()->close();
         $this->em->close();
-
         parent::tearDown();
     }
 

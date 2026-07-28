@@ -32,6 +32,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class Field
 {
     use DoctrineTimestampableTrait;
+
     public const UNIQUE_CONSTRAINTS = [
         FieldCommunity::MESSESINFO_ID->value,
         FieldCommunity::WIKIDATA_ID->value,
@@ -202,9 +203,9 @@ class Field
                     Types::DATETIME_IMMUTABLE => (bool) DateTime::createFromFormat('Y-m-d H:i:s', $this->value),
                     Types::DATE_IMMUTABLE => (bool) DateTime::createFromFormat('Y-m-d', $this->value),
                     'Community' => $this->value instanceof Community,
-                    'Community[]' => is_array($this->value) && count($this->value) === count(array_filter($this->value, fn (mixed $item) => $item instanceof Community)),
+                    'Community[]' => is_array($this->value) && count($this->value) === count(array_filter($this->value, static fn (mixed $item) => $item instanceof Community)),
                     'Place' => $this->value instanceof Place,
-                    'Place[]' => is_array($this->value) && count($this->value) === count(array_filter($this->value, fn (mixed $item) => $item instanceof Place)),
+                    'Place[]' => is_array($this->value) && count($this->value) === count(array_filter($this->value, static fn (mixed $item) => $item instanceof Place)),
                     default => false,
                 };
 

@@ -35,7 +35,7 @@ final class UpsertPlaceTest extends AcceptanceTestHelper
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
 
-        [$field] = flush_after(function () use ($agent) {
+        [$field] = flush_after(static function () use ($agent) {
             $fieldWikidata = DummyFieldFactory::createOne([
                 'name' => FieldPlace::WIKIDATA_ID->value,
                 Field::getPropertyName(FieldPlace::WIKIDATA_ID) => 9999999,
@@ -127,7 +127,7 @@ final class UpsertPlaceTest extends AcceptanceTestHelper
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
 
-        [$parentCommunity, $field] = flush_after(function () use ($agent) {
+        [$parentCommunity, $field] = flush_after(static function () use ($agent) {
             $fieldWikidata = DummyFieldFactory::createOne([
                 'name' => FieldPlace::WIKIDATA_ID->value,
                 Field::getPropertyName(FieldPlace::WIKIDATA_ID) => 9999999,
@@ -217,7 +217,7 @@ final class UpsertPlaceTest extends AcceptanceTestHelper
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
 
-        [$parentCommunities, $fieldWikidataPlace, $fieldWikidata1, $fieldWikidata2] = flush_after(function () use ($agent) {
+        [$parentCommunities, $fieldWikidataPlace, $fieldWikidata1, $fieldWikidata2] = flush_after(static function () use ($agent) {
             $fieldWikidataPlace = DummyFieldFactory::createOne([
                 'name' => FieldPlace::WIKIDATA_ID->value,
                 Field::getPropertyName(FieldPlace::WIKIDATA_ID) => 00011225,
@@ -316,7 +316,7 @@ final class UpsertPlaceTest extends AcceptanceTestHelper
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
 
-        [$fieldWikidataPlace, $fieldWikidataCommunity, $community] = flush_after(function () use ($agent) {
+        [$fieldWikidataPlace, $fieldWikidataCommunity, $community] = flush_after(static function () use ($agent) {
             $fieldWikidataPlace = DummyFieldFactory::createOne([
                 'name' => FieldPlace::WIKIDATA_ID->value,
                 Field::getPropertyName(FieldPlace::WIKIDATA_ID) => 00011225,
@@ -412,7 +412,7 @@ final class UpsertPlaceTest extends AcceptanceTestHelper
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
 
-        [$fieldWikidata1] = flush_after(function () use ($agent) {
+        [$fieldWikidata1] = flush_after(static function () use ($agent) {
             $fieldWikidata1 = DummyFieldFactory::createOne([
                 'name' => FieldCommunity::WIKIDATA_ID->value,
                 Field::getPropertyName(FieldCommunity::WIKIDATA_ID) => 9999999,
@@ -599,7 +599,7 @@ final class UpsertPlaceTest extends AcceptanceTestHelper
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
 
-        [$place, $field] = flush_after(function () use ($agent) {
+        [$place, $field] = flush_after(static function () use ($agent) {
             $fieldWikidata = DummyFieldFactory::createOne([
                 'name' => FieldPlace::WIKIDATA_ID->value,
                 Field::getPropertyName(FieldPlace::WIKIDATA_ID) => 9999999,

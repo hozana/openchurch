@@ -11,6 +11,7 @@ use App\FieldHolder\Place\Domain\Model\Place;
 use App\FieldHolder\Place\Domain\Repository\PlaceRepositoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
+use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
 final readonly class FieldHolderUpsertService
 {
@@ -18,7 +19,21 @@ final readonly class FieldHolderUpsertService
         private EntityManagerInterface $fieldRepo,
         private CommunityRepositoryInterface $communityRepo,
         private PlaceRepositoryInterface $placeRepo,
+        private DenormalizerInterface $denormalizer,
     ) {
+    }
+
+    /**
+     * API Platform's input denormalization does not recurse into the `array<Field[]>` collection,
+     * so the nested entries arrive as raw arrays. Rebuild them as the Field objects expected below.
+     *
+     * @param array<mixed> $wikidataEntities
+     *
+     * @return Field[][]
+     */
+    public function toFieldEntities(array $wikidataEntities): array
+    {
+        return $this->denormalizer->denormalize($wikidataEntities, Field::class.'[][]');
     }
 
     /**
@@ -26,7 +41,7 @@ final readonly class FieldHolderUpsertService
      */
     public function getFieldByName(array $fields, string $fieldName): ?Field
     {
-        return array_find($fields, fn (Field $field) => $field->name === $fieldName);
+        return array_find($fields, static fn (Field $field) => $field->name === $fieldName);
     }
 
     public function handleError(Community|Place $entity, ProblemExceptionInterface|ValidationException $e): string

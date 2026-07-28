@@ -11,7 +11,7 @@ services:
     volumes:
       - openchurch_db_data:/var/lib/mysql:delegated
     ports:
-      - 3306:3306
+      - 127.0.0.1:3307:3306
     environment:
       MYSQL_ROOT_PASSWORD: openchurch
       MYSQL_DATABASE: openchurch
@@ -45,7 +45,7 @@ services:
     networks:
       - app-network
     ports:
-      - 9200:9200
+      - 127.0.0.1:9200:9200
     volumes:
       - ./openchurch_elasticsearch_data:/usr/share/elasticsearch/data
 
@@ -58,9 +58,7 @@ services:
     volumes:
       - .:/var/www/html
       - ./usr/local/bin/docker-php-entrypoint:/usr/local/bin/docker-php-entrypoint
-    ports:
-      - 443:443
-      - 2019:2019
+    ports: ["127.0.0.1:443:443", "127.0.0.1:2019:2019"]
     depends_on:
       - db
       - redis

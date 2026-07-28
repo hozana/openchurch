@@ -19,6 +19,7 @@ use Symfony\Component\Uid\Uuid;
 class DoctrineFieldRepository extends DoctrineRepository implements FieldRepositoryInterface
 {
     private const string ENTITY_CLASS = Field::class;
+
     private const string ALIAS = 'field';
 
     public function __construct(EntityManagerInterface $em)

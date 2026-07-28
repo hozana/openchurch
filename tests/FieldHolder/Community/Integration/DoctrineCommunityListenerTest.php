@@ -19,6 +19,7 @@ use Zenstruck\Foundry\Test\Factories;
 final class DoctrineCommunityListenerTest extends KernelTestCase
 {
     use Factories;
+
     public SearchHelperInterface $searchHelper;
 
     protected function setUp(): void

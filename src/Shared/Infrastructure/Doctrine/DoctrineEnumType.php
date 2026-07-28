@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Shared\Infrastructure\Doctrine;
 
 use App\Shared\Domain\Enum\EnumTrait;
@@ -26,7 +28,7 @@ abstract class DoctrineEnumType extends Type
             throw new LogicException("Please don't use integer enums in MySQL.");
         }
 
-        $values = array_map(fn ($val) => "'$val'", $constants);
+        $values = array_map(static fn ($val) => "'$val'", $constants);
 
         return 'ENUM('.implode(', ', $values).')';
     }
