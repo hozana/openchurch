@@ -86,7 +86,12 @@ RUN apt-get update && apt-get upgrade -y \
     && docker-php-ext-enable apcu \
     # gcc and friends ship with the base image itself and are marked manual, so they survive
     # autoremove unless named here. Nothing in the shipped image compiles anything.
-    && apt-get remove --purge -y autoconf g++ gcc make \
+    # libc6-dev drags in linux-libc-dev, i.e. kernel headers: nothing but a compiler needs them,
+    # and they alone account for the largest share of the CVEs reported against the image.
+    # Nothing in the runtime interprets perl; only mailcap follows it out. perl-base is
+    # Essential and stays. adduser and debconf rely on perl-base, not on perl itself.
+    && apt-get remove --purge -y autoconf g++ gcc make libc6-dev \
+        perl perl-modules-5.40 libperl5.40 \
         libzip-dev libxslt-dev libgmp-dev libicu-dev \
     && apt-get -y autoremove --purge \
     && apt-get clean \
