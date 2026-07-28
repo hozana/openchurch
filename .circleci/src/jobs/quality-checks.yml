@@ -10,6 +10,36 @@ steps:
   - run:
       name: Install dependencies
       command: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+
+  # --- Security ---------------------------------------------------------------------------
+  - run:
+      name: Security check
+      command: composer audit --abandoned=ignore
+
+  # --- Static analysis --------------------------------------------------------------------
+  - run:
+      name: Run PHPStan
+      command: composer phpstan
+  - run:
+      name: php-cs-fixer-check
+      command: php vendor/bin/php-cs-fixer fix --dry-run --diff
+  - run:
+      name: rector (dry-run)
+      command: vendor/bin/rector process --dry-run
+  - run:
+      name: composer validate
+      command: composer validate --strict
+  - run:
+      name: "lint:container"
+      command: php bin/console lint:container
+  - run:
+      name: "lint:yaml"
+      command: php bin/console lint:yaml config src
+  - run:
+      name: "lint:twig"
+      command: php bin/console lint:twig templates
+
+  # --- Database schema --------------------------------------------------------------------
   - run:
       name: Install MySQL client
       command: apt-get update && apt-get install -y --no-install-recommends mariadb-client
@@ -32,5 +62,5 @@ steps:
       name: Run migrations
       command: php bin/console doctrine:migrations:migrate --no-interaction
   - run:
-      name: 'doctrine:schema:validate'
+      name: "doctrine:schema:validate"
       command: php bin/console doctrine:schema:validate -vvv

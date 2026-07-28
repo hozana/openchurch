@@ -9,13 +9,7 @@ jobs:
       resource_class: hozana/hetzner
       requires:
         - hozana/build-via-n8n
-  - security-check:
-      requires:
-        - hozana/build-via-n8n
-  - static-analysis:
-      requires:
-        - hozana/build-via-n8n
-  - validate-schema:
+  - quality-checks:
       requires:
         - hozana/build-via-n8n
   - test-suite:
@@ -24,7 +18,7 @@ jobs:
       artifact-name: full-coverage
       requires:
         - hozana/build-via-n8n
-        - validate-schema
+        - quality-checks
   - hozana/deploy-to-swarm:
       name: deploy-<< matrix.service_name >>
       docker_image_name: openchurch-backend
