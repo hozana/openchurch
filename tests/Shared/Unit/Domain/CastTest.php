@@ -77,6 +77,68 @@ final class CastTest extends TestCase
     }
 
     /**
+     * @dataProvider toIntOrNullDataProvider
+     */
+    public function testToIntOrNull(?int $expected, mixed $value): void
+    {
+        self::assertSame($expected, Cast::toIntOrNull($value));
+    }
+
+    /**
+     * @return iterable<string, array{int|null, mixed}>
+     */
+    public static function toIntOrNullDataProvider(): iterable
+    {
+        yield 'int is returned as is' => [42, 42];
+        yield 'zero is returned as is' => [0, 0];
+        yield 'negative int is returned as is' => [-7, -7];
+        yield 'canonical numeric string is converted' => [42, '42'];
+        yield 'negative numeric string is converted' => [-7, '-7'];
+        yield 'zero string is converted' => [0, '0'];
+
+        // Non-canonical or non-integer forms are refused rather than silently truncated.
+        yield 'leading zeros are refused' => [null, '0123'];
+        yield 'float string is refused' => [null, '12.5'];
+        yield 'float is refused' => [null, 12.5];
+        yield 'whitespace is refused' => [null, ' 42'];
+        yield 'non numeric string is refused' => [null, 'abc'];
+        yield 'empty string is refused' => [null, ''];
+        yield 'null is refused' => [null, null];
+        yield 'bool is refused' => [null, true];
+        yield 'array is refused' => [null, [42]];
+        yield 'object is refused' => [null, new stdClass()];
+    }
+
+    /**
+     * toIntOrNull must agree with PHP's own array-key coercion: the upsert processors rely on
+     * it to match a stored wikidata id against the keys built from the request payload.
+     *
+     * @dataProvider arrayKeyEquivalenceDataProvider
+     */
+    public function testToIntOrNullMatchesArrayKeyCoercion(string $value): void
+    {
+        $array = [];
+        $array[$value] = 'payload';
+        $phpKey = array_keys($array)[0];
+
+        if (is_int($phpKey)) {
+            self::assertSame($phpKey, Cast::toIntOrNull($value), 'PHP built an int key, toIntOrNull must return it');
+        } else {
+            self::assertNull(Cast::toIntOrNull($value), 'PHP kept a string key, toIntOrNull must refuse it');
+        }
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function arrayKeyEquivalenceDataProvider(): iterable
+    {
+        foreach (['42', '0', '-7', '0123', '12.5', '', '12a', ' 42'] as $value) {
+            yield var_export($value, true) => [$value];
+        }
+    }
+
+    /**
      * @dataProvider toIntDataProvider
      */
     public function testToInt(int $expected, mixed $value): void

@@ -38,6 +38,26 @@ final class Cast
     }
 
     /**
+     * Returns the value as an int when it already is one, or when it is a string PHP itself
+     * would turn into an integer array key (canonical decimal, optional minus, no leading zero).
+     * Returns null otherwise, so the caller has to decide what an unusable value means.
+     *
+     * Prefer this over toInt() whenever the value is used as an identifier.
+     */
+    public static function toIntOrNull(mixed $value): ?int
+    {
+        if (is_int($value)) {
+            return $value;
+        }
+
+        if (is_string($value) && 1 === preg_match('/^-?(0|[1-9]\d*)$/', $value)) {
+            return (int) $value;
+        }
+
+        return null;
+    }
+
+    /**
      * Renders an integer from a numeric value, 0 otherwise.
      */
     public static function toInt(mixed $value): int

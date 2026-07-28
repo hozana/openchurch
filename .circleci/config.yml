@@ -288,4 +288,37 @@ workflows:
                     - hozana/build-via-n8n
                     - validate-schema
                 suite-name: Full test suite
+            - hozana/deploy-to-swarm:
+                docker_image_name: openchurch-backend
+                filters:
+                    branches:
+                        only:
+                            - master
+                            - main
+                matrix:
+                    parameters:
+                        service_name:
+                            - openchurch_backend
+                            - openchurch_cli
+                name: deploy-<< matrix.service_name >>
+                requires:
+                    - full-tests
+                    - hozana/trivy-audit
+                resource_class: hozana/hetzner
+            - hozana/deploy-to-swarm:
+                docker_image_name: openchurch-backend
+                filters:
+                    branches:
+                        only:
+                            - prod
+                matrix:
+                    parameters:
+                        service_name:
+                            - openchurch-prod_backend-prod
+                            - openchurch-prod_cli-prod
+                name: deploy-<< matrix.service_name >>
+                requires:
+                    - full-tests
+                    - hozana/trivy-audit
+                resource_class: hozana/hetzner
 

@@ -25,3 +25,36 @@ jobs:
       requires:
         - hozana/build-via-n8n
         - validate-schema
+  - hozana/deploy-to-swarm:
+      name: deploy-<< matrix.service_name >>
+      docker_image_name: openchurch-backend
+      resource_class: hozana/hetzner
+      matrix:
+        parameters:
+          service_name:
+            - openchurch_backend
+            - openchurch_cli
+      filters:
+        branches:
+          only:
+            - master
+            - main
+      requires:
+        - full-tests
+        - hozana/trivy-audit
+  - hozana/deploy-to-swarm:
+      name: deploy-<< matrix.service_name >>
+      docker_image_name: openchurch-backend
+      resource_class: hozana/hetzner
+      matrix:
+        parameters:
+          service_name:
+            - openchurch-prod_backend-prod
+            - openchurch-prod_cli-prod
+      filters:
+        branches:
+          only:
+            - prod
+      requires:
+        - full-tests
+        - hozana/trivy-audit

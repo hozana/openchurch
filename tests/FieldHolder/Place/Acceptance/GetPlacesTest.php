@@ -91,6 +91,34 @@ final class GetPlacesTest extends AcceptanceTestHelper
         self::assertContains($church4->id->toString(), $churchIds);
     }
 
+    public function testShouldReturnEveryPlaceWhenParentCommunityIdIsMissing(): void
+    {
+        $community = DummyCommunityFactory::createOne([
+            'fields' => [
+                DummyFieldFactory::createOne([
+                    'name' => FieldCommunity::TYPE->value,
+                    Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::PARISH->value,
+                ]),
+            ],
+        ]);
+
+        $attached = DummyPlaceFactory::createOne([
+            'fields' => [
+                DummyFieldFactory::createOne([
+                    'name' => FieldPlace::PARENT_COMMUNITIES->value,
+                    Field::getPropertyName(FieldPlace::PARENT_COMMUNITIES) => new ArrayCollection([$community]),
+                ]),
+            ],
+        ]);
+        $orphan = DummyPlaceFactory::createOne(['fields' => []]);
+
+        $response = self::assertResponse($this->get('/places'), HttpFoundationResponse::HTTP_OK);
+        $churchIds = array_map(static fn (array $church) => $church['id'], $response);
+
+        self::assertContains($attached->id->toString(), $churchIds);
+        self::assertContains($orphan->id->toString(), $churchIds, 'a place without parent community must still be listed');
+    }
+
     public function testShouldErrorIfParentCommunityIdNotAUuid(): void
     {
         self::assertErrorResponse(
