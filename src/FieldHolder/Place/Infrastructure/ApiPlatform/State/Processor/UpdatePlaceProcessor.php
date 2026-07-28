@@ -29,7 +29,11 @@ final readonly class UpdatePlaceProcessor implements ProcessorInterface
         return $this->transactionManager->transactional(function () use ($data) {
             Assert::isInstanceOf($data, PlaceResource::class);
 
+            // place cannot be null because we passed through PlaceItemProvider
+            Assert::notNull($data->id);
             $place = $this->placeRepo->ofId($data->id);
+            Assert::notNull($place);
+
             $this->fieldService->upsertFields($place, $data->fields);
 
             return PlaceResource::fromModel($place);

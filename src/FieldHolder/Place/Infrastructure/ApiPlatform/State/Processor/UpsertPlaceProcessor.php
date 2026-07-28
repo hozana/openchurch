@@ -52,6 +52,10 @@ final readonly class UpsertPlaceProcessor implements ProcessorInterface
                     throw new FieldWikidataIdMissingException();
                 }
                 $wikidataId = $wikidataField->value;
+                if (!is_int($wikidataId)) {
+                    throw new FieldWikidataIdMissingException();
+                }
+
                 $wikidataIdFields[$wikidataId] = $fields;
 
                 return $wikidataId;
@@ -60,7 +64,11 @@ final readonly class UpsertPlaceProcessor implements ProcessorInterface
             // Update...
             $places = $this->placeRepo->addSelectField()->withWikidataIds($wikidataIds)->asCollection();
             foreach ($places as $place) {
-                $wikidataId = $place->getMostTrustableFieldByName(FieldPlace::WIKIDATA_ID)->getValue();
+                $wikidataId = $place->getMostTrustableFieldByName(FieldPlace::WIKIDATA_ID)?->getValue();
+                if (!is_int($wikidataId)) {
+                    continue;
+                }
+
                 try {
                     $this->fieldService->upsertFields($place, $wikidataIdFields[$wikidataId]);
                     $result[$wikidataId] = 'Updated';
@@ -72,9 +80,8 @@ final readonly class UpsertPlaceProcessor implements ProcessorInterface
 
             // Insert...
             foreach ($wikidataIdFields as $wikidataId => $fields) {
-                $place = null;
+                $place = new Place();
                 try {
-                    $place = new Place();
                     $this->placeRepo->add($place);
 
                     $this->fieldService->upsertFields($place, $fields);

@@ -51,6 +51,10 @@ final readonly class UpsertCommunityProcessor implements ProcessorInterface
                 }
 
                 $wikidataId = $wikidataField->value;
+                if (!is_int($wikidataId)) {
+                    throw new FieldWikidataIdMissingException();
+                }
+
                 $wikidataIdFields[$wikidataId] = $fields;
 
                 return $wikidataId;
@@ -59,7 +63,11 @@ final readonly class UpsertCommunityProcessor implements ProcessorInterface
             // Update...
             $communities = $this->communityRepo->addSelectField()->withWikidataIds($wikidataIds)->asCollection();
             foreach ($communities as $community) {
-                $wikidataId = $community->getMostTrustableFieldByName(FieldCommunity::WIKIDATA_ID)->getValue();
+                $wikidataId = $community->getMostTrustableFieldByName(FieldCommunity::WIKIDATA_ID)?->getValue();
+                if (!is_int($wikidataId)) {
+                    continue;
+                }
+
                 try {
                     $this->fieldService->upsertFields($community, $wikidataIdFields[$wikidataId]);
                     $result[$wikidataId] = 'Updated';
@@ -71,9 +79,8 @@ final readonly class UpsertCommunityProcessor implements ProcessorInterface
 
             // Insert...
             foreach ($wikidataIdFields as $wikidataId => $fields) {
-                $community = null;
+                $community = new Community();
                 try {
-                    $community = new Community();
                     $this->communityRepo->add($community);
 
                     $this->fieldService->upsertFields($community, $fields);

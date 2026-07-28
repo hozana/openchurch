@@ -31,7 +31,9 @@ final readonly class PlaceCollectionProvider implements ProviderInterface
      */
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): Paginator|array
     {
-        $parentCommunityId = $context['filters'][FieldCommunity::PARENT_COMMUNITY_ID->value] ?? null;
+        $filters = is_array($context['filters'] ?? null) ? $context['filters'] : [];
+
+        $parentCommunityId = is_string($rawParentId = $filters[FieldCommunity::PARENT_COMMUNITY_ID->value] ?? null) ? $rawParentId : null;
         if ($parentCommunityId && !Uuid::isValid($parentCommunityId)) {
             throw new InvalidArgumentException(sprintf('provided parentCommunityId %s is not a valid uuid', $parentCommunityId));
         }
@@ -44,8 +46,11 @@ final readonly class PlaceCollectionProvider implements ProviderInterface
         }
 
         $models = $this->placeRepo
-            ->withParentCommunityId(Uuid::fromString($parentCommunityId))
-            ->withPagination($page, $itemsPerPage);
+            ->withParentCommunityId($parentCommunityId ? Uuid::fromString($parentCommunityId) : null);
+
+        $models = null !== $page && null !== $itemsPerPage
+            ? $models->withPagination($page, $itemsPerPage)
+            : $models->withoutPagination();
 
         $resources = [];
         foreach ($models as $model) {

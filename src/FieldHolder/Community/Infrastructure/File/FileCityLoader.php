@@ -46,7 +46,11 @@ class FileCityLoader implements CityLoaderInterface
                 continue;
             }
 
-            $data[] = array_combine(['name', 'zipCode', 'inseeCode'], [$row[1], $row[2], $row[0]]);
+            $data[] = [
+                'name' => $row[1] ?? '',
+                'zipCode' => $row[2] ?? '',
+                'inseeCode' => $row[0] ?? '',
+            ];
         }
 
         fclose($handle);
@@ -56,6 +60,10 @@ class FileCityLoader implements CityLoaderInterface
 
     private function downloadFile(?string $citiesDownloadUrl): void
     {
+        if (null === $citiesDownloadUrl) {
+            throw new RuntimeException('A download URL is required to fetch the cities file.');
+        }
+
         $this->filesystem->mkdir(dirname($this->targetPath));
 
         $response = $this->httpClient->request('GET', $citiesDownloadUrl, [

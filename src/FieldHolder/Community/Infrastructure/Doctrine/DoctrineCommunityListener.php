@@ -32,6 +32,10 @@ final readonly class DoctrineCommunityListener
             return;
         }
 
+        if (null === $communityId = $community->id) {
+            return;
+        }
+
         $type = $community->getMostTrustableFieldByName(FieldCommunity::TYPE)?->getValue();
         if ($type === CommunityType::PARISH->value) {
             // A new parish has been inserted
@@ -44,7 +48,7 @@ final readonly class DoctrineCommunityListener
             }
             $this->searchHelper->upsertElement(
                 SearchIndex::PARISH,
-                $community->id->toString(),
+                $communityId->toString(),
                 [
                     'parishName' => $parishName,
                     'dioceseName' => $dioceseName,
@@ -57,7 +61,7 @@ final readonly class DoctrineCommunityListener
             $dioceseName = $community->getMostTrustableFieldByName(FieldCommunity::NAME)?->getValue();
             $this->searchHelper->upsertElement(
                 SearchIndex::DIOCESE,
-                $community->id->toString(),
+                $communityId->toString(),
                 [
                     'dioceseName' => $dioceseName,
                 ]

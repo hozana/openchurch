@@ -24,21 +24,23 @@ interface CommunityRepositoryInterface extends RepositoryInterface
 
     public function add(Community $community): void;
 
-    public function withType(string $type): static;
+    // The filters below are optional: a null value leaves the query unchanged.
 
-    public function withWikidataId(int $wikidataId): static;
+    public function withType(?string $type): static;
 
-    /**
-     * @param array<int> $wikidataIds
-     */
-    public function withWikidataIds(array $wikidataIds): static;
-
-    public function withParentCommunityId(Uuid $parentId): static;
+    public function withWikidataId(?int $wikidataId): static;
 
     /**
-     * @param array<string> $contactZipcodes
+     * @param array<int>|null $wikidataIds
      */
-    public function withContactZipcodes(array $contactZipcodes): static;
+    public function withWikidataIds(?array $wikidataIds): static;
+
+    public function withParentCommunityId(?Uuid $parentId): static;
+
+    /**
+     * @param array<string>|null $contactZipcodes
+     */
+    public function withContactZipcodes(?array $contactZipcodes): static;
 
     public function withActive(): static;
 
