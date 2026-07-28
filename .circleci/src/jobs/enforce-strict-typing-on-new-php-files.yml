@@ -1,4 +1,4 @@
-executor: openchurch-app-hetzner
+executor: php-executor
 working_directory: ~/project
 steps:
   - checkout:
