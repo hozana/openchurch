@@ -6,6 +6,7 @@ namespace App\Field\Domain\Exception;
 
 use ApiPlatform\Metadata\ErrorResource;
 use ApiPlatform\Metadata\Exception\ProblemExceptionInterface;
+use App\Shared\Domain\Cast;
 use Exception;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -39,7 +40,7 @@ class FieldUnicityViolationException extends Exception implements ProblemExcepti
     #[Groups(['communities', 'places'])]
     public function getDetail(): ?string
     {
-        return sprintf('Found duplicate for field %s with value %s', $this->name, $this->value);
+        return sprintf('Found duplicate for field %s with value %s', $this->name, Cast::toString($this->value));
     }
 
     /**

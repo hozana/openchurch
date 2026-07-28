@@ -24,6 +24,20 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
     }
 
     /**
+     * The client is built in synchronous mode: its calls always return a concrete response,
+     * never a Promise. This assertion makes that guarantee explicit so that the asArray()/asBool()
+     * methods are reachable.
+     */
+    private function sync(Elasticsearch|Promise $response): Elasticsearch
+    {
+        if (!$response instanceof Elasticsearch) {
+            throw new InvalidArgumentException('The Elasticsearch client is expected to run in synchronous mode.');
+        }
+
+        return $response;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function getSettings(): array
@@ -262,7 +276,7 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             'id' => $id,
         ];
 
-        return $this->elasticsearchClient->exists($params)->asBool();
+        return $this->sync($this->elasticsearchClient->exists($params))->asBool();
     }
 
     public function getDocument(SearchIndex $index, string $id): ?array
@@ -276,7 +290,7 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             return null;
         }
 
-        return $this->elasticsearchClient->get($params)->asArray();
+        return $this->sync($this->elasticsearchClient->get($params))->asArray();
     }
 
     /**
@@ -297,10 +311,10 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                 'doc' => $body,
             ];
 
-            return $this->elasticsearchClient->update($params)->asArray();
+            return $this->sync($this->elasticsearchClient->update($params))->asArray();
         }
 
-        return $this->elasticsearchClient->index($params)->asArray();
+        return $this->sync($this->elasticsearchClient->index($params))->asArray();
     }
 
     /**
@@ -315,7 +329,7 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             'body' => $body,
         ];
 
-        return $this->elasticsearchClient->search($params)->asArray();
+        return $this->sync($this->elasticsearchClient->search($params))->asArray();
     }
 
     /**
@@ -334,7 +348,7 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             'from' => 0,
         ];
 
-        return $this->elasticsearchClient->search($params)->asArray();
+        return $this->sync($this->elasticsearchClient->search($params))->asArray();
     }
 
     private function existIndex(SearchIndex $index): bool
@@ -343,7 +357,7 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             'index' => [$index->value],
         ];
 
-        return $this->elasticsearchClient->indices()->exists($params)->asBool();
+        return $this->sync($this->elasticsearchClient->indices()->exists($params))->asBool();
     }
 
     /**
@@ -359,7 +373,7 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             'index' => $index->value,
         ];
 
-        return $this->elasticsearchClient->indices()->delete($params)->asArray();
+        return $this->sync($this->elasticsearchClient->indices()->delete($params))->asArray();
     }
 
     /**
@@ -375,7 +389,7 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             },
         ];
 
-        return $this->elasticsearchClient->indices()->putMapping($params)->asArray();
+        return $this->sync($this->elasticsearchClient->indices()->putMapping($params))->asArray();
     }
 
     public function refresh(SearchIndex $index): void

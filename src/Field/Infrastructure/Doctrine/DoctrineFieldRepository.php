@@ -39,7 +39,8 @@ class DoctrineFieldRepository extends DoctrineRepository implements FieldReposit
     {
         $qb = $this->query();
 
-        return $qb->where($this->whereFieldEquals(
+        /** @var Field[] $fields */
+        $fields = $qb->where($this->whereFieldEquals(
             $qb,
             $fieldName,
             $fieldValue,
@@ -48,6 +49,8 @@ class DoctrineFieldRepository extends DoctrineRepository implements FieldReposit
             ->setParameter('fieldName', $fieldName)
             ->getQuery()
             ->getResult();
+
+        return $fields;
     }
 
     public function existOusideOf(Uuid $id, FieldPlace|FieldCommunity $fieldName, mixed $fieldValue): bool
@@ -70,7 +73,7 @@ class DoctrineFieldRepository extends DoctrineRepository implements FieldReposit
             ->getQuery()
             ->getOneOrNullResult();
 
-        return isset($row['attachedToId']);
+        return is_array($row) && isset($row['attachedToId']);
     }
 
     private function whereFieldEquals(QueryBuilder $qb, FieldPlace|FieldCommunity $fieldName, mixed $fieldValue, string $alias = 'field'): Comparison|Func

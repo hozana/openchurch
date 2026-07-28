@@ -79,7 +79,7 @@ final class DoctrinePlaceRepository extends DoctrineRepository implements PlaceR
      */
     public function withWikidataIds(?array $wikidataIds): static
     {
-        if (0 === count($wikidataIds)) {
+        if (null === $wikidataIds || [] === $wikidataIds) {
             return $this;
         }
 

@@ -32,7 +32,11 @@ final readonly class UpdateCommunityProcessor implements ProcessorInterface
         return $this->transactionManager->transactional(function () use ($data) {
             Assert::isInstanceOf($data, CommunityResource::class);
 
-            $community = $this->communityRepo->ofId($data->id); // community cannot be null because we passed through CommunityItemProvider
+            // community cannot be null because we passed through CommunityItemProvider
+            Assert::notNull($data->id);
+            $community = $this->communityRepo->ofId($data->id);
+            Assert::notNull($community);
+
             $this->fieldService->upsertFields($community, $data->fields);
 
             return CommunityResource::fromModel($community);
