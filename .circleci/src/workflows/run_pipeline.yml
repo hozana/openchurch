@@ -1,0 +1,27 @@
+jobs:
+  - hozana/build-via-n8n:
+      docker_image_name: openchurch-backend
+      resource_class: hozana/hetzner
+  - hozana/trivy-audit:
+      docker_image_name: openchurch-backend
+      severity: CRITICAL,HIGH
+      resource_class: hozana/hetzner
+      requires:
+        - hozana/build-via-n8n
+  - enforce-strict-typing-on-new-php-files
+  - security-check:
+      requires:
+        - hozana/build-via-n8n
+  - static-analysis:
+      requires:
+        - hozana/build-via-n8n
+  - validate-schema:
+      requires:
+        - hozana/build-via-n8n
+  - test-suite:
+      name: full-tests
+      suite-name: Full test suite
+      artifact-name: full-coverage
+      requires:
+        - hozana/build-via-n8n
+        - validate-schema

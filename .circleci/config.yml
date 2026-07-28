@@ -1,0 +1,291 @@
+executors:
+    default:
+        docker:
+            - auth:
+                password: $DOCKERHUB_PASSWORD
+                username: hozanaci
+              image: docker:24.0.0
+        resource_class: medium
+    openchurch-app-hetzner:
+        docker:
+            - auth:
+                password: $DOCKERHUB_PASSWORD
+                username: hozanaci
+              entrypoint: ""
+              environment:
+                APP_ENV: test
+                APP_SECRET: secret
+                ELASTICSEARCH_IRI: http://elastic:admin@127.0.0.1:9200
+                HOST_API: http://api.openchurch.local/api
+                REDIS_URL: redis://127.0.0.1:6379
+                SYNCHRO_SECRET_KEY: secret
+              image: hozanaci/openchurch-backend:$CIRCLE_SHA1
+            - command:
+                - --performance_schema=OFF
+                - --innodb_buffer_pool_size=128M
+                - --innodb_log_buffer_size=8M
+                - --max_connections=20
+                - --innodb_flush_log_at_trx_commit=2
+                - --innodb_doublewrite=0
+                - --sort_buffer_size=256K
+                - --sql-mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION
+              environment:
+                MYSQL_ALLOW_EMPTY_PASSWORD: "false"
+                MYSQL_DATABASE: openchurch_test
+                MYSQL_ROOT_PASSWORD: symfony
+                TZ: Europe/Paris
+              image: mariadb:11.5.2
+            - command:
+                - -c
+                - bin/elasticsearch-plugin install --batch analysis-icu && exec /usr/local/bin/docker-entrypoint.sh elasticsearch
+              entrypoint: /bin/sh
+              environment:
+                ELASTIC_PASSWORD: admin
+                ES_JAVA_OPTS: -Xms512m -Xmx512m
+                discovery.type: single-node
+                xpack.security.enabled: "true"
+              image: elasticsearch:8.18.1
+            - image: redis:5
+        resource_class: hozana/hetzner
+    php-executor:
+        docker:
+            - auth:
+                password: $DOCKERHUB_PASSWORD
+                username: hozanaci
+              image: jakzal/phpqa:php8.5-alpine
+        resource_class: hozana/hetzner
+jobs:
+    enforce-strict-typing-on-new-php-files:
+        executor: openchurch-app-hetzner
+        steps:
+            - checkout:
+                path: ~/project
+            - run:
+                command: |
+                    FAILED=0
+                    NEW_PHP_FILES=$(git diff --name-only --diff-filter=A origin/master...HEAD -- '*.php' 2>/dev/null || echo "")
+
+                    if [ -z "$NEW_PHP_FILES" ]; then
+                        echo "No new PHP files detected."
+                        exit 0
+                    fi
+
+                    printf '%s\n' "$NEW_PHP_FILES" | while IFS= read -r FILE; do
+                        if ! head -20 "$FILE" | grep -q "^declare(strict_types=1);"; then
+                            echo "❌ Missing declare(strict_types=1); in: $FILE"
+                            FAILED=1
+                        else
+                            echo "✓ $FILE"
+                        fi
+                    done
+
+                    if [ $FAILED -eq 1 ]; then
+                        echo ""
+                        echo "Error: New PHP files must include 'declare(strict_types=1);' at the top."
+                        exit 1
+                    fi
+                name: Enforce strict_types=1 on new PHP files
+        working_directory: ~/project
+    security-check:
+        executor: php-executor
+        steps:
+            - checkout:
+                path: ~/project
+            - run:
+                command: |
+                    apk add --no-cache --virtual .build-deps $PHPIZE_DEPS libxslt-dev gmp-dev icu-dev
+                    docker-php-ext-install xsl gmp intl
+                    docker-php-ext-enable xsl gmp intl
+                name: Install PHP extensions
+            - run:
+                command: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+                name: Install dependencies
+            - run:
+                command: composer audit --abandoned=ignore
+                name: Security check
+        working_directory: ~/project
+    static-analysis:
+        executor: php-executor
+        steps:
+            - checkout:
+                path: ~/project
+            - run:
+                command: php -v
+                name: Print PHP version
+            - run:
+                command: |
+                    apk add --no-cache --virtual .build-deps $PHPIZE_DEPS libxslt-dev gmp-dev icu-dev
+                    docker-php-ext-install xsl gmp intl
+                    docker-php-ext-enable xsl gmp intl
+                name: Install PHP extensions
+            - run:
+                command: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+                name: Install dependencies
+            - run:
+                command: composer phpstan
+                name: Run PHPStan
+            - run:
+                command: php vendor/bin/php-cs-fixer fix --dry-run --diff
+                name: php-cs-fixer-check
+            - run:
+                command: vendor/bin/rector process --dry-run
+                name: rector (dry-run)
+            - run:
+                command: composer validate --strict
+                name: composer validate
+            - run:
+                command: php bin/console lint:container
+                name: lint:container
+            - run:
+                command: php bin/console lint:yaml config src
+                name: lint:yaml
+            - run:
+                command: php bin/console lint:twig templates
+                name: lint:twig
+        working_directory: ~/project
+    test-suite:
+        executor: openchurch-app-hetzner
+        parameters:
+            artifact-name:
+                description: Artifact name for coverage files
+                type: string
+            suite-name:
+                description: PHPUnit test suite name
+                type: string
+        steps:
+            - checkout:
+                path: ~/project
+            - run:
+                command: |
+                    echo "DATABASE_URL=mysql://root:symfony@127.0.0.1:3306/openchurch?serverVersion=11.5.2-MariaDB&charset=utf8mb4" > .env.test.local
+                name: Create .env.test.local
+            - run:
+                command: |
+                    apt-get update && apt-get install -y autoconf make gcc g++
+                    install-php-extensions xdebug
+                name: Install Xdebug and activate it
+            - run:
+                command: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+                name: Install dependencies
+            - run:
+                command: apt-get install -y --no-install-recommends mariadb-client
+                name: Install MySQL client
+            - run:
+                command: |
+                    count=0
+                    max_iterations=60
+                    until mariadb -h 127.0.0.1 -u root -psymfony -e "SELECT 1" > /dev/null 2>&1; do
+                        count=$((count + 1))
+                        if [ "$count" -ge "$max_iterations" ]; then
+                            echo "\nMax attempts reached. Exiting..."
+                            exit 1
+                        fi
+                        echo -n .
+                        sleep 5
+                    done
+                    echo "\nMariaDB is UP!"
+                name: Wait for mariadb to be stable...
+            - run:
+                command: |
+                    count=0
+                    max_iterations=60
+                    until curl -s -u elastic:admin -f http://127.0.0.1:9200/_cluster/health > /dev/null 2>&1; do
+                        count=$((count + 1))
+                        if [ "$count" -ge "$max_iterations" ]; then
+                            echo "\nMax attempts reached. Exiting..."
+                            exit 1
+                        fi
+                        echo -n .
+                        sleep 5
+                    done
+                    echo "\nElasticsearch is UP!"
+                name: Wait for elasticsearch to be stable...
+            - run:
+                command: php bin/console doctrine:migrations:migrate --no-interaction
+                name: Run migrations
+            - run:
+                command: |
+                    XDEBUG_MODE=coverage php -d memory_limit=1G vendor/bin/phpunit --debug --verbose --coverage-html "build/coverage/<< parameters.artifact-name >>-html" --log-junit "build/coverage/<< parameters.artifact-name >>-junit.xml" --coverage-php "build/coverage/<< parameters.artifact-name >>-coverage.cov" --testsuite "<< parameters.suite-name >>"
+                name: Run Tests (<< parameters.suite-name >>)
+            - store_artifacts:
+                destination: << parameters.artifact-name >>-html
+                path: build/coverage/<< parameters.artifact-name >>-html
+            - store_artifacts:
+                destination: << parameters.artifact-name >>
+                path: build/coverage/<< parameters.artifact-name >>-coverage.cov
+            - store_artifacts:
+                destination: << parameters.artifact-name >>
+                path: build/coverage/<< parameters.artifact-name >>-junit.xml
+            - store_test_results:
+                path: build/coverage/<< parameters.artifact-name >>-junit.xml
+        working_directory: ~/project
+    validate-schema:
+        executor: openchurch-app-hetzner
+        steps:
+            - checkout:
+                path: ~/project
+            - run:
+                command: |
+                    echo "DATABASE_URL=mysql://root:symfony@127.0.0.1:3306/openchurch?serverVersion=11.5.2-MariaDB&charset=utf8mb4" > .env.test.local
+                name: Create .env.test.local
+            - run:
+                command: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+                name: Install dependencies
+            - run:
+                command: apt-get update && apt-get install -y --no-install-recommends mariadb-client
+                name: Install MySQL client
+            - run:
+                command: |
+                    count=0
+                    max_iterations=60
+                    until mariadb -h 127.0.0.1 -u root -psymfony -e "SELECT 1" > /dev/null 2>&1; do
+                        count=$((count + 1))
+                        if [ "$count" -ge "$max_iterations" ]; then
+                            echo "\nMax attempts reached. Exiting..."
+                            exit 1
+                        fi
+                        echo -n .
+                        sleep 5
+                    done
+                    echo "\nMariaDB is UP!"
+                name: Wait for mariadb to be stable...
+            - run:
+                command: php bin/console doctrine:migrations:migrate --no-interaction
+                name: Run migrations
+            - run:
+                command: php bin/console doctrine:schema:validate -vvv
+                name: doctrine:schema:validate
+        working_directory: ~/project
+orbs:
+    hozana: hozana/common-tasks@0.1.11
+version: 2.1
+workflows:
+    run_pipeline:
+        jobs:
+            - hozana/build-via-n8n:
+                docker_image_name: openchurch-backend
+                resource_class: hozana/hetzner
+            - hozana/trivy-audit:
+                docker_image_name: openchurch-backend
+                requires:
+                    - hozana/build-via-n8n
+                resource_class: hozana/hetzner
+                severity: CRITICAL,HIGH
+            - enforce-strict-typing-on-new-php-files
+            - security-check:
+                requires:
+                    - hozana/build-via-n8n
+            - static-analysis:
+                requires:
+                    - hozana/build-via-n8n
+            - validate-schema:
+                requires:
+                    - hozana/build-via-n8n
+            - test-suite:
+                artifact-name: full-coverage
+                name: full-tests
+                requires:
+                    - hozana/build-via-n8n
+                    - validate-schema
+                suite-name: Full test suite
+
