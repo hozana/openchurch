@@ -654,4 +654,59 @@ final class UpsertPlaceTest extends AcceptanceTestHelper
             8888888 => 'Found duplicate for field messesInfoId with value messeInfoId',
         ]);
     }
+
+    /**
+     * The place is matched through the intVal of one wikidataId field, but the *most trustable*
+     * one carries the id as a string. If the processor fails to recognise it, the place is
+     * neither updated nor unset, and the insert loop silently creates a duplicate.
+     */
+    public function testShouldUpdateAndNotDuplicateWhenMostTrustableWikidataIdIsAString(): void
+    {
+        /** @var PlaceRepositoryInterface $placeRepository */
+        $placeRepository = self::getContainer()->get(PlaceRepositoryInterface::class);
+
+        self::assertCount(0, $placeRepository);
+        $agent = DummyAgentFactory::createOne();
+
+        flush_after(static function () use ($agent) {
+            DummyPlaceFactory::createOne([
+                'fields' => [
+                    // Matched by the withWikidataIds() query, which filters on intVal.
+                    DummyFieldFactory::createOne([
+                        'name' => FieldPlace::WIKIDATA_ID->value,
+                        Field::getPropertyName(FieldPlace::WIKIDATA_ID) => 9999999,
+                        'reliability' => FieldReliability::LOW,
+                        'agent' => $agent,
+                    ]),
+                    // Same id, stored as a string, and more trustable: this is what getValue() returns.
+                    DummyFieldFactory::createOne([
+                        'name' => FieldPlace::WIKIDATA_ID->value,
+                        'stringVal' => '9999999',
+                        'reliability' => FieldReliability::HIGH,
+                        'agent' => $agent,
+                    ]),
+                ],
+            ]);
+        });
+
+        self::assertCount(1, $placeRepository);
+
+        $response = self::assertResponse($this->put('/places/upsert', 'secret', body: [
+            'wikidataEntities' => [
+                [
+                    [
+                        'name' => FieldPlace::WIKIDATA_ID,
+                        'value' => 9999999,
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                    ],
+                ],
+            ],
+        ]), HttpFoundationResponse::HTTP_OK);
+
+        self::assertEquals($response, [9999999 => 'Updated']);
+        self::assertCount(1, $placeRepository, 'the existing place must be updated, not duplicated');
+    }
 }
