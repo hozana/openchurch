@@ -265,6 +265,7 @@ workflows:
             - hozana/build-via-n8n:
                 docker_image_name: openchurch-backend
                 resource_class: hozana/hetzner
+                target: prod
             - hozana/trivy-audit:
                 docker_image_name: openchurch-backend
                 requires:
