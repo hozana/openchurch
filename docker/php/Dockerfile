@@ -1,4 +1,4 @@
-FROM dunglas/frankenphp:php8.4-bookworm
+FROM dunglas/frankenphp:php8.5-trixie
 LABEL org.opencontainers.image.authors="contact@hozana.org"
 
 ARG USER=www-data
@@ -15,6 +15,7 @@ RUN apt update && apt install -y \
     libzip-dev \
     libxslt-dev \
     libgmp-dev \
+    libicu-dev \
     && mkdir -p /var/www/html/var/ \
     && apt clean
 
@@ -29,7 +30,6 @@ RUN docker-php-ext-install \
     exif \
     xsl \
     pcntl \
-    opcache \
     intl \
     gmp
 
