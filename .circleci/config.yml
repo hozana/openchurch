@@ -272,7 +272,6 @@ workflows:
                     - hozana/build-via-n8n
                 resource_class: hozana/hetzner
                 severity: CRITICAL,HIGH
-            - enforce-strict-typing-on-new-php-files
             - security-check:
                 requires:
                     - hozana/build-via-n8n

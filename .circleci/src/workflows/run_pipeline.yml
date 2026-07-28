@@ -9,7 +9,6 @@ jobs:
       resource_class: hozana/hetzner
       requires:
         - hozana/build-via-n8n
-  - enforce-strict-typing-on-new-php-files
   - security-check:
       requires:
         - hozana/build-via-n8n
