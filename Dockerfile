@@ -59,7 +59,7 @@ RUN bin/elasticsearch-plugin install --batch analysis-icu
 # Runtime shared by dev and prod, kept as small as the
 # app allows.
 # ============================================
-FROM dunglas/frankenphp:php8.5-trixie AS base
+FROM dunglas/frankenphp:1.12.6-php8.5-trixie AS base
 LABEL org.opencontainers.image.authors="contact@hozana.org"
 
 ARG USER
@@ -177,7 +177,8 @@ COPY config/ /var/www/html/config/
 COPY bin/ /var/www/html/bin/
 COPY assets/ /var/www/html/assets/
 COPY templates/ /var/www/html/templates/
-COPY .env /var/www/html/
+# .trivyignore travels with the image so the scanner picks it up wherever the image is scanned.
+COPY --chown=${USER}:${USER} .env .trivyignore /var/www/html/
 
 # The classmap above was built without the application classes; regenerate it, compile the
 # assets, then drop composer: it is a build tool and has no business in the shipped image.
