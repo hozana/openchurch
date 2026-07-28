@@ -56,7 +56,7 @@ executors:
         resource_class: hozana/hetzner
 jobs:
     enforce-strict-typing-on-new-php-files:
-        executor: openchurch-app-hetzner
+        executor: php-executor
         steps:
             - checkout:
                 path: ~/project
@@ -86,41 +86,21 @@ jobs:
                     fi
                 name: Enforce strict_types=1 on new PHP files
         working_directory: ~/project
-    security-check:
-        executor: php-executor
+    quality-checks:
+        executor: openchurch-app-hetzner
         steps:
             - checkout:
                 path: ~/project
             - run:
                 command: |
-                    apk add --no-cache --virtual .build-deps $PHPIZE_DEPS libxslt-dev gmp-dev icu-dev
-                    docker-php-ext-install xsl gmp intl
-                    docker-php-ext-enable xsl gmp intl
-                name: Install PHP extensions
+                    echo "DATABASE_URL=mysql://root:symfony@127.0.0.1:3306/openchurch?serverVersion=11.5.2-MariaDB&charset=utf8mb4" > .env.test.local
+                name: Create .env.test.local
             - run:
                 command: composer install --no-interaction --prefer-dist --no-progress --no-scripts
                 name: Install dependencies
             - run:
                 command: composer audit --abandoned=ignore
                 name: Security check
-        working_directory: ~/project
-    static-analysis:
-        executor: php-executor
-        steps:
-            - checkout:
-                path: ~/project
-            - run:
-                command: php -v
-                name: Print PHP version
-            - run:
-                command: |
-                    apk add --no-cache --virtual .build-deps $PHPIZE_DEPS libxslt-dev gmp-dev icu-dev
-                    docker-php-ext-install xsl gmp intl
-                    docker-php-ext-enable xsl gmp intl
-                name: Install PHP extensions
-            - run:
-                command: composer install --no-interaction --prefer-dist --no-progress --no-scripts
-                name: Install dependencies
             - run:
                 command: composer phpstan
                 name: Run PHPStan
@@ -142,6 +122,30 @@ jobs:
             - run:
                 command: php bin/console lint:twig templates
                 name: lint:twig
+            - run:
+                command: apt-get update && apt-get install -y --no-install-recommends mariadb-client
+                name: Install MySQL client
+            - run:
+                command: |
+                    count=0
+                    max_iterations=60
+                    until mariadb -h 127.0.0.1 -u root -psymfony -e "SELECT 1" > /dev/null 2>&1; do
+                        count=$((count + 1))
+                        if [ "$count" -ge "$max_iterations" ]; then
+                            echo "\nMax attempts reached. Exiting..."
+                            exit 1
+                        fi
+                        echo -n .
+                        sleep 5
+                    done
+                    echo "\nMariaDB is UP!"
+                name: Wait for mariadb to be stable...
+            - run:
+                command: php bin/console doctrine:migrations:migrate --no-interaction
+                name: Run migrations
+            - run:
+                command: php bin/console doctrine:schema:validate -vvv
+                name: doctrine:schema:validate
         working_directory: ~/project
     test-suite:
         executor: openchurch-app-hetzner
@@ -219,43 +223,6 @@ jobs:
             - store_test_results:
                 path: build/coverage/<< parameters.artifact-name >>-junit.xml
         working_directory: ~/project
-    validate-schema:
-        executor: openchurch-app-hetzner
-        steps:
-            - checkout:
-                path: ~/project
-            - run:
-                command: |
-                    echo "DATABASE_URL=mysql://root:symfony@127.0.0.1:3306/openchurch?serverVersion=11.5.2-MariaDB&charset=utf8mb4" > .env.test.local
-                name: Create .env.test.local
-            - run:
-                command: composer install --no-interaction --prefer-dist --no-progress --no-scripts
-                name: Install dependencies
-            - run:
-                command: apt-get update && apt-get install -y --no-install-recommends mariadb-client
-                name: Install MySQL client
-            - run:
-                command: |
-                    count=0
-                    max_iterations=60
-                    until mariadb -h 127.0.0.1 -u root -psymfony -e "SELECT 1" > /dev/null 2>&1; do
-                        count=$((count + 1))
-                        if [ "$count" -ge "$max_iterations" ]; then
-                            echo "\nMax attempts reached. Exiting..."
-                            exit 1
-                        fi
-                        echo -n .
-                        sleep 5
-                    done
-                    echo "\nMariaDB is UP!"
-                name: Wait for mariadb to be stable...
-            - run:
-                command: php bin/console doctrine:migrations:migrate --no-interaction
-                name: Run migrations
-            - run:
-                command: php bin/console doctrine:schema:validate -vvv
-                name: doctrine:schema:validate
-        working_directory: ~/project
 orbs:
     hozana: hozana/common-tasks@0.1.11
 version: 2.1
@@ -272,13 +239,7 @@ workflows:
                     - hozana/build-via-n8n
                 resource_class: hozana/hetzner
                 severity: CRITICAL,HIGH
-            - security-check:
-                requires:
-                    - hozana/build-via-n8n
-            - static-analysis:
-                requires:
-                    - hozana/build-via-n8n
-            - validate-schema:
+            - quality-checks:
                 requires:
                     - hozana/build-via-n8n
             - test-suite:
@@ -286,7 +247,7 @@ workflows:
                 name: full-tests
                 requires:
                     - hozana/build-via-n8n
-                    - validate-schema
+                    - quality-checks
                 suite-name: Full test suite
             - hozana/deploy-to-swarm:
                 docker_image_name: openchurch-backend
