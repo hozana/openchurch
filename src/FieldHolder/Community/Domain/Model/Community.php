@@ -10,6 +10,7 @@ use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Override;
 use Stringable;
 use Symfony\Component\Intl\Countries;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -34,6 +35,7 @@ class Community extends FieldHolder implements Stringable
      */
     #[ORM\OneToMany(targetEntity: Field::class, mappedBy: 'community')]
     #[Groups(['communities'])]
+    #[Override]
     public Collection $fields;
 
     /**
