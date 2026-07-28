@@ -1,6 +1,7 @@
 jobs:
   - hozana/build-via-n8n:
       docker_image_name: openchurch-backend
+      target: prod
       resource_class: hozana/hetzner
   - hozana/trivy-audit:
       docker_image_name: openchurch-backend

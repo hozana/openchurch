@@ -30,7 +30,8 @@ services:
     container_name: openchurch_elasticsearch
     build:
       context: .
-      dockerfile: ./docker/elasticsearch/Dockerfile
+      dockerfile: ./Dockerfile
+      target: elastic
     environment:
       - discovery.type=single-node
       - xpack.security.enrollment.enabled=true
@@ -58,7 +59,8 @@ services:
     container_name: openchurch_backend
     build:
       context: .
-      dockerfile: ./docker/php/Dockerfile
+      dockerfile: ./Dockerfile
+      target: dev
     volumes:
       - .:/var/www/html
       - ./usr/local/bin/docker-php-entrypoint:/usr/local/bin/docker-php-entrypoint
@@ -89,7 +91,8 @@ services:
     command: /usr/sbin/cron -f -l 15
     build:
       context: .
-      dockerfile: ./docker/php/Dockerfile
+      dockerfile: ./Dockerfile
+      target: dev
     environment:
       SERVER_NAME: :80
       APP_ENV:
@@ -117,7 +120,8 @@ services:
     command: /usr/sbin/cron -f -l 15
     build:
       context: .
-      dockerfile: ./docker/python/Dockerfile
+      dockerfile: ./Dockerfile
+      target: python
     depends_on:
       - redis
       - backend

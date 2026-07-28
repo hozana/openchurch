@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Field\Integration;
 
 use App\Field\Domain\Enum\FieldCommunity;
+use App\Field\Domain\Enum\FieldPlace;
 use App\Field\Domain\Model\Field;
 use App\FieldHolder\Community\Domain\Enum\CommunityType;
 use App\FieldHolder\Community\Domain\Service\SearchHelperInterface;
@@ -13,6 +14,7 @@ use App\FieldHolder\Community\Infrastructure\Doctrine\DoctrineCommunityListener;
 use App\Shared\Domain\Enum\SearchIndex;
 use App\Tests\Field\DummyFactory\DummyFieldFactory;
 use App\Tests\FieldHolder\Community\DummyFactory\DummyCommunityFactory;
+use App\Tests\FieldHolder\Place\DummyFactory\DummyPlaceFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Zenstruck\Foundry\Test\Factories;
@@ -160,5 +162,27 @@ final class DoctrineFieldListenerTest extends KernelTestCase
         $document2 = $this->searchHelper->getDocument(SearchIndex::PARISH, $parish2->id->toString());
         self::assertSame('Paroisse 2', $document2['_source']['parishName']);
         self::assertSame('Hyper Diocèse', $document2['_source']['dioceseName']);
+    }
+
+    /**
+     * FieldPlace::NAME and FieldCommunity::NAME share the same 'name' value, so this listener also
+     * fires for fields attached to a Place, where $field->community is null. Renaming a place must
+     * not blow up just because the community-oriented indexing has nothing to do.
+     */
+    public function testPostUpdateOnAPlaceNameDoesNotFail(): void
+    {
+        $fieldPlaceName = DummyFieldFactory::createOne([
+            'name' => FieldPlace::NAME->value,
+            Field::getPropertyName(FieldPlace::NAME) => 'Église Saint-Pierre',
+        ]);
+        DummyPlaceFactory::createOne([
+            'fields' => [$fieldPlaceName],
+        ]);
+
+        $accessor = Field::getPropertyName(FieldPlace::NAME);
+        $fieldPlaceName->$accessor = 'Église Saint-Paul';
+        $this->em->flush();
+
+        self::assertSame('Église Saint-Paul', $fieldPlaceName->$accessor);
     }
 }
