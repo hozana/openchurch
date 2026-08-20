@@ -1,3 +1,6 @@
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/1ce733955a9847b08d5c56364d2cf56a)](https://app.codacy.com/gh/hozana/openchurch/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Coverage/1ce733955a9847b08d5c56364d2cf56a)](https://app.codacy.com/gh/hozana/openchurch/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage)
+
 # Whats is OpenChurch ?
 
 Openchurch aims to be an open API in order to allow anyone to find data about dioceses, parishes, and churches. As ecclesia reality is complex, openchurch does not serve fully trustable information. Instead, it serves informations who have been entered by multiple agents.  
