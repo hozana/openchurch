@@ -171,7 +171,8 @@ class Field
         if (!(null !== $this->community xor null !== $this->place)) {
             $context->buildViolation('Field must be attached to a community or a place, not none, not both')
                 ->atPath('community')
-                ->addViolation();
+                ->addViolation()
+            ;
         }
 
         // Ensure name is OK according to community/place
@@ -179,7 +180,8 @@ class Field
         if (null === $enum) {
             $context->buildViolation(sprintf('Field %s is not acceptable', $this->name))
                 ->atPath('name')
-                ->addViolation();
+                ->addViolation()
+            ;
         }
 
         // Ensure type is OK
@@ -197,7 +199,8 @@ class Field
                     // so it only has to be rendered, never interpreted.
                     $context->buildViolation(sprintf('Field %s does not accept value %s (accepted values: %s)', $this->name, Cast::toString($this->value), implode(', ', array_map(Cast::toString(...), $type))))
                         ->atPath('value')
-                        ->addViolation();
+                        ->addViolation()
+                    ;
                 }
             } else {
                 $isValid = match ($type) {
@@ -218,7 +221,8 @@ class Field
                 if (!$isValid) {
                     $context->buildViolation(sprintf('Field %s expected value of type %s', $this->name, $type))
                         ->atPath('value')
-                        ->addViolation();
+                        ->addViolation()
+                    ;
                 }
             }
         }

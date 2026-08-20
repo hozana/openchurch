@@ -1,5 +1,7 @@
+### Isolate jobs and improve performances of ci
 executor: openchurch-app-hetzner
-working_directory: ~/project
+working_directory: /tmp/project
+shell: /bin/bash -e
 parameters:
   suite-name:
     description: PHPUnit test suite name
@@ -9,7 +11,15 @@ parameters:
     type: string
 steps:
   - checkout:
-      path: ~/project
+      path: /tmp/project
+  - run:
+      name: Debug primary container (openchurch-backend)
+      command: |
+        set -x
+        echo "Running in primary container: $(hostname)"
+        whoami
+        php -v
+        cat /etc/os-release
   - run:
       name: Create .env.test.local
       command: |
@@ -24,7 +34,7 @@ steps:
       command: composer install --no-interaction --prefer-dist --no-progress --no-scripts
   - run:
       name: Install MySQL client
-      command: apt-get install -y --no-install-recommends mariadb-client
+      command: apt update &&apt-get install -y --no-install-recommends mariadb-client
   - run:
       name: Wait for mariadb to be stable...
       command: |
@@ -62,6 +72,13 @@ steps:
       name: Run Tests (<< parameters.suite-name >>)
       command: |
         XDEBUG_MODE=coverage php -d memory_limit=1G vendor/bin/phpunit --debug --verbose --coverage-html "build/coverage/<< parameters.artifact-name >>-html" --log-junit "build/coverage/<< parameters.artifact-name >>-junit.xml" --coverage-php "build/coverage/<< parameters.artifact-name >>-coverage.cov" --testsuite "<< parameters.suite-name >>"
+#   Integration codacy is paused waiting for feedback from codacy
+#   - run:
+#       name: Upload Coverage to Codacy
+#       command: |
+#         curl -Ls https://coverage.codacy.com/get.sh -o /tmp/codacy-get.sh
+#         bash -x /tmp/codacy-get.sh report -r "build/coverage/<< parameters.artifact-name >>-junit.xml"
+#       when: always
   - store_artifacts:
       path: build/coverage/<< parameters.artifact-name >>-html
       destination: << parameters.artifact-name >>-html

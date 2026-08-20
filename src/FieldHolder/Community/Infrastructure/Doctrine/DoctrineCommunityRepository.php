@@ -40,7 +40,8 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
     public function addSelectField(): static
     {
         return $this->join(self::ALIAS, 'fields', 'fields')
-            ->addSelect('fields');
+            ->addSelect('fields')
+        ;
     }
 
     /**
@@ -48,7 +49,7 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
      */
     public function ofIds(?array $ids): static
     {
-        if ($ids === null || [] == $ids) {
+        if (null === $ids || [] == $ids) {
             return $this;
         }
 
@@ -57,7 +58,8 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
                 $qb->addSelect('FIELD(community.id, :ids) AS HIDDEN orderField')
                     ->andWhere('community.id IN (:ids)')
                     ->setParameter('ids', array_map(static fn (Uuid $id) => $id->toBinary(), $ids))
-                    ->addOrderBy('orderField');
+                    ->addOrderBy('orderField')
+                ;
             });
     }
 
@@ -70,11 +72,12 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
         return
             $this->filter(static function (QueryBuilder $qb) use ($value): void {
                 $qb->andWhere("
-                        EXISTS (SELECT 1 FROM App\Field\Domain\Model\Field f_type
+                        EXISTS (SELECT 1 FROM App\\Field\\Domain\\Model\\Field f_type
                         WHERE f_type.community = community
                         AND f_type.name = 'type' AND f_type.stringVal = :valueType)
                     ")
-                    ->setParameter('valueType', $value);
+                    ->setParameter('valueType', $value)
+                ;
             });
     }
 
@@ -87,28 +90,30 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
         return
             $this->filter(static function (QueryBuilder $qb) use ($value): void {
                 $qb->andWhere("
-                        EXISTS (SELECT 1 FROM App\Field\Domain\Model\Field f_wikidata
+                        EXISTS (SELECT 1 FROM App\\Field\\Domain\\Model\\Field f_wikidata
                         WHERE f_wikidata.community = community
                         AND f_wikidata.name = 'wikidataId' AND f_wikidata.intVal = :valueWikidata)
                     ")
-                    ->setParameter('valueWikidata', $value);
+                    ->setParameter('valueWikidata', $value)
+                ;
             });
     }
 
     public function withContactZipcodes(?array $values): static
     {
-        if ($values === null || [] == $values) {
+        if (null === $values || [] == $values) {
             return $this;
         }
 
         return
             $this->filter(static function (QueryBuilder $qb) use ($values): void {
                 $qb->andWhere("
-                        EXISTS (SELECT 1 FROM App\Field\Domain\Model\Field f_contact_zipcodes
+                        EXISTS (SELECT 1 FROM App\\Field\\Domain\\Model\\Field f_contact_zipcodes
                         WHERE f_contact_zipcodes.community = community
                         AND f_contact_zipcodes.name = 'contactZipcode' AND f_contact_zipcodes.stringVal IN(:valueZipcodes))
                     ")
-                    ->setParameter('valueZipcodes', $values);
+                    ->setParameter('valueZipcodes', $values)
+                ;
             });
     }
 
@@ -121,11 +126,12 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
         return
             $this->filter(static function (QueryBuilder $qb) use ($wikidataIds): void {
                 $qb->andWhere("
-                        EXISTS (SELECT 1 FROM App\Field\Domain\Model\Field f_wikidata
+                        EXISTS (SELECT 1 FROM App\\Field\\Domain\\Model\\Field f_wikidata
                         WHERE f_wikidata.community = community
                         AND f_wikidata.name = 'wikidataId' AND f_wikidata.intVal IN(:valueWikidataIds))
                     ")
-                    ->setParameter('valueWikidataIds', $wikidataIds);
+                    ->setParameter('valueWikidataIds', $wikidataIds)
+                ;
             });
     }
 
@@ -134,11 +140,12 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
         return
             $this->filter(static function (QueryBuilder $qb): void {
                 $qb->andWhere("
-                        NOT EXISTS (SELECT 1 FROM App\Field\Domain\Model\Field f_is_active
+                        NOT EXISTS (SELECT 1 FROM App\\Field\\Domain\\Model\\Field f_is_active
                         WHERE f_is_active.community = community
                         AND f_is_active.name = 'state' AND f_is_active.stringVal = :deleted)
                     ")
-                    ->setParameter('deleted', CommunityState::DELETED->value);
+                    ->setParameter('deleted', CommunityState::DELETED->value)
+                ;
             });
     }
 
@@ -151,11 +158,12 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
         return
             $this->filter(static function (QueryBuilder $qb) use ($parentId): void {
                 $qb->andWhere("
-                        EXISTS (SELECT 1 FROM App\Field\Domain\Model\Field f_community_parent_id
+                        EXISTS (SELECT 1 FROM App\\Field\\Domain\\Model\\Field f_community_parent_id
                         WHERE f_community_parent_id.community = community
                         AND f_community_parent_id.name = 'parentCommunityId' AND IDENTITY(f_community_parent_id.communityVal) = :valueParentCommunity)
                     ")
-                    ->setParameter('valueParentCommunity', $parentId->toBinary());
+                    ->setParameter('valueParentCommunity', $parentId->toBinary())
+                ;
             });
     }
 
@@ -164,7 +172,8 @@ final class DoctrineCommunityRepository extends DoctrineRepository implements Co
         return $this->sort(static function (QueryBuilder $qb): void {
             $qb->leftJoin('community.fields', 'sort_name_fields', Join::WITH, 'sort_name_fields.name = :name')
                 ->setParameter('name', 'name')
-                ->addOrderBy('sort_name_fields.stringVal', 'ASC');
+                ->addOrderBy('sort_name_fields.stringVal', 'ASC')
+            ;
         });
     }
 }

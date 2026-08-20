@@ -188,4 +188,10 @@ RUN mkdir -p var/cache var/log var/cache/prod \
     && rm -rf /root/.cache/composer /tmp/* \
     && chown -R ${USER}:${USER} var public vendor
 
+RUN mkdir -p /tmp && chmod -R 777 /tmp
+
 USER ${USER}
+
+# Removing the line below breaks circleCI jobs, because the CircleCI executor runs as root and needs to be able to write to the project directory.
+USER root
+

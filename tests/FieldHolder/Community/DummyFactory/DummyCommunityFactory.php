@@ -44,8 +44,7 @@ final class DummyCommunityFactory extends PersistentObjectFactory
     #[Override]
     protected function initialize(): static
     {
-        return $this
-            // ->afterInstantiate(function(Community $community): void {})
-        ;
+        return $this;
+        // ->afterInstantiate(function(Community $community): void {})
     }
 }

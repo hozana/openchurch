@@ -7,6 +7,11 @@ executors:
           password: $DOCKERHUB_PASSWORD
     resource_class: medium
 
+  node-executor:
+    docker:
+      - image: cimg/node:16.20.2
+    resource_class: hozana/hetzner
+
   # Standalone PHP image for jobs that only need the sources (no database, no search engine).
   php-executor:
     docker:
@@ -23,7 +28,11 @@ executors:
         auth:
           username: hozanaci
           password: $DOCKERHUB_PASSWORD
-        entrypoint: ""
+        user: root
+        entrypoint: /bin/sh
+        command:
+          - -c
+          - exec /usr/local/bin/docker-entrypoint.sh frankenphp
         environment:
           APP_ENV: test
           REDIS_URL: redis://127.0.0.1:6379
@@ -62,4 +71,24 @@ executors:
           ELASTIC_PASSWORD: admin
           ES_JAVA_OPTS: -Xms512m -Xmx512m
       - image: redis:5
+    resource_class: hozana/hetzner
+  
+  openchurch-app-light-hetzner:
+    docker:
+      - image: hozanaci/openchurch-backend:$CIRCLE_SHA1
+        auth:
+          username: hozanaci
+          password: $DOCKERHUB_PASSWORD
+        user: root
+        entrypoint: /bin/sh
+        command:
+          - -c
+          - exec /usr/local/bin/docker-entrypoint.sh frankenphp
+        environment:
+          APP_ENV: test
+          REDIS_URL: redis://127.0.0.1:6379
+          ELASTICSEARCH_IRI: http://elastic:admin@127.0.0.1:9200
+          HOST_API: http://api.openchurch.local/api
+          APP_SECRET: secret
+          SYNCHRO_SECRET_KEY: secret
     resource_class: hozana/hetzner
