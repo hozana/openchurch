@@ -276,9 +276,6 @@ jobs:
                 command: composer install --no-interaction --prefer-dist --no-progress --no-scripts
                 name: Install dependencies
             - run:
-                command: apt update &&apt-get install -y --no-install-recommends mariadb-client
-                name: Install MySQL client
-            - run:
                 command: |
                     count=0
                     max_iterations=60
