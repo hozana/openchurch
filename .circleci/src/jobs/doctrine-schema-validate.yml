@@ -5,14 +5,6 @@ steps:
   - checkout:
       path: /tmp/project
   - run:
-      name: Debug primary container (openchurch-backend)
-      command: |
-        set -x
-        echo "Running in primary container: $(hostname)"
-        whoami
-        php -v
-        cat /etc/os-release
-  - run:
       name: Create .env.test.local
       command: |
         echo "DATABASE_URL=mysql://root:symfony@127.0.0.1:3306/openchurch?serverVersion=11.5.2-MariaDB&charset=utf8mb4" > .env.test.local
@@ -22,14 +14,11 @@ steps:
 
   # --- Database schema --------------------------------------------------------------------
   - run:
-      name: Install MySQL client
-      command: apt-get update && apt-get install -y --no-install-recommends mariadb-client
-  - run:
       name: Wait for mariadb to be stable...
       command: |
         count=0
         max_iterations=60
-        until mariadb -h 127.0.0.1 -u root -psymfony -e "SELECT 1" > /dev/null 2>&1; do
+        until bin/console doctrine:migration:status > /dev/null 2>&1; do
             count=$((count + 1))
             if [ "$count" -ge "$max_iterations" ]; then
                 echo "\nMax attempts reached. Exiting..."

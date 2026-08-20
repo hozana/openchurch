@@ -45,7 +45,12 @@ executors:
               image: mariadb:11.5.2
             - command:
                 - -c
-                - bin/elasticsearch-plugin install --batch analysis-icu && exec /usr/local/bin/docker-entrypoint.sh elasticsearch
+                - |
+                  /usr/bin/timeout 300s su -s /bin/sh -p elasticsearch -c "
+                    export PATH=/usr/share/elasticsearch/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin &&
+                    bin/elasticsearch-plugin install --batch analysis-icu &&
+                    /usr/local/bin/docker-entrypoint.sh elasticsearch
+                  "
               entrypoint: /bin/sh
               environment:
                 ELASTIC_PASSWORD: admin
@@ -108,27 +113,16 @@ jobs:
                 path: /tmp/project
             - run:
                 command: |
-                    set -x
-                    echo "Running in primary container: $(hostname)"
-                    whoami
-                    php -v
-                    cat /etc/os-release
-                name: Debug primary container (openchurch-backend)
-            - run:
-                command: |
                     echo "DATABASE_URL=mysql://root:symfony@127.0.0.1:3306/openchurch?serverVersion=11.5.2-MariaDB&charset=utf8mb4" > .env.test.local
                 name: Create .env.test.local
             - run:
                 command: composer install --no-interaction --prefer-dist --no-progress --no-scripts
                 name: Install dependencies
             - run:
-                command: apt-get update && apt-get install -y --no-install-recommends mariadb-client
-                name: Install MySQL client
-            - run:
                 command: |
                     count=0
                     max_iterations=60
-                    until mariadb -h 127.0.0.1 -u root -psymfony -e "SELECT 1" > /dev/null 2>&1; do
+                    until bin/console doctrine:migration:status > /dev/null 2>&1; do
                         count=$((count + 1))
                         if [ "$count" -ge "$max_iterations" ]; then
                             echo "\nMax attempts reached. Exiting..."
@@ -271,14 +265,6 @@ jobs:
                 path: /tmp/project
             - run:
                 command: |
-                    set -x
-                    echo "Running in primary container: $(hostname)"
-                    whoami
-                    php -v
-                    cat /etc/os-release
-                name: Debug primary container (openchurch-backend)
-            - run:
-                command: |
                     echo "DATABASE_URL=mysql://root:symfony@127.0.0.1:3306/openchurch?serverVersion=11.5.2-MariaDB&charset=utf8mb4" > .env.test.local
                 name: Create .env.test.local
             - run:
@@ -290,13 +276,10 @@ jobs:
                 command: composer install --no-interaction --prefer-dist --no-progress --no-scripts
                 name: Install dependencies
             - run:
-                command: apt update &&apt-get install -y --no-install-recommends mariadb-client
-                name: Install MySQL client
-            - run:
                 command: |
                     count=0
                     max_iterations=60
-                    until mariadb -h 127.0.0.1 -u root -psymfony -e "SELECT 1" > /dev/null 2>&1; do
+                    until bin/console doctrine:migration:status > /dev/null 2>&1; do
                         count=$((count + 1))
                         if [ "$count" -ge "$max_iterations" ]; then
                             echo "\nMax attempts reached. Exiting..."
@@ -306,7 +289,7 @@ jobs:
                         sleep 5
                     done
                     echo "\nMariaDB is UP!"
-                name: Wait for mariadb to be stable...
+                name: Wait for persistance database to be stable
             - run:
                 command: |
                     count=0
@@ -327,8 +310,14 @@ jobs:
                 name: Run migrations
             - run:
                 command: |
-                    XDEBUG_MODE=coverage php -d memory_limit=1G vendor/bin/phpunit --debug --verbose --coverage-html "build/coverage/<< parameters.artifact-name >>-html" --log-junit "build/coverage/<< parameters.artifact-name >>-junit.xml" --coverage-php "build/coverage/<< parameters.artifact-name >>-coverage.cov" --testsuite "<< parameters.suite-name >>"
+                    XDEBUG_MODE=coverage php -d memory_limit=1G vendor/bin/phpunit --debug --verbose --coverage-html "build/coverage/<< parameters.artifact-name >>-html" --coverage-clover "build/coverage/<< parameters.artifact-name >>-clover.xml" --log-junit "build/coverage/<< parameters.artifact-name >>-junit.xml" --coverage-php "build/coverage/<< parameters.artifact-name >>-coverage.cov" --testsuite "<< parameters.suite-name >>"
                 name: Run Tests (<< parameters.suite-name >>)
+            - run:
+                command: |
+                    curl -Ls https://coverage.codacy.com/get.sh -o /tmp/codacy-get.sh
+                    bash /tmp/codacy-get.sh report -r "build/coverage/<< parameters.artifact-name >>-clover.xml" -t $CODACY_PROJECT_TOKEN
+                name: Upload Coverage to Codacy
+                when: always
             - store_artifacts:
                 destination: << parameters.artifact-name >>-html
                 path: build/coverage/<< parameters.artifact-name >>-html
@@ -338,6 +327,9 @@ jobs:
             - store_artifacts:
                 destination: << parameters.artifact-name >>
                 path: build/coverage/<< parameters.artifact-name >>-junit.xml
+            - store_artifacts:
+                destination: << parameters.artifact-name >>
+                path: build/coverage/<< parameters.artifact-name >>-clover.xml
             - store_test_results:
                 path: build/coverage/<< parameters.artifact-name >>-junit.xml
         working_directory: /tmp/project
