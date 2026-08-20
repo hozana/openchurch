@@ -25,9 +25,6 @@ steps:
       name: Install dependencies
       command: composer install --no-interaction --prefer-dist --no-progress --no-scripts
   - run:
-      name: Install MySQL client
-      command: apt update &&apt-get install -y --no-install-recommends mariadb-client
-  - run:
       name: Wait for persistance database to be stable
       command: |
         count=0
