@@ -68,7 +68,8 @@ class Place extends FieldHolder
             if ('deleted' === $stateField->getValue() && !$this->getFieldByNameAndAgent(FieldPlace::DELETION_REASON, $stateField->agent)) {
                 $context->buildViolation('Deletion reason is mandatory when reporting a state=deleted state.')
                     ->atPath('fields')
-                    ->addViolation();
+                    ->addViolation()
+                ;
             }
         }
 
@@ -79,9 +80,10 @@ class Place extends FieldHolder
             }
 
             if (!Countries::exists($countryCode)) {
-                $context->buildViolation("Country code '$countryCode' is not valid.")
+                $context->buildViolation("Country code '{$countryCode}' is not valid.")
                     ->atPath('fields')
-                    ->addViolation();
+                    ->addViolation()
+                ;
             }
         }
     }

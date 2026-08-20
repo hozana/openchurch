@@ -56,7 +56,7 @@ class DashboardController extends AbstractController
         $batchCount = (int) ($dioceseData['batchCount'] ?? 0);
 
         for ($i = 0; $i < $batchCount; ++$i) {
-            $key = "$type".'_'.($i * $batchSize).'-'.(($i + 1) * $batchSize);
+            $key = "{$type}".'_'.($i * $batchSize).'-'.(($i + 1) * $batchSize);
             $keyData = $this->redisClient->getHash($key);
 
             $result[$key]['status'] = $keyData['status'] ?? 'undefined';

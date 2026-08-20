@@ -73,7 +73,8 @@ class Community extends FieldHolder implements Stringable
             if ('deleted' === $stateField->getValue() && !$this->getFieldByNameAndAgent(FieldCommunity::DELETION_REASON, $stateField->agent)) {
                 $context->buildViolation('Deletion reason is mandatory when reporting a state=deleted state.')
                     ->atPath('fields')
-                    ->addViolation();
+                    ->addViolation()
+                ;
             }
         }
 
@@ -84,9 +85,10 @@ class Community extends FieldHolder implements Stringable
             }
 
             if (!Countries::exists($countryCode)) {
-                $context->buildViolation("Country code '$countryCode' is not valid.")
+                $context->buildViolation("Country code '{$countryCode}' is not valid.")
                     ->atPath('fields')
-                    ->addViolation();
+                    ->addViolation()
+                ;
             }
         }
     }

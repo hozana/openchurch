@@ -32,7 +32,8 @@ class DoctrineAgentRepository extends DoctrineRepository implements AgentReposit
             ->getQuery()
             // Cache result for 60 seconds
             ->enableResultCache(60)
-            ->getOneOrNullResult();
+            ->getOneOrNullResult()
+        ;
 
         return $row['name'] ?? null;
     }

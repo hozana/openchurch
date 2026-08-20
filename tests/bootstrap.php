@@ -40,6 +40,6 @@ if (!$dbExists) {
 }
 
 foreach ($commands as $command) {
-    echo "Test bootstrap: running $command\n";
+    echo "Test bootstrap: running {$command}\n";
     Process::fromShellCommandline($command)->setTimeout(3600)->mustRun();
 }

@@ -80,7 +80,7 @@ final class DoctrineFieldListenerTest extends KernelTestCase
         self::assertSame('Diocèse de Nantes', $document['_source']['dioceseName']);
 
         $accessor = Field::getPropertyName(FieldCommunity::NAME);
-        $fieldParishName->$accessor = 'Paroisse de la Haie';
+        $fieldParishName->{$accessor} = 'Paroisse de la Haie';
         $this->em->flush();
 
         $this->searchHelper->refresh(SearchIndex::PARISH);
@@ -152,7 +152,7 @@ final class DoctrineFieldListenerTest extends KernelTestCase
 
         $dioceseFieldName = $diocese->getMostTrustableFieldByName(FieldCommunity::NAME);
         $accessor = Field::getPropertyName(FieldCommunity::NAME);
-        $dioceseFieldName->$accessor = 'Hyper Diocèse';
+        $dioceseFieldName->{$accessor} = 'Hyper Diocèse';
         $this->em->flush();
 
         $this->searchHelper->refresh(SearchIndex::PARISH);
@@ -180,9 +180,9 @@ final class DoctrineFieldListenerTest extends KernelTestCase
         ]);
 
         $accessor = Field::getPropertyName(FieldPlace::NAME);
-        $fieldPlaceName->$accessor = 'Église Saint-Paul';
+        $fieldPlaceName->{$accessor} = 'Église Saint-Paul';
         $this->em->flush();
 
-        self::assertSame('Église Saint-Paul', $fieldPlaceName->$accessor);
+        self::assertSame('Église Saint-Paul', $fieldPlaceName->{$accessor});
     }
 }

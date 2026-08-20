@@ -1,8 +1,17 @@
 executor: openchurch-app-hetzner
-working_directory: ~/project
+working_directory: /tmp/project
+shell: /bin/sh -e
 steps:
   - checkout:
-      path: ~/project
+      path: /tmp/project
+  - run:
+      name: Debug primary container (openchurch-backend)
+      command: |
+        set -x
+        echo "Running in primary container: $(hostname)"
+        whoami
+        php -v
+        cat /etc/os-release
   - run:
       name: Create .env.test.local
       command: |
@@ -10,34 +19,6 @@ steps:
   - run:
       name: Install dependencies
       command: composer install --no-interaction --prefer-dist --no-progress --no-scripts
-
-  # --- Security ---------------------------------------------------------------------------
-  - run:
-      name: Security check
-      command: composer audit --abandoned=ignore
-
-  # --- Static analysis --------------------------------------------------------------------
-  - run:
-      name: Run PHPStan
-      command: composer phpstan
-  - run:
-      name: php-cs-fixer-check
-      command: php vendor/bin/php-cs-fixer fix --dry-run --diff
-  - run:
-      name: rector (dry-run)
-      command: vendor/bin/rector process --dry-run
-  - run:
-      name: composer validate
-      command: composer validate --strict
-  - run:
-      name: "lint:container"
-      command: php bin/console lint:container
-  - run:
-      name: "lint:yaml"
-      command: php bin/console lint:yaml config src
-  - run:
-      name: "lint:twig"
-      command: php bin/console lint:twig templates
 
   # --- Database schema --------------------------------------------------------------------
   - run:

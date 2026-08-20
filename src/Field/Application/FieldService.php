@@ -169,7 +169,7 @@ final readonly class FieldService
         assert(is_string($value));
         $instance = $repo->ofId(Uuid::fromString($value));
 
-        if ($instance === null) {
+        if (null === $instance) {
             throw new FieldEntityNotFoundException($value);
         }
 
