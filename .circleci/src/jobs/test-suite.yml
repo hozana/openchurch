@@ -13,14 +13,6 @@ steps:
   - checkout:
       path: /tmp/project
   - run:
-      name: Debug primary container (openchurch-backend)
-      command: |
-        set -x
-        echo "Running in primary container: $(hostname)"
-        whoami
-        php -v
-        cat /etc/os-release
-  - run:
       name: Create .env.test.local
       command: |
         echo "DATABASE_URL=mysql://root:symfony@127.0.0.1:3306/openchurch?serverVersion=11.5.2-MariaDB&charset=utf8mb4" > .env.test.local
@@ -36,11 +28,11 @@ steps:
       name: Install MySQL client
       command: apt update &&apt-get install -y --no-install-recommends mariadb-client
   - run:
-      name: Wait for mariadb to be stable...
+      name: Wait for persistance database to be stable
       command: |
         count=0
         max_iterations=60
-        until mariadb -h 127.0.0.1 -u root -psymfony -e "SELECT 1" > /dev/null 2>&1; do
+        until bin/console doctrine:migration:status > /dev/null 2>&1; do
             count=$((count + 1))
             if [ "$count" -ge "$max_iterations" ]; then
                 echo "\nMax attempts reached. Exiting..."
@@ -50,6 +42,7 @@ steps:
             sleep 5
         done
         echo "\nMariaDB is UP!"
+
   - run:
       name: Wait for elasticsearch to be stable...
       command: |
@@ -71,14 +64,13 @@ steps:
   - run:
       name: Run Tests (<< parameters.suite-name >>)
       command: |
-        XDEBUG_MODE=coverage php -d memory_limit=1G vendor/bin/phpunit --debug --verbose --coverage-html "build/coverage/<< parameters.artifact-name >>-html" --log-junit "build/coverage/<< parameters.artifact-name >>-junit.xml" --coverage-php "build/coverage/<< parameters.artifact-name >>-coverage.cov" --testsuite "<< parameters.suite-name >>"
-#   Integration codacy is paused waiting for feedback from codacy
-#   - run:
-#       name: Upload Coverage to Codacy
-#       command: |
-#         curl -Ls https://coverage.codacy.com/get.sh -o /tmp/codacy-get.sh
-#         bash -x /tmp/codacy-get.sh report -r "build/coverage/<< parameters.artifact-name >>-junit.xml"
-#       when: always
+        XDEBUG_MODE=coverage php -d memory_limit=1G vendor/bin/phpunit --debug --verbose --coverage-html "build/coverage/<< parameters.artifact-name >>-html" --coverage-clover "build/coverage/<< parameters.artifact-name >>-clover.xml" --log-junit "build/coverage/<< parameters.artifact-name >>-junit.xml" --coverage-php "build/coverage/<< parameters.artifact-name >>-coverage.cov" --testsuite "<< parameters.suite-name >>"
+  - run:
+      name: Upload Coverage to Codacy
+      command: |
+        curl -Ls https://coverage.codacy.com/get.sh -o /tmp/codacy-get.sh
+        bash /tmp/codacy-get.sh report -r "build/coverage/<< parameters.artifact-name >>-clover.xml" -t $CODACY_PROJECT_TOKEN
+      when: always
   - store_artifacts:
       path: build/coverage/<< parameters.artifact-name >>-html
       destination: << parameters.artifact-name >>-html
@@ -87,6 +79,9 @@ steps:
       destination: << parameters.artifact-name >>
   - store_artifacts:
       path: build/coverage/<< parameters.artifact-name >>-junit.xml
+      destination: << parameters.artifact-name >>
+  - store_artifacts:
+      path: build/coverage/<< parameters.artifact-name >>-clover.xml
       destination: << parameters.artifact-name >>
   - store_test_results:
       path: build/coverage/<< parameters.artifact-name >>-junit.xml

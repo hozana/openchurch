@@ -1,17 +1,15 @@
 #!/bin/bash -x
 set -e
 
-if [ "$APP_ENV" == 'test' ]; then
-	while true; do
-		echo "Waiting for test to start..."
-		sleep 10
-	done
-fi
-
 # first arg is `-f` or `--some-option`
 if [ "${1#-}" != "$1" ]; then
         set -- frankenphp run "$@"
 fi
+
+echo "----- System Info"
+echo "Running in primary container: $(hostname)"
+whoami
+cat /etc/os-release
 
 echo "----- Versions"
 echo "PHP          --> "$(php -v | grep -Eo "PHP [0-9\.]+" | sed 's/PHP //')
