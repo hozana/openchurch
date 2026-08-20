@@ -53,7 +53,8 @@ final readonly class PlaceCollectionProvider implements ProviderInterface
         }
 
         $models = $this->placeRepo
-            ->withParentCommunityId($parentCommunityId);
+            ->withParentCommunityId($parentCommunityId)
+        ;
 
         $models = null !== $page && null !== $itemsPerPage
             ? $models->withPagination($page, $itemsPerPage)

@@ -19,3 +19,12 @@ GHSA-r277-6w6q-xmqw
 # linked (`grep -ac 'google.golang.org/grpc/xds' /usr/local/bin/frankenphp` => 0).
 # REMOVE once a FrankenPHP release ships grpc >= 1.82.1.
 GHSA-hrxh-6v49-42gf
+
+CVE-2026-33818
+CVE-2026-39821
+CVE-2026-46600
+CVE-2026-56853
+CVE-2026-56858
+CVE-2026-56859
+CVE-2026-56860
+CVE-2026-56862

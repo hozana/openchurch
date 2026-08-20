@@ -1,8 +1,8 @@
 executor: php-executor
-working_directory: ~/project
+working_directory: /tmp/project
 steps:
   - checkout:
-      path: ~/project
+      path: /tmp/project
   - run:
       name: Enforce strict_types=1 on new PHP files
       command: |

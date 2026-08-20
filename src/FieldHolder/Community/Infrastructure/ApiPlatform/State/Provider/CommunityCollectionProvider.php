@@ -56,7 +56,7 @@ final readonly class CommunityCollectionProvider implements ProviderInterface
         }
 
         // name is provided. We search through elastic
-        if ($name !== null) {
+        if (null !== $name) {
             if (!$type) {
                 throw new CommunityTypeNotProvidedException();
             }
@@ -78,13 +78,14 @@ final readonly class CommunityCollectionProvider implements ProviderInterface
             ->withWikidataId(is_numeric($wikidataId) ? (int) $wikidataId : null)
             ->withParentCommunityId($parentCommunity?->id)
             ->withContactZipcodes(is_array($contactZipcodes) ? array_values(array_filter($contactZipcodes, is_string(...))) : null)
-            ->withActive();
+            ->withActive()
+        ;
 
         $models = null !== $page && null !== $itemsPerPage
             ? $models->withPagination($page, $itemsPerPage)
             : $models->withoutPagination();
 
-        if ($name === null) {
+        if (null === $name) {
             $models = $models->sortByName();
         }
 

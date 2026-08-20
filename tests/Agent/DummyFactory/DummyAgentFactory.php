@@ -41,8 +41,7 @@ final class DummyAgentFactory extends PersistentObjectFactory
     #[Override]
     protected function initialize(): static
     {
-        return $this
-            // ->afterInstantiate(function(Agent $agent): void {})
-        ;
+        return $this;
+        // ->afterInstantiate(function(Agent $agent): void {})
     }
 }

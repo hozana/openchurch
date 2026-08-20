@@ -72,9 +72,9 @@ abstract class AcceptanceTestHelper extends ApiTestCase
      */
     protected function get(string $endpoint, ?string $apikey = null, array $headers = [], array $querystring = []): Response
     {
-        if ($querystring !== []) {
+        if ([] !== $querystring) {
             if (str_contains($endpoint, '?')) {
-                throw new InvalidArgumentException("$endpoint already contains a querystring, don't use both \$querystring argument and a hardcoded one!");
+                throw new InvalidArgumentException("{$endpoint} already contains a querystring, don't use both \$querystring argument and a hardcoded one!");
             }
             $endpoint .= '?'.http_build_query($querystring);
         }
@@ -99,17 +99,17 @@ abstract class AcceptanceTestHelper extends ApiTestCase
     {
         $apiHost = $this->getParameter('host_api');
         $endpoint = ltrim($endpoint, '/');
-        $url = "$apiHost/$endpoint";
+        $url = "{$apiHost}/{$endpoint}";
         $content = null !== $body ? json_encode($body, JSON_THROW_ON_ERROR) : '';
 
         $server = [
             'CONTENT_TYPE' => 'application/json',
         ];
         if (null !== $apikey) {
-            $headers['Authorization'] = "Bearer $apikey";
+            $headers['Authorization'] = "Bearer {$apikey}";
         }
         foreach ($headers as $key => $value) {
-            $server["HTTP_$key"] = $value;
+            $server["HTTP_{$key}"] = $value;
         }
 
         $this->client->getKernelBrowser()->request($method, $url, [], [], $server, $content);
@@ -127,7 +127,7 @@ abstract class AcceptanceTestHelper extends ApiTestCase
         $actual = $response->getStatusCode();
         $expectedStatusText = Response::$statusTexts[$expected];
         $actualStatusText = Response::$statusTexts[$actual];
-        $message = "Failed asserting that status code $actual ($actualStatusText) matches expected $expected ($expectedStatusText)";
+        $message = "Failed asserting that status code {$actual} ({$actualStatusText}) matches expected {$expected} ({$expectedStatusText})";
 
         // Include response to ease debugging
         if ('application/json' === $response->headers->get('Content-Type')) {
@@ -135,7 +135,7 @@ abstract class AcceptanceTestHelper extends ApiTestCase
         }
 
         if (null !== $messagePrefix) {
-            $message = "$messagePrefix $message";
+            $message = "{$messagePrefix} {$message}";
         }
 
         self::assertEquals($expectedStatusText, $actualStatusText, $message);
@@ -177,7 +177,8 @@ abstract class AcceptanceTestHelper extends ApiTestCase
     {
         $tableName = $this->em
             ->getClassMetadata($entityClassname)
-            ->getTableName();
+            ->getTableName()
+        ;
 
         $this->cleanTableByName($tableName);
     }
@@ -187,7 +188,7 @@ abstract class AcceptanceTestHelper extends ApiTestCase
         $connection = $this->em->getConnection();
         // Execute individual statements. Executing all of them at once won't throw any error (on missing table for instance)
         $connection->executeStatement('SET FOREIGN_KEY_CHECKS = 0');
-        $connection->executeStatement("DELETE FROM `$tableName`");
+        $connection->executeStatement("DELETE FROM `{$tableName}`");
         $connection->executeStatement('SET FOREIGN_KEY_CHECKS = 1');
     }
 
@@ -201,7 +202,7 @@ abstract class AcceptanceTestHelper extends ApiTestCase
 
         $output = $bufferedOutput->fetch();
 
-        $this->assertSame(0, $returnCode, "Command $command exited with a non-zero return code. $output");
+        $this->assertSame(0, $returnCode, "Command {$command} exited with a non-zero return code. {$output}");
 
         return $output;
     }

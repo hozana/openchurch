@@ -70,13 +70,13 @@ class OfficialElasticSearchService implements SearchServiceInterface
         $analyzedText = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $text);
         $analyzedText = false === $analyzedText ? '' : $analyzedText;
 
-        if (trim($analyzedText) === '') {
+        if ('' === trim($analyzedText)) {
             return [
                 'query' => ['match_all' => new stdClass()],
                 'sort' => [['parishName.french_sort' => ['order' => 'asc']]],
                 'size' => $limit,
                 'from' => $offset,
-                '_source' => false
+                '_source' => false,
             ];
         }
 
@@ -90,9 +90,9 @@ class OfficialElasticSearchService implements SearchServiceInterface
                                 'parishName.exact' => [
                                     'query' => $analyzedText,
                                     'analyzer' => 'exact_analyzer',
-                                    'boost' => 5
-                                ]
-                            ]
+                                    'boost' => 5,
+                                ],
+                            ],
                         ],
                         // 2. prefix search search on parish
                         [
@@ -100,9 +100,9 @@ class OfficialElasticSearchService implements SearchServiceInterface
                                 'parishName.edge_ngram' => [
                                     'value' => $analyzedText,
                                     'rewrite' => 'scoring_boolean',
-                                    'boost' => str_word_count($text) > 2 ? 1 : 3
-                                ]
-                            ]
+                                    'boost' => str_word_count($text) > 2 ? 1 : 3,
+                                ],
+                            ],
                         ],
                         // 3. Approximate search on parish
                         [
@@ -111,18 +111,18 @@ class OfficialElasticSearchService implements SearchServiceInterface
                                     'query' => $analyzedText,
                                     'fuzziness' => 'AUTO',
                                     'prefix_length' => 2,
-                                    'boost' => 1
-                                ]
-                            ]
+                                    'boost' => 1,
+                                ],
+                            ],
                         ],
                         // 4. exact search on diocese
                         [
                             'match' => [
                                 'dioceseName.exact' => [
                                     'query' => $analyzedText,
-                                    'analyzer' => 'exact_analyzer'
-                                ]
-                            ]
+                                    'analyzer' => 'exact_analyzer',
+                                ],
+                            ],
                         ],
                         // 5. Prefix search on diocese
                         [
@@ -130,9 +130,9 @@ class OfficialElasticSearchService implements SearchServiceInterface
                                 'dioceseName.edge_ngram' => [
                                     'value' => $analyzedText,
                                     'rewrite' => 'scoring_boolean',
-                                    'boost' => str_word_count($text) > 2 ? 1 : 3
-                                ]
-                            ]
+                                    'boost' => str_word_count($text) > 2 ? 1 : 3,
+                                ],
+                            ],
                         ],
                         // 6. Approximate search on diocese
                         [
@@ -141,12 +141,12 @@ class OfficialElasticSearchService implements SearchServiceInterface
                                     'query' => $analyzedText,
                                     'fuzziness' => 'AUTO',
                                     'prefix_length' => 2,
-                                ]
-                            ]
-                        ]
+                                ],
+                            ],
+                        ],
                     ],
-                    'minimum_should_match' => 1
-                ]
+                    'minimum_should_match' => 1,
+                ],
             ],
             'sort' => [
                 ['_score' => ['order' => 'desc']],
@@ -154,16 +154,16 @@ class OfficialElasticSearchService implements SearchServiceInterface
             ],
             'size' => $limit,
             'from' => $offset,
-            '_source' => false
+            '_source' => false,
         ];
 
-        if ($dioceseId !== null) {
+        if (null !== $dioceseId) {
             $query['query']['bool']['must'] = [
                 [
                     'term' => [
-                        'dioceseId' => $dioceseId
-                    ]
-                ]
+                        'dioceseId' => $dioceseId,
+                    ],
+                ],
             ];
         }
 
@@ -178,13 +178,13 @@ class OfficialElasticSearchService implements SearchServiceInterface
         $analyzedText = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $text);
         $analyzedText = false === $analyzedText ? '' : $analyzedText;
 
-        if (trim($analyzedText) === '') {
+        if ('' === trim($analyzedText)) {
             return [
                 'query' => ['match_all' => new stdClass()],
                 'sort' => [['dioceseName.french_sort' => ['order' => 'asc']]],
                 'size' => $limit,
                 'from' => $offset,
-                '_source' => false
+                '_source' => false,
             ];
         }
 
@@ -197,9 +197,9 @@ class OfficialElasticSearchService implements SearchServiceInterface
                             'match' => [
                                 'dioceseName.exact' => [
                                     'query' => $analyzedText,
-                                    'boost' => 5
-                                ]
-                            ]
+                                    'boost' => 5,
+                                ],
+                            ],
                         ],
                         // 2. Prefix search (short)
                         [
@@ -207,9 +207,9 @@ class OfficialElasticSearchService implements SearchServiceInterface
                                 'dioceseName.edge_ngram' => [
                                     'value' => $analyzedText,
                                     'rewrite' => 'scoring_boolean',
-                                    'boost' => str_word_count($text) > 2 ? 1 : 3
-                                ]
-                            ]
+                                    'boost' => str_word_count($text) > 2 ? 1 : 3,
+                                ],
+                            ],
                         ],
                         // 3. Approximate search
                         [
@@ -218,13 +218,13 @@ class OfficialElasticSearchService implements SearchServiceInterface
                                     'query' => $analyzedText,
                                     'fuzziness' => 'AUTO',
                                     'prefix_length' => 2,
-                                    'boost' => 1
-                                ]
-                            ]
-                        ]
+                                    'boost' => 1,
+                                ],
+                            ],
+                        ],
                     ],
-                    'minimum_should_match' => 1
-                ]
+                    'minimum_should_match' => 1,
+                ],
             ],
             'sort' => [
                 ['_score' => ['order' => 'desc']],

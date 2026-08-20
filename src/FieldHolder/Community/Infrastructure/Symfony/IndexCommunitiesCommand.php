@@ -44,7 +44,8 @@ class IndexCommunitiesCommand extends Command
         $dioceses = $this->communityRepo
             ->addSelectField()
             ->withType(CommunityType::DIOCESE->value)
-            ->asCollection();
+            ->asCollection()
+        ;
 
         $output->writeln('Indexing dioceses...');
         $this->createDioceseIndexes($dioceses);
@@ -92,7 +93,8 @@ class IndexCommunitiesCommand extends Command
             $parishes = $this->communityRepo
                 ->addSelectField()
                 ->withType(CommunityType::PARISH->value)
-                ->withPagination($i, self::BULK_SIZE);
+                ->withPagination($i, self::BULK_SIZE)
+            ;
 
             $idsToIndex = [];
             $parishesToIndex = [];

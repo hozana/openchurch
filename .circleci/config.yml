@@ -6,12 +6,19 @@ executors:
                 username: hozanaci
               image: docker:24.0.0
         resource_class: medium
+    node-executor:
+        docker:
+            - image: cimg/node:16.20.2
+        resource_class: hozana/hetzner
     openchurch-app-hetzner:
         docker:
             - auth:
                 password: $DOCKERHUB_PASSWORD
                 username: hozanaci
-              entrypoint: ""
+              command:
+                - -c
+                - exec /usr/local/bin/docker-entrypoint.sh frankenphp
+              entrypoint: /bin/sh
               environment:
                 APP_ENV: test
                 APP_SECRET: secret
@@ -20,6 +27,7 @@ executors:
                 REDIS_URL: redis://127.0.0.1:6379
                 SYNCHRO_SECRET_KEY: secret
               image: hozanaci/openchurch-backend:$CIRCLE_SHA1
+              user: root
             - command:
                 - --performance_schema=OFF
                 - --innodb_buffer_pool_size=128M
@@ -47,6 +55,25 @@ executors:
               image: elasticsearch:8.18.1
             - image: redis:5
         resource_class: hozana/hetzner
+    openchurch-app-light-hetzner:
+        docker:
+            - auth:
+                password: $DOCKERHUB_PASSWORD
+                username: hozanaci
+              command:
+                - -c
+                - exec /usr/local/bin/docker-entrypoint.sh frankenphp
+              entrypoint: /bin/sh
+              environment:
+                APP_ENV: test
+                APP_SECRET: secret
+                ELASTICSEARCH_IRI: http://elastic:admin@127.0.0.1:9200
+                HOST_API: http://api.openchurch.local/api
+                REDIS_URL: redis://127.0.0.1:6379
+                SYNCHRO_SECRET_KEY: secret
+              image: hozanaci/openchurch-backend:$CIRCLE_SHA1
+              user: root
+        resource_class: hozana/hetzner
     php-executor:
         docker:
             - auth:
@@ -55,11 +82,75 @@ executors:
               image: jakzal/phpqa:php8.5-alpine
         resource_class: hozana/hetzner
 jobs:
+    audit-compose-json:
+        executor: php-executor
+        steps:
+            - checkout
+            - run: composer install --ignore-platform-reqs
+            - run: composer audit
+    audit-package-json:
+        executor: php-executor
+        steps:
+            - checkout
+            - run: yarn audit || true
+    composer-validate:
+        executor: php-executor
+        steps:
+            - checkout
+            - run:
+                command: composer validate --strict
+                name: composer validate
+    doctrine-schema-validate:
+        executor: openchurch-app-hetzner
+        shell: /bin/sh -e
+        steps:
+            - checkout:
+                path: /tmp/project
+            - run:
+                command: |
+                    set -x
+                    echo "Running in primary container: $(hostname)"
+                    whoami
+                    php -v
+                    cat /etc/os-release
+                name: Debug primary container (openchurch-backend)
+            - run:
+                command: |
+                    echo "DATABASE_URL=mysql://root:symfony@127.0.0.1:3306/openchurch?serverVersion=11.5.2-MariaDB&charset=utf8mb4" > .env.test.local
+                name: Create .env.test.local
+            - run:
+                command: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+                name: Install dependencies
+            - run:
+                command: apt-get update && apt-get install -y --no-install-recommends mariadb-client
+                name: Install MySQL client
+            - run:
+                command: |
+                    count=0
+                    max_iterations=60
+                    until mariadb -h 127.0.0.1 -u root -psymfony -e "SELECT 1" > /dev/null 2>&1; do
+                        count=$((count + 1))
+                        if [ "$count" -ge "$max_iterations" ]; then
+                            echo "\nMax attempts reached. Exiting..."
+                            exit 1
+                        fi
+                        echo -n .
+                        sleep 5
+                    done
+                    echo "\nMariaDB is UP!"
+                name: Wait for mariadb to be stable...
+            - run:
+                command: php bin/console doctrine:migrations:migrate --no-interaction
+                name: Run migrations
+            - run:
+                command: php bin/console doctrine:schema:validate -vvv
+                name: doctrine:schema:validate
+        working_directory: /tmp/project
     enforce-strict-typing-on-new-php-files:
         executor: php-executor
         steps:
             - checkout:
-                path: ~/project
+                path: /tmp/project
             - run:
                 command: |
                     FAILED=0
@@ -85,68 +176,86 @@ jobs:
                         exit 1
                     fi
                 name: Enforce strict_types=1 on new PHP files
-        working_directory: ~/project
-    quality-checks:
-        executor: openchurch-app-hetzner
+        working_directory: /tmp/project
+    lint-container:
+        executor: openchurch-app-light-hetzner
+        shell: /bin/sh -e
         steps:
             - checkout:
-                path: ~/project
-            - run:
-                command: |
-                    echo "DATABASE_URL=mysql://root:symfony@127.0.0.1:3306/openchurch?serverVersion=11.5.2-MariaDB&charset=utf8mb4" > .env.test.local
-                name: Create .env.test.local
+                path: /tmp/project
             - run:
                 command: composer install --no-interaction --prefer-dist --no-progress --no-scripts
                 name: Install dependencies
             - run:
-                command: composer audit --abandoned=ignore
-                name: Security check
-            - run:
-                command: composer phpstan
-                name: Run PHPStan
-            - run:
-                command: php vendor/bin/php-cs-fixer fix --dry-run --diff
-                name: php-cs-fixer-check
-            - run:
-                command: vendor/bin/rector process --dry-run
-                name: rector (dry-run)
-            - run:
-                command: composer validate --strict
-                name: composer validate
-            - run:
                 command: php bin/console lint:container
                 name: lint:container
+        working_directory: /tmp/project
+    lint-twig:
+        executor: openchurch-app-light-hetzner
+        shell: /bin/sh -e
+        steps:
+            - checkout:
+                path: /tmp/project
             - run:
-                command: php bin/console lint:yaml config src
-                name: lint:yaml
+                command: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+                name: Install dependencies
             - run:
                 command: php bin/console lint:twig templates
                 name: lint:twig
+        working_directory: /tmp/project
+    lint-yaml:
+        executor: openchurch-app-light-hetzner
+        shell: /bin/sh -e
+        steps:
+            - checkout:
+                path: /tmp/project
             - run:
-                command: apt-get update && apt-get install -y --no-install-recommends mariadb-client
-                name: Install MySQL client
+                command: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+                name: Install dependencies
             - run:
-                command: |
-                    count=0
-                    max_iterations=60
-                    until mariadb -h 127.0.0.1 -u root -psymfony -e "SELECT 1" > /dev/null 2>&1; do
-                        count=$((count + 1))
-                        if [ "$count" -ge "$max_iterations" ]; then
-                            echo "\nMax attempts reached. Exiting..."
-                            exit 1
-                        fi
-                        echo -n .
-                        sleep 5
-                    done
-                    echo "\nMariaDB is UP!"
-                name: Wait for mariadb to be stable...
+                command: php bin/console lint:yaml config src
+                name: lint:yaml
+        working_directory: /tmp/project
+    php-cs-fix:
+        executor: php-executor
+        steps:
+            - checkout
+            - run: /tools/php-cs-fixer --using-cache=no --config=.php-cs-fixer.php --dry-run --diff fix
+    phpstan:
+        executor: openchurch-app-light-hetzner
+        shell: /bin/sh -e
+        steps:
+            - checkout:
+                path: /tmp/project
             - run:
-                command: php bin/console doctrine:migrations:migrate --no-interaction
-                name: Run migrations
+                command: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+                name: Install dependencies
             - run:
-                command: php bin/console doctrine:schema:validate -vvv
-                name: doctrine:schema:validate
-        working_directory: ~/project
+                command: composer phpstan
+                name: Run PHPStan
+        working_directory: /tmp/project
+    rector:
+        executor: openchurch-app-light-hetzner
+        shell: /bin/sh -e
+        steps:
+            - checkout:
+                path: /tmp/project
+            - run:
+                command: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+                name: Install dependencies
+            - run:
+                command: vendor/bin/rector process --dry-run
+                name: rector (dry-run)
+        working_directory: /tmp/project
+    symfony-security-checks:
+        executor: php-executor
+        steps:
+            - checkout
+            - run:
+                command: |-
+                    curl -Ls https://github.com/symfony-cli/symfony-cli/releases/download/v5.10.3/symfony-cli_linux_amd64.tar.gz | tar -zxv symfony
+                    ./symfony check:security
+                name: Symfony Security Check
     test-suite:
         executor: openchurch-app-hetzner
         parameters:
@@ -156,9 +265,18 @@ jobs:
             suite-name:
                 description: PHPUnit test suite name
                 type: string
+        shell: /bin/bash -e
         steps:
             - checkout:
-                path: ~/project
+                path: /tmp/project
+            - run:
+                command: |
+                    set -x
+                    echo "Running in primary container: $(hostname)"
+                    whoami
+                    php -v
+                    cat /etc/os-release
+                name: Debug primary container (openchurch-backend)
             - run:
                 command: |
                     echo "DATABASE_URL=mysql://root:symfony@127.0.0.1:3306/openchurch?serverVersion=11.5.2-MariaDB&charset=utf8mb4" > .env.test.local
@@ -172,7 +290,7 @@ jobs:
                 command: composer install --no-interaction --prefer-dist --no-progress --no-scripts
                 name: Install dependencies
             - run:
-                command: apt-get install -y --no-install-recommends mariadb-client
+                command: apt update &&apt-get install -y --no-install-recommends mariadb-client
                 name: Install MySQL client
             - run:
                 command: |
@@ -222,13 +340,36 @@ jobs:
                 path: build/coverage/<< parameters.artifact-name >>-junit.xml
             - store_test_results:
                 path: build/coverage/<< parameters.artifact-name >>-junit.xml
-        working_directory: ~/project
+        working_directory: /tmp/project
 orbs:
     hozana: hozana/common-tasks@0.1.11
 version: 2.1
 workflows:
     run_pipeline:
         jobs:
+            - php-cs-fix
+            - audit-compose-json
+            - composer-validate
+            - symfony-security-checks
+            - enforce-strict-typing-on-new-php-files
+            - rector:
+                requires:
+                    - hozana/build-via-n8n
+            - phpstan:
+                requires:
+                    - hozana/build-via-n8n
+            - lint-container:
+                requires:
+                    - hozana/build-via-n8n
+            - lint-yaml:
+                requires:
+                    - hozana/build-via-n8n
+            - lint-twig:
+                requires:
+                    - hozana/build-via-n8n
+            - doctrine-schema-validate:
+                requires:
+                    - hozana/build-via-n8n
             - hozana/build-via-n8n:
                 docker_image_name: openchurch-backend
                 resource_class: hozana/hetzner
@@ -239,15 +380,11 @@ workflows:
                     - hozana/build-via-n8n
                 resource_class: hozana/hetzner
                 severity: CRITICAL,HIGH
-            - quality-checks:
-                requires:
-                    - hozana/build-via-n8n
             - test-suite:
                 artifact-name: full-coverage
                 name: full-tests
                 requires:
                     - hozana/build-via-n8n
-                    - quality-checks
                 suite-name: Full test suite
             - hozana/deploy-to-swarm:
                 docker_image_name: openchurch-backend
@@ -281,5 +418,11 @@ workflows:
                 requires:
                     - full-tests
                     - hozana/trivy-audit
+                    - lint-container
+                    - lint-yaml
+                    - lint-twig
+                    - doctrine-schema-validate
+                    - rector
+                    - phpstan
                 resource_class: hozana/hetzner
 

@@ -20,7 +20,8 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
         $this->elasticsearchClient = ClientBuilder::create()
             ->setHosts([$elasticsearchHost])
             ->setSSLVerification(false)
-            ->build();
+            ->build()
+        ;
     }
 
     /**
@@ -49,8 +50,8 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                 'normalizer' => [
                     'french_normalizer' => [
                         'type' => 'custom',
-                        'filter' => ['lowercase', 'asciifolding']
-                    ]
+                        'filter' => ['lowercase', 'asciifolding'],
+                    ],
                 ],
                 'filter' => [
                     'french_stemmer' => [
@@ -75,9 +76,9 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                             'aura', 'aurons', 'aurez', 'auront', 'aurais', 'aurait', 'aurions', 'auriez',
                             'auraient', 'avais', 'avait', 'avions', 'aviez', 'avaient', 'eut', 'eûmes',
                             'eûtes', 'eurent', 'aie', 'aies', 'ait', 'ayons', 'ayez', 'aient', 'eusse',
-                            'eusses', 'eût', 'eussions', 'eussiez', 'eussent'
+                            'eusses', 'eût', 'eussions', 'eussiez', 'eussent',
                         ], // Full french list without 'notre' (usefull for Notre-Dame-...)
-                        'ignore_case' => true
+                        'ignore_case' => true,
                     ],
                     'french_elision' => [
                         'type' => 'elision',
@@ -95,7 +96,7 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                             'asciifolding',
                             'french_elision',
                             'french_stop',
-                        ]
+                        ],
                     ],
                     'edge_ngram_analyzer' => [
                         'type' => 'custom',
@@ -114,7 +115,7 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                         'filter' => [
                             'lowercase',
                             'asciifolding',
-                        ]
+                        ],
                     ],
                 ],
                 'tokenizer' => [
@@ -122,9 +123,9 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                         'type' => 'edge_ngram',
                         'min_gram' => 2,
                         'max_gram' => 15,
-                        'token_chars' => ['letter', 'digit']
-                    ]
-                ]
+                        'token_chars' => ['letter', 'digit'],
+                    ],
+                ],
             ],
         ];
     }
@@ -149,17 +150,17 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                             'type' => 'icu_collation_keyword',
                             'language' => 'fr',
                             'country' => 'FR',
-                            'strength' => 'secondary'
+                            'strength' => 'secondary',
                         ],
                         'exact' => [
                             'type' => 'text',
-                            'analyzer' => 'exact_analyzer'
+                            'analyzer' => 'exact_analyzer',
                         ],
                         'edge_ngram' => [
                             'type' => 'text',
                             'analyzer' => 'edge_ngram_analyzer',
                         ],
-                    ]
+                    ],
                 ],
                 'dioceseName' => [
                     'type' => 'text',
@@ -171,9 +172,9 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                         ],
                         'exact' => [
                             'type' => 'text',
-                            'analyzer' => 'exact_analyzer'
+                            'analyzer' => 'exact_analyzer',
                         ],
-                    ]
+                    ],
                 ],
                 'dioceseId' => [
                     'type' => 'keyword',
@@ -198,19 +199,19 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                     'fields' => [
                         'edge_ngram' => [
                             'type' => 'text',
-                            'analyzer' => 'edge_ngram_analyzer'
+                            'analyzer' => 'edge_ngram_analyzer',
                         ],
                         'exact' => [
                             'type' => 'text',
-                            'analyzer' => 'exact_analyzer'
+                            'analyzer' => 'exact_analyzer',
                         ],
                         'french_sort' => [
                             'type' => 'icu_collation_keyword',
                             'language' => 'fr',
                             'country' => 'FR',
-                            'strength' => 'secondary'
-                        ]
-                    ]
+                            'strength' => 'secondary',
+                        ],
+                    ],
                 ],
             ],
         ];
@@ -244,7 +245,7 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             $params = ['body' => []];
         }
 
-        if ($params['body'] !== []) {
+        if ([] !== $params['body']) {
             $this->elasticsearchClient->bulk($params);
         }
     }

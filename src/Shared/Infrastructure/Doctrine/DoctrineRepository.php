@@ -37,13 +37,14 @@ abstract class DoctrineRepository implements RepositoryInterface
     ) {
         $this->queryBuilder = $this->em->createQueryBuilder()
             ->select($alias)
-            ->from($entityClass, $alias);
+            ->from($entityClass, $alias)
+        ;
     }
 
     protected function join(string $from, string $to, string $alias): static
     {
         $cloned = clone $this;
-        $cloned->queryBuilder->leftJoin("$from.$to", $alias);
+        $cloned->queryBuilder->leftJoin("{$from}.{$to}", $alias);
 
         return $cloned;
     }

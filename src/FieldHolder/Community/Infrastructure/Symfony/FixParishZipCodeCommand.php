@@ -51,7 +51,8 @@ class FixParishZipCodeCommand extends Command
         while (true) {
             $parishes = $this->communityRepository
                 ->withType(CommunityType::PARISH->value)
-                ->withPagination($i, self::BULK_SIZE);
+                ->withPagination($i, self::BULK_SIZE)
+            ;
 
             foreach ($parishes as $parish) {
                 $name = $parish->getMostTrustableFieldByName(FieldCommunity::NAME)?->getValue();
@@ -64,7 +65,7 @@ class FixParishZipCodeCommand extends Command
                 $wikidataId = $wikidata;
                 $zipCode = $parish->getMostTrustableFieldByName(FieldCommunity::CONTACT_ZIPCODE);
 
-                if ($zipCode === null) {
+                if (null === $zipCode) {
                     $this->onError($output, sprintf('%s with wikidata %s: has no zip code field', $parishName, $wikidataId), $parishName, $wikidataId);
                     continue;
                 }
@@ -76,7 +77,7 @@ class FixParishZipCodeCommand extends Command
                 }
                 $city = array_find($cities, static fn ($city) => $city['zipCode'] === $zipCodeValue);
 
-                if ($city === null) {
+                if (null === $city) {
                     // No city found with this zip code. It means the zip code is invalid or the zipCode is an inseeCode
                     $city = array_find($cities, static fn ($city) => $city['inseeCode'] === $zipCodeValue);
                     if ($city) {
@@ -93,7 +94,7 @@ class FixParishZipCodeCommand extends Command
             $this->entityManager->flush();
             $this->entityManager->clear();
 
-            if ($parishes->count() === 0) {
+            if (0 === $parishes->count()) {
                 break;
             }
 

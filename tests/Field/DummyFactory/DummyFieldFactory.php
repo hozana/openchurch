@@ -51,8 +51,7 @@ final class DummyFieldFactory extends PersistentObjectFactory
     #[Override]
     protected function initialize(): static
     {
-        return $this
-            // ->afterInstantiate(function(Field $field): void {})
-        ;
+        return $this;
+        // ->afterInstantiate(function(Field $field): void {})
     }
 }
