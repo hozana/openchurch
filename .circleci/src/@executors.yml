@@ -64,7 +64,12 @@ executors:
         entrypoint: /bin/sh
         command:
           - -c
-          - bin/elasticsearch-plugin install --batch analysis-icu && exec /usr/local/bin/docker-entrypoint.sh elasticsearch
+          - |
+            /usr/bin/timeout 300s su -s /bin/sh -p elasticsearch -c "
+              export PATH=/usr/share/elasticsearch/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin &&
+              bin/elasticsearch-plugin install --batch analysis-icu &&
+              /usr/local/bin/docker-entrypoint.sh elasticsearch
+            "
         environment:
           discovery.type: single-node
           xpack.security.enabled: "true"
