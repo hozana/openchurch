@@ -27,6 +27,9 @@ abstract class DoctrineRepository implements RepositoryInterface
 
     private QueryBuilder $queryBuilder;
 
+    /**
+     * @param class-string<T> $entityClass
+     */
     public function __construct(
         protected EntityManagerInterface $em,
         string $entityClass,
@@ -34,13 +37,14 @@ abstract class DoctrineRepository implements RepositoryInterface
     ) {
         $this->queryBuilder = $this->em->createQueryBuilder()
             ->select($alias)
-            ->from($entityClass, $alias);
+            ->from($entityClass, $alias)
+        ;
     }
 
     protected function join(string $from, string $to, string $alias): static
     {
         $cloned = clone $this;
-        $cloned->queryBuilder->leftJoin("$from.$to", $alias);
+        $cloned->queryBuilder->leftJoin("{$from}.{$to}", $alias);
 
         return $cloned;
     }
@@ -61,7 +65,10 @@ abstract class DoctrineRepository implements RepositoryInterface
             return;
         }
 
-        yield from $this->queryBuilder->getQuery()->getResult();
+        /** @var list<T> $results */
+        $results = $this->queryBuilder->getQuery()->getResult();
+
+        yield from $results;
     }
 
     public function count(): int
@@ -157,7 +164,10 @@ abstract class DoctrineRepository implements RepositoryInterface
      */
     public function asCollection(): Collection
     {
-        return new ArrayCollection($this->queryBuilder->getQuery()->getResult());
+        /** @var array<int, T> $elements */
+        $elements = $this->queryBuilder->getQuery()->getResult();
+
+        return new ArrayCollection($elements);
     }
 
     public function getDQL(): string

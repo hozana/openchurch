@@ -54,7 +54,7 @@ final class UpdateCommunityTest extends AcceptanceTestHelper
             ];
         });
 
-        $response = self::assertResponse($this->patch("/communities/$community->id", $agent->apiKey, body: [
+        $response = self::assertResponse($this->patch("/communities/{$community->id}", $agent->apiKey, body: [
             'fields' => [
                 [
                     'name' => FieldCommunity::WIKIDATA_ID,
@@ -79,7 +79,7 @@ final class UpdateCommunityTest extends AcceptanceTestHelper
         $agent = DummyAgentFactory::createOne();
         $community = DummyCommunityFactory::createOne();
 
-        self::assertResponse($this->patch("/communities/$community->id", $agent->apiKey, body: [
+        self::assertResponse($this->patch("/communities/{$community->id}", $agent->apiKey, body: [
             'fields' => [
                 [
                     'name' => 'toto',
@@ -98,7 +98,7 @@ final class UpdateCommunityTest extends AcceptanceTestHelper
         $agent = DummyAgentFactory::createOne();
         $community = DummyCommunityFactory::createOne();
 
-        self::assertResponse($this->patch("/communities/$community->id", $agent->apiKey, body: [
+        self::assertResponse($this->patch("/communities/{$community->id}", $agent->apiKey, body: [
             'fields' => [
                 [
                     'name' => FieldCommunity::TYPE,
@@ -139,7 +139,7 @@ final class UpdateCommunityTest extends AcceptanceTestHelper
             ],
         ]));
 
-        $response = self::assertResponse($this->patch("/communities/$community->id", $agent->apiKey, body: [
+        $response = self::assertResponse($this->patch("/communities/{$community->id}", $agent->apiKey, body: [
             'fields' => [
                 [
                     'name' => FieldCommunity::WIKIDATA_ID,
@@ -160,7 +160,7 @@ final class UpdateCommunityTest extends AcceptanceTestHelper
         $agent = DummyAgentFactory::createOne();
         $id = UuidV7::v7();
 
-        self::assertErrorResponse($this->patch("/communities/$id", $agent->apiKey, body: [
+        self::assertErrorResponse($this->patch("/communities/{$id}", $agent->apiKey, body: [
             'fields' => [
                 [
                     'name' => FieldCommunity::CONTACT_CITY,

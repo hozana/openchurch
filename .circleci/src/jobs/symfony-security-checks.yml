@@ -1,0 +1,8 @@
+executor: php-executor
+steps:
+  - checkout
+  - run:
+      name: Symfony Security Check
+      command: |
+        curl -Ls https://github.com/symfony-cli/symfony-cli/releases/download/v5.10.3/symfony-cli_linux_amd64.tar.gz | tar -zxv symfony
+        ./symfony check:security

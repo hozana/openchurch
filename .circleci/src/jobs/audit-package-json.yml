@@ -1,0 +1,4 @@
+executor: php-executor
+steps:
+  - checkout
+  - run: yarn audit || true

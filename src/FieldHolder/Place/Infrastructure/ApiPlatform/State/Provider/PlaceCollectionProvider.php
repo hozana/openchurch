@@ -11,6 +11,7 @@ use ApiPlatform\State\ProviderInterface;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\FieldHolder\Place\Domain\Repository\PlaceRepositoryInterface;
 use App\FieldHolder\Place\Infrastructure\ApiPlatform\Resource\PlaceResource;
+use App\Shared\Domain\Cast;
 use App\Shared\Infrastructure\ApiPlatform\State\Paginator;
 use ArrayIterator;
 use Symfony\Component\Uid\Uuid;
@@ -31,9 +32,17 @@ final readonly class PlaceCollectionProvider implements ProviderInterface
      */
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): Paginator|array
     {
-        $parentCommunityId = $context['filters'][FieldCommunity::PARENT_COMMUNITY_ID->value] ?? null;
-        if ($parentCommunityId && !Uuid::isValid($parentCommunityId)) {
-            throw new InvalidArgumentException(sprintf('provided parentCommunityId %s is not a valid uuid', $parentCommunityId));
+        $filters = is_array($context['filters'] ?? null) ? $context['filters'] : [];
+
+        $rawParentCommunityId = $filters[FieldCommunity::PARENT_COMMUNITY_ID->value] ?? null;
+        $parentCommunityId = null;
+
+        if (null !== $rawParentCommunityId) {
+            if (!is_string($rawParentCommunityId) || !Uuid::isValid($rawParentCommunityId)) {
+                throw new InvalidArgumentException(sprintf('provided parentCommunityId %s is not a valid uuid', Cast::toString($rawParentCommunityId)));
+            }
+
+            $parentCommunityId = Uuid::fromString($rawParentCommunityId);
         }
 
         $page = $itemsPerPage = null;
@@ -44,8 +53,12 @@ final readonly class PlaceCollectionProvider implements ProviderInterface
         }
 
         $models = $this->placeRepo
-            ->withParentCommunityId(Uuid::fromString($parentCommunityId))
-            ->withPagination($page, $itemsPerPage);
+            ->withParentCommunityId($parentCommunityId)
+        ;
+
+        $models = null !== $page && null !== $itemsPerPage
+            ? $models->withPagination($page, $itemsPerPage)
+            : $models->withoutPagination();
 
         $resources = [];
         foreach ($models as $model) {

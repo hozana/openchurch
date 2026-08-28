@@ -44,8 +44,7 @@ final class DummyPlaceFactory extends PersistentObjectFactory
     #[Override]
     protected function initialize(): static
     {
-        return $this
-            // ->afterInstantiate(function(Place $place): void {})
-        ;
+        return $this;
+        // ->afterInstantiate(function(Place $place): void {})
     }
 }

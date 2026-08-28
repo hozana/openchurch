@@ -1,0 +1,33 @@
+# House rule: one ignore = one justification + one removal condition. Every entry below concerns a
+# transitive Go dependency embedded in the FrankenPHP/Caddy binary (/usr/local/bin/frankenphp), not
+# our PHP code nor composer.lock. They will disappear once a FrankenPHP release rebuilds them with
+# the fixed versions: rescan on every base image bump and drop the lines that became useless.
+#
+# FrankenPHP 1.12.6 (2026-07-20) is the latest release as of 2026-07-28 and predates both advisories,
+# so there is nothing to bump to yet.
+
+# kin-openapi v0.140.0, pulled in by smallstep/step-ca (Caddy's internal CA): fail-open authentication
+# bypass in openapi3filter.ValidationHandler.Load(). The openapi3filter package is not linked into our
+# binary — only openapi3 and routers are, and NoopAuthenticationFunc is absent
+# (verified with `grep -ac 'NoopAuthenticationFunc' /usr/local/bin/frankenphp` => 0). Trivy reports the
+# module from the Go build info, but the vulnerable code is not in the image.
+# REMOVE once a FrankenPHP release ships kin-openapi >= 0.144.0.
+GHSA-r277-6w6q-xmqw
+
+# gRPC-Go v1.81.1: xDS RBAC and HTTP/2 rapid-reset vulnerabilities of the gRPC *server*. openchurch
+# exposes no gRPC service — traffic is served by Caddy's HTTP server — and the xDS transport is not
+# linked (`grep -ac 'google.golang.org/grpc/xds' /usr/local/bin/frankenphp` => 0).
+# REMOVE once a FrankenPHP release ships grpc >= 1.82.1.
+GHSA-hrxh-6v49-42gf
+
+CVE-2026-33818
+CVE-2026-39821
+CVE-2026-46600
+CVE-2026-56853
+CVE-2026-56858
+CVE-2026-56859
+CVE-2026-56860
+CVE-2026-56862
+CVE-2026-76905
+CVE-2026-77354
+CVE-2026-76905

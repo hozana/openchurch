@@ -35,13 +35,14 @@ final readonly class CommunityCollectionProvider implements ProviderInterface
      */
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): Paginator|array
     {
-        /** @var string|null $type */
-        $type = $context['filters'][FieldCommunity::TYPE->value] ?? null;
-        $wikidataId = $context['filters'][FieldCommunity::WIKIDATA_ID->value] ?? null;
-        $parentWikidataId = $context['filters'][FieldCommunity::PARENT_WIKIDATA_ID->value] ?? null;
-        $contactZipcodes = $context['filters']['contactZipcodes'] ?? null;
+        $filters = is_array($context['filters'] ?? null) ? $context['filters'] : [];
 
-        $name = $context['filters'][FieldCommunity::NAME->value] ?? null;
+        $type = is_string($rawType = $filters[FieldCommunity::TYPE->value] ?? null) ? $rawType : null;
+        $wikidataId = $filters[FieldCommunity::WIKIDATA_ID->value] ?? null;
+        $parentWikidataId = $filters[FieldCommunity::PARENT_WIKIDATA_ID->value] ?? null;
+        $contactZipcodes = $filters['contactZipcodes'] ?? null;
+
+        $name = is_string($rawName = $filters[FieldCommunity::NAME->value] ?? null) ? $rawName : null;
         $page = $itemsPerPage = null;
 
         if ($this->pagination->isEnabled($operation, $context)) {
@@ -51,18 +52,18 @@ final readonly class CommunityCollectionProvider implements ProviderInterface
 
         $parentCommunity = null;
         if ($parentWikidataId) {
-            $parentCommunity = $this->communityRepo->withWikidataId((int) $parentWikidataId)->asCollection()->first();
+            $parentCommunity = $this->communityRepo->withWikidataId(is_numeric($parentWikidataId) ? (int) $parentWikidataId : null)->asCollection()->first() ?: null;
         }
 
         // name is provided. We search through elastic
-        if ($name !== null) {
+        if (null !== $name) {
             if (!$type) {
                 throw new CommunityTypeNotProvidedException();
             }
 
             $entityIds = match ($type) {
-                CommunityType::PARISH->value => $this->searchService->searchParishIds($name, $parentCommunity?->id?->toString(), $itemsPerPage, $page - 1),
-                CommunityType::DIOCESE->value => $this->searchService->searchDioceseIds($name, $itemsPerPage, $page - 1),
+                CommunityType::PARISH->value => $this->searchService->searchParishIds($name, $parentCommunity?->id?->toString(), $itemsPerPage ?? 0, ($page ?? 1) - 1),
+                CommunityType::DIOCESE->value => $this->searchService->searchDioceseIds($name, $itemsPerPage ?? 0, ($page ?? 1) - 1),
                 default => throw new InvalidArgumentException(sprintf('Invalid type %s', $type)),
             };
 
@@ -74,13 +75,17 @@ final readonly class CommunityCollectionProvider implements ProviderInterface
         $models = $this->communityRepo
             ->ofIds(array_map(Uuid::fromString(...), $entityIds ?? []))
             ->withType($type)
-            ->withWikidataId((int) $wikidataId)
-            ->withParentCommunityId($parentCommunity->id ?? null)
-            ->withContactZipcodes($contactZipcodes)
+            ->withWikidataId(is_numeric($wikidataId) ? (int) $wikidataId : null)
+            ->withParentCommunityId($parentCommunity?->id)
+            ->withContactZipcodes(is_array($contactZipcodes) ? array_values(array_filter($contactZipcodes, is_string(...))) : null)
             ->withActive()
-            ->withPagination($page, $itemsPerPage);
+        ;
 
-        if ($name === null) {
+        $models = null !== $page && null !== $itemsPerPage
+            ? $models->withPagination($page, $itemsPerPage)
+            : $models->withoutPagination();
+
+        if (null === $name) {
             $models = $models->sortByName();
         }
 

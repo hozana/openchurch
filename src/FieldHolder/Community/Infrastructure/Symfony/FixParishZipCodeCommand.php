@@ -46,34 +46,47 @@ class FixParishZipCodeCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $progress = $io->createProgressBar($this->communityRepository->count());
         $csvFilePath = $input->getArgument('csvFilePath');
-        $cities = $this->cityLoader->getCities($csvFilePath);
+        $cities = $this->cityLoader->getCities(is_string($csvFilePath) ? $csvFilePath : null);
 
         while (true) {
             $parishes = $this->communityRepository
                 ->withType(CommunityType::PARISH->value)
-                ->withPagination($i, self::BULK_SIZE);
+                ->withPagination($i, self::BULK_SIZE)
+            ;
 
             foreach ($parishes as $parish) {
-                $parishName = $parish->getMostTrustableFieldByName(FieldCommunity::NAME)->getValue();
-                $zipCode = $parish->getMostTrustableFieldByName(FieldCommunity::CONTACT_ZIPCODE);
-                $wikidataId = $parish->getMostTrustableFieldByName(FieldCommunity::WIKIDATA_ID)->getValue();
+                $name = $parish->getMostTrustableFieldByName(FieldCommunity::NAME)?->getValue();
+                $wikidata = $parish->getMostTrustableFieldByName(FieldCommunity::WIKIDATA_ID)?->getValue();
+                if (!is_string($name) || !is_int($wikidata)) {
+                    continue; // A parish without a usable name or wikidata id cannot be reported on
+                }
 
-                if ($zipCode === null) {
+                $parishName = $name;
+                $wikidataId = $wikidata;
+                $zipCode = $parish->getMostTrustableFieldByName(FieldCommunity::CONTACT_ZIPCODE);
+
+                if (null === $zipCode) {
                     $this->onError($output, sprintf('%s with wikidata %s: has no zip code field', $parishName, $wikidataId), $parishName, $wikidataId);
                     continue;
                 }
-                $city = array_find($cities, static fn ($city) => $city['zipCode'] === $zipCode->getValue());
 
-                if ($city === null) {
+                $zipCodeValue = $zipCode->getValue();
+                if (!is_string($zipCodeValue)) {
+                    $this->onError($output, sprintf('%s with wikidata %s: zip code is not a string', $parishName, $wikidataId), $parishName, $wikidataId);
+                    continue;
+                }
+                $city = array_find($cities, static fn ($city) => $city['zipCode'] === $zipCodeValue);
+
+                if (null === $city) {
                     // No city found with this zip code. It means the zip code is invalid or the zipCode is an inseeCode
-                    $city = array_find($cities, static fn ($city) => $city['inseeCode'] === $zipCode->getValue());
+                    $city = array_find($cities, static fn ($city) => $city['inseeCode'] === $zipCodeValue);
                     if ($city) {
-                        $output->writeln(sprintf('%s with wikidata %s: zip code "%s" is an INSEE code. We fix it', $parishName, $wikidataId, $zipCode->getValue()));
+                        $output->writeln(sprintf('%s with wikidata %s: zip code "%s" is an INSEE code. We fix it', $parishName, $wikidataId, $zipCodeValue));
                         $zipCode->value = $city['zipCode'];
                         $zipCode->applyValue();
                         $this->entityManager->flush();
                     } else {
-                        $this->onError($output, sprintf('%s with wikidata %s: zip code "%s" is invalid', $parishName, $wikidataId, $zipCode->getValue()), $parishName, $wikidataId);
+                        $this->onError($output, sprintf('%s with wikidata %s: zip code "%s" is invalid', $parishName, $wikidataId, $zipCodeValue), $parishName, $wikidataId);
                     }
                 }
             }
@@ -81,7 +94,7 @@ class FixParishZipCodeCommand extends Command
             $this->entityManager->flush();
             $this->entityManager->clear();
 
-            if ($parishes->count() === 0) {
+            if (0 === $parishes->count()) {
                 break;
             }
 

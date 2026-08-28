@@ -42,7 +42,8 @@ final class DoctrinePlaceRepository extends DoctrineRepository implements PlaceR
         return
             $this->filter(static function (QueryBuilder $qb) use ($ids): void {
                 $qb->andWhere('place.id IN (:ids)')
-                    ->setParameter('ids', array_map(static fn (Uuid $id) => $id->toBinary(), $ids));
+                    ->setParameter('ids', array_map(static fn (Uuid $id) => $id->toBinary(), $ids))
+                ;
             });
     }
 
@@ -54,7 +55,8 @@ final class DoctrinePlaceRepository extends DoctrineRepository implements PlaceR
     public function addSelectField(): static
     {
         return $this->join(self::ALIAS, 'fields', 'fields')
-            ->addSelect('fields');
+            ->addSelect('fields')
+        ;
     }
 
     public function withWikidataId(?int $value): static
@@ -66,11 +68,12 @@ final class DoctrinePlaceRepository extends DoctrineRepository implements PlaceR
         return
             $this->filter(static function (QueryBuilder $qb) use ($value): void {
                 $qb->andWhere("
-                        EXISTS (SELECT 1 FROM App\Field\Domain\Model\Field f_wikidata
+                        EXISTS (SELECT 1 FROM App\\Field\\Domain\\Model\\Field f_wikidata
                         WHERE f_wikidata.place = place
                         AND f_wikidata.name = 'wikidataId' AND f_wikidata.intVal = :valueWikidata)
                     ")
-                    ->setParameter('valueWikidata', $value);
+                    ->setParameter('valueWikidata', $value)
+                ;
             });
     }
 
@@ -79,18 +82,19 @@ final class DoctrinePlaceRepository extends DoctrineRepository implements PlaceR
      */
     public function withWikidataIds(?array $wikidataIds): static
     {
-        if (0 === count($wikidataIds)) {
+        if (null === $wikidataIds || [] === $wikidataIds) {
             return $this;
         }
 
         return
             $this->filter(static function (QueryBuilder $qb) use ($wikidataIds): void {
                 $qb->andWhere("
-                        EXISTS (SELECT 1 FROM App\Field\Domain\Model\Field f_wikidata
+                        EXISTS (SELECT 1 FROM App\\Field\\Domain\\Model\\Field f_wikidata
                         WHERE f_wikidata.place = place
                         AND f_wikidata.name = 'wikidataId' AND f_wikidata.intVal IN(:valueWikidataIds))
                     ")
-                    ->setParameter('valueWikidataIds', $wikidataIds);
+                    ->setParameter('valueWikidataIds', $wikidataIds)
+                ;
             });
     }
 
@@ -104,14 +108,15 @@ final class DoctrinePlaceRepository extends DoctrineRepository implements PlaceR
             $this->filter(static function (QueryBuilder $qb) use ($parentId): void {
                 $qb->andWhere("
                         EXISTS (
-                            SELECT 1 FROM App\Field\Domain\Model\Field f_community_parent_id
+                            SELECT 1 FROM App\\Field\\Domain\\Model\\Field f_community_parent_id
                             JOIN f_community_parent_id.communitiesVal communities
                             WHERE f_community_parent_id.place = place AND
                             f_community_parent_id.name = 'parentCommunities' AND
                             communities.id = :valueParentCommunity
                         )
                     ")
-                    ->setParameter('valueParentCommunity', $parentId->toBinary());
+                    ->setParameter('valueParentCommunity', $parentId->toBinary())
+                ;
             });
     }
 }

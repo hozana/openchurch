@@ -22,7 +22,8 @@ class FieldHolder
     public function getFieldsByName(FieldCommunity|FieldPlace $name): Collection
     {
         return $this->fields
-            ->filter(static fn (Field $field) => $field->name === $name->value);
+            ->filter(static fn (Field $field) => $field->name === $name->value)
+        ;
     }
 
     public function getMostTrustableFieldByName(FieldCommunity|FieldPlace $name): ?Field

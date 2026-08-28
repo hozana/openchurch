@@ -1,0 +1,36 @@
+executor: openchurch-app-hetzner
+working_directory: /tmp/project
+shell: /bin/sh -e
+steps:
+  - checkout:
+      path: /tmp/project
+  - run:
+      name: Create .env.test.local
+      command: |
+        echo "DATABASE_URL=mysql://root:symfony@127.0.0.1:3306/openchurch?serverVersion=11.5.2-MariaDB&charset=utf8mb4" > .env.test.local
+  - run:
+      name: Install dependencies
+      command: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+
+  # --- Database schema --------------------------------------------------------------------
+  - run:
+      name: Wait for mariadb to be stable...
+      command: |
+        count=0
+        max_iterations=60
+        until bin/console doctrine:migration:status > /dev/null 2>&1; do
+            count=$((count + 1))
+            if [ "$count" -ge "$max_iterations" ]; then
+                echo "\nMax attempts reached. Exiting..."
+                exit 1
+            fi
+            echo -n .
+            sleep 5
+        done
+        echo "\nMariaDB is UP!"
+  - run:
+      name: Run migrations
+      command: php bin/console doctrine:migrations:migrate --no-interaction
+  - run:
+      name: "doctrine:schema:validate"
+      command: php bin/console doctrine:schema:validate -vvv

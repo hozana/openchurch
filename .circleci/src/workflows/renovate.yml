@@ -1,0 +1,17 @@
+when:
+    and:
+        - equal:
+              - scheduled_pipeline
+              - << pipeline.trigger_source >>
+        - equal:
+              - renovate
+              - << pipeline.schedule.name >>
+jobs:
+    - hozana/renovate:
+          github_owner: hozana
+          github_repo: qa
+          filters:
+              branches:
+                  only:
+                      - main
+                      - master
