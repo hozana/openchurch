@@ -334,9 +334,27 @@ jobs:
                 path: build/coverage/<< parameters.artifact-name >>-junit.xml
         working_directory: /tmp/project
 orbs:
-    hozana: hozana/common-tasks@0.1.11
+    hozana: hozana/common-tasks@0.1.12
 version: 2.1
 workflows:
+    renovate:
+        jobs:
+            - hozana/renovate:
+                filters:
+                    branches:
+                        only:
+                            - main
+                            - master
+                github_owner: hozana
+                github_repo: qa
+        when:
+            and:
+                - equal:
+                    - scheduled_pipeline
+                    - << pipeline.trigger_source >>
+                - equal:
+                    - renovate
+                    - << pipeline.schedule.name >>
     run_pipeline:
         jobs:
             - php-cs-fix
