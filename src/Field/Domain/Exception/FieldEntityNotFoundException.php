@@ -6,6 +6,7 @@ namespace App\Field\Domain\Exception;
 
 use ApiPlatform\Metadata\ErrorResource;
 use ApiPlatform\Metadata\Exception\ProblemExceptionInterface;
+use App\Shared\Domain\Cast;
 use Exception;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -41,7 +42,7 @@ class FieldEntityNotFoundException extends Exception implements ProblemException
         return sprintf('%s": Could not find some values from provided ID(s)', rtrim(
             array_reduce(
                 (array) $this->value,
-                static fn ($value, $prev) => "$prev, $value",
+                static fn (mixed $value, mixed $prev): string => Cast::toString($prev).', '.Cast::toString($value),
                 ''
             ),
             ','

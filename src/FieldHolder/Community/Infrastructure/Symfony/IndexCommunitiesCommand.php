@@ -44,7 +44,8 @@ class IndexCommunitiesCommand extends Command
         $dioceses = $this->communityRepo
             ->addSelectField()
             ->withType(CommunityType::DIOCESE->value)
-            ->asCollection();
+            ->asCollection()
+        ;
 
         $output->writeln('Indexing dioceses...');
         $this->createDioceseIndexes($dioceses);
@@ -62,8 +63,12 @@ class IndexCommunitiesCommand extends Command
         $idsToIndex = [];
         $diocesesToIndex = [];
         foreach ($dioceses as $diocese) {
-            $idsToIndex[] = $diocese->id->toString();
-            $dioceseName = $diocese->getMostTrustableFieldByName(FieldCommunity::NAME)->getValue();
+            if (null === $dioceseId = $diocese->id) {
+                continue;
+            }
+
+            $idsToIndex[] = $dioceseId->toString();
+            $dioceseName = $diocese->getMostTrustableFieldByName(FieldCommunity::NAME)?->getValue();
 
             $diocesesToIndex[] = [
                 'dioceseName' => $dioceseName,
@@ -88,23 +93,26 @@ class IndexCommunitiesCommand extends Command
             $parishes = $this->communityRepo
                 ->addSelectField()
                 ->withType(CommunityType::PARISH->value)
-                ->withPagination($i, self::BULK_SIZE);
+                ->withPagination($i, self::BULK_SIZE)
+            ;
 
             $idsToIndex = [];
             $parishesToIndex = [];
 
             foreach ($parishes as $parish) {
                 $dioceseName = $dioceseId = null;
-                $parishName = $parish->getMostTrustableFieldByName(FieldCommunity::NAME)->getValue();
-                $parentId = $parish->getMostTrustableFieldByName(FieldCommunity::PARENT_COMMUNITY_ID)?->getValue()?->id?->toString();
+                $parishName = $parish->getMostTrustableFieldByName(FieldCommunity::NAME)?->getValue();
+
+                $parent = $parish->getMostTrustableFieldByName(FieldCommunity::PARENT_COMMUNITY_ID)?->getValue();
+                $parentId = $parent instanceof Community ? $parent->id?->toString() : null;
 
                 if ($parentId) {
                     $parentDiocese =
-                        $dioceses->filter(static fn (Community $diocese) => $diocese->id->toString() === $parentId)->first();
+                        $dioceses->filter(static fn (Community $diocese) => $diocese->id?->toString() === $parentId)->first();
 
                     if ($parentDiocese) {
-                        $dioceseId = $parentDiocese->id->toString();
-                        $dioceseName = $parentDiocese->getMostTrustableFieldByName(FieldCommunity::NAME)->getValue();
+                        $dioceseId = $parentDiocese->id?->toString();
+                        $dioceseName = $parentDiocese->getMostTrustableFieldByName(FieldCommunity::NAME)?->getValue();
                     }
                 }
 

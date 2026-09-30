@@ -570,4 +570,131 @@ final class UpsertCommunityTest extends AcceptanceTestHelper
             8888888 => 'Found duplicate for field messesInfoId with value messeInfoId',
         ]);
     }
+
+    /**
+     * The community is matched through the intVal of one wikidataId field, but the *most
+     * trustable* one carries the id as a string. If the processor fails to recognise it, the
+     * community is neither updated nor unset, and the insert loop silently creates a duplicate.
+     */
+    public function testShouldUpdateAndNotDuplicateWhenMostTrustableWikidataIdIsAString(): void
+    {
+        /** @var CommunityRepositoryInterface $communityRepository */
+        $communityRepository = self::getContainer()->get(CommunityRepositoryInterface::class);
+
+        self::assertCount(0, $communityRepository);
+        $agent = DummyAgentFactory::createOne();
+
+        flush_after(static function () use ($agent) {
+            DummyCommunityFactory::createOne([
+                'fields' => [
+                    // Matched by the withWikidataIds() query, which filters on intVal.
+                    DummyFieldFactory::createOne([
+                        'name' => FieldCommunity::WIKIDATA_ID->value,
+                        Field::getPropertyName(FieldCommunity::WIKIDATA_ID) => 9999999,
+                        'reliability' => FieldReliability::LOW,
+                        'agent' => $agent,
+                    ]),
+                    // Same id, stored as a string, and more trustable: this is what getValue() returns.
+                    DummyFieldFactory::createOne([
+                        'name' => FieldCommunity::WIKIDATA_ID->value,
+                        'stringVal' => '9999999',
+                        'reliability' => FieldReliability::HIGH,
+                        'agent' => $agent,
+                    ]),
+                    DummyFieldFactory::createOne([
+                        'name' => FieldCommunity::TYPE->value,
+                        Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::PARISH->value,
+                        'reliability' => FieldReliability::HIGH,
+                        'agent' => $agent,
+                    ]),
+                ],
+            ]);
+        });
+
+        self::assertCount(1, $communityRepository);
+
+        $response = self::assertResponse($this->put('/communities/upsert', 'secret', body: [
+            'wikidataEntities' => [
+                [
+                    [
+                        'name' => FieldCommunity::WIKIDATA_ID,
+                        'value' => 9999999,
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                    ],
+                ],
+            ],
+        ]), HttpFoundationResponse::HTTP_OK);
+
+        self::assertEquals($response, [9999999 => 'Updated']);
+        self::assertCount(1, $communityRepository, 'the existing community must be updated, not duplicated');
+    }
+
+    /**
+     * Clients may send the wikidata id as a JSON string; PHP used to coerce it silently.
+     */
+    public function testShouldAcceptParentWikidataIdSentAsString(): void
+    {
+        /** @var CommunityRepositoryInterface $communityRepository */
+        $communityRepository = self::getContainer()->get(CommunityRepositoryInterface::class);
+
+        self::assertCount(0, $communityRepository);
+        $agent = DummyAgentFactory::createOne();
+
+        flush_after(static function () use ($agent) {
+            DummyCommunityFactory::createOne([
+                'fields' => [
+                    DummyFieldFactory::createOne([
+                        'name' => FieldCommunity::WIKIDATA_ID->value,
+                        Field::getPropertyName(FieldCommunity::WIKIDATA_ID) => 7777777,
+                        'reliability' => FieldReliability::HIGH,
+                        'agent' => $agent,
+                    ]),
+                    DummyFieldFactory::createOne([
+                        'name' => FieldCommunity::TYPE->value,
+                        Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::DIOCESE->value,
+                        'reliability' => FieldReliability::HIGH,
+                        'agent' => $agent,
+                    ]),
+                ],
+            ]);
+        });
+
+        $response = self::assertResponse($this->put('/communities/upsert', 'secret', body: [
+            'wikidataEntities' => [
+                [
+                    [
+                        'name' => FieldCommunity::WIKIDATA_ID,
+                        'value' => 6666666,
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                    ],
+                    [
+                        'name' => FieldCommunity::TYPE,
+                        'value' => CommunityType::PARISH,
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                    ],
+                    [
+                        // Sent as a string rather than a JSON number.
+                        'name' => FieldCommunity::PARENT_WIKIDATA_ID,
+                        'value' => '7777777',
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                    ],
+                ],
+            ],
+        ]), HttpFoundationResponse::HTTP_OK);
+
+        self::assertEquals($response, [6666666 => 'Inserted']);
+        self::assertCount(2, $communityRepository);
+    }
 }

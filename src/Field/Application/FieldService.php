@@ -16,6 +16,7 @@ use App\FieldHolder\Community\Domain\Model\Community;
 use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\FieldHolder\Place\Domain\Model\Place;
 use App\FieldHolder\Place\Domain\Repository\PlaceRepositoryInterface;
+use App\Shared\Domain\Cast;
 use RuntimeException;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -62,7 +63,7 @@ final readonly class FieldService
                 $agent,
             );
             $value = $this->maybeTransformEntities($enumValue, $fieldPayload->value);
-            if (Community::class === $entity::class) {
+            if ($entity instanceof Community) {
                 $field->community = $entity;
             } else {
                 $field->place = $entity;
@@ -78,6 +79,7 @@ final readonly class FieldService
 
             // Unique constraints validation (TODO use custom Assert instead)
             if (null !== $field->value
+                && null !== $entity->id
                 && in_array($field->name, Field::UNIQUE_CONSTRAINTS, true)
                 && $this->fieldRepo->existOusideOf($entity->id, $enumValue, $field->value)
             ) {
@@ -107,7 +109,8 @@ final readonly class FieldService
     }
 
     /**
-     * @return Community|Community[]|Place|Place[]|null
+     * Resolves ids into entities for Community/Place typed fields; for any other type the raw
+     * value is returned untouched.
      */
     private function maybeTransformEntities(FieldCommunity|FieldPlace $nameEnum, mixed $value): mixed
     {
@@ -145,7 +148,16 @@ final readonly class FieldService
                 throw new BadRequestHttpException($nameEnum->value.': should be an array');
             }
 
-            $instances = $repo->ofIds(array_map(UuidV7::fromString(...), $value))->asCollection();
+            $instances = $repo->ofIds(array_map(
+                static function (mixed $id) use ($nameEnum): UuidV7 {
+                    if (!is_string($id)) {
+                        throw new BadRequestHttpException($nameEnum->value.': should be an array of id strings');
+                    }
+
+                    return UuidV7::fromString($id);
+                },
+                $value
+            ))->asCollection();
 
             if (count($instances) !== count($value)) {
                 throw new FieldEntityNotFoundException($value);
@@ -157,7 +169,7 @@ final readonly class FieldService
         assert(is_string($value));
         $instance = $repo->ofId(Uuid::fromString($value));
 
-        if ($instance === null) {
+        if (null === $instance) {
             throw new FieldEntityNotFoundException($value);
         }
 
@@ -166,11 +178,7 @@ final readonly class FieldService
 
     private function maybeTransformAlias(Place|Community $entity, FieldCommunity|FieldPlace &$enumValue, Field $fieldPayload): void
     {
-        $aliases = match ($entity::class) {
-            Place::class => FieldPlace::ALIASES,
-            Community::class => FieldCommunity::ALIASES,
-            default => null,
-        };
+        $aliases = $entity instanceof Community ? FieldCommunity::ALIASES : FieldPlace::ALIASES;
 
         if (!array_key_exists($enumValue->name, $aliases)) {
             return;
@@ -178,11 +186,23 @@ final readonly class FieldService
 
         $enumValue = $aliases[$enumValue->name];
         $fieldPayload->value = match ($fieldPayload->name) {
-            FieldCommunity::PARENT_WIKIDATA_ID->value => $this->wikidataIdToCommunityId($fieldPayload->value),
-            FieldPlace::PARENT_WIKIDATA_IDS->value => $this->wikidataIdsToCommunityIds($fieldPayload->value),
+            FieldCommunity::PARENT_WIKIDATA_ID->value => $this->wikidataIdToCommunityId($this->toWikidataId($fieldPayload->value)),
+            FieldPlace::PARENT_WIKIDATA_IDS->value => $this->wikidataIdsToCommunityIds(
+                array_map($this->toWikidataId(...), is_array($fieldPayload->value) ? $fieldPayload->value : [])
+            ),
             default => null,
         };
         $fieldPayload->name = $enumValue->value;
+    }
+
+    /**
+     * A wikidata id is an integer, accepted either as a JSON number or as its string form;
+     * anything else in the payload is a client error.
+     */
+    private function toWikidataId(mixed $value): int
+    {
+        return Cast::toIntOrNull($value)
+            ?? throw new BadRequestHttpException(sprintf('wikidataId should be an integer, %s given', get_debug_type($value)));
     }
 
     private function wikidataIdToCommunityId(int $wikidataId): string
@@ -192,7 +212,16 @@ final readonly class FieldService
             throw new FieldParentWikidataIdNotFoundException([$wikidataId]);
         }
 
-        return $fields[0]->community->id->toString() ?? $fields[0]->place->id->toString();
+        return $this->holderIdOf($fields[0])
+            ?? throw new FieldParentWikidataIdNotFoundException([$wikidataId]);
+    }
+
+    /**
+     * Id of the Community or Place the field is attached to.
+     */
+    private function holderIdOf(Field $field): ?string
+    {
+        return $field->community?->id?->toString() ?? $field->place?->id?->toString();
     }
 
     /**
@@ -203,12 +232,15 @@ final readonly class FieldService
     private function wikidataIdsToCommunityIds(array $wikidataIds): array
     {
         $fields = $this->fieldRepo->getNameValueFields(FieldCommunity::WIKIDATA_ID, $wikidataIds);
-        $foundWikidataIds = array_map(static fn (Field $field) => $field->getValue(), $fields);
+        $foundWikidataIds = array_values(array_filter(
+            array_map(static fn (Field $field): mixed => $field->getValue(), $fields),
+            is_int(...)
+        ));
         $missingWikidataIds = array_diff($wikidataIds, $foundWikidataIds);
         if (count($fields) !== count($wikidataIds)) {
             throw new FieldParentWikidataIdNotFoundException($missingWikidataIds);
         }
 
-        return array_map(static fn (Field $field) => $field->community->id->toString() ?? $field->place->id->toString(), $fields);
+        return array_map(fn (Field $field): string => $this->holderIdOf($field) ?? '', $fields);
     }
 }

@@ -10,6 +10,7 @@ use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Override;
 use Symfony\Component\Intl\Countries;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
@@ -34,6 +35,7 @@ class Place extends FieldHolder
      */
     #[ORM\OneToMany(targetEntity: Field::class, mappedBy: 'place')]
     #[Groups(['places'])]
+    #[Override]
     public Collection $fields;
 
     /**
@@ -66,16 +68,22 @@ class Place extends FieldHolder
             if ('deleted' === $stateField->getValue() && !$this->getFieldByNameAndAgent(FieldPlace::DELETION_REASON, $stateField->agent)) {
                 $context->buildViolation('Deletion reason is mandatory when reporting a state=deleted state.')
                     ->atPath('fields')
-                    ->addViolation();
+                    ->addViolation()
+                ;
             }
         }
 
         // Country code validation
         foreach ($this->getFieldsByName(FieldPlace::COUNTRY_CODE) as $countryCodeField) {
-            if ((null !== $countryCode = $countryCodeField->getValue()) && !Countries::exists($countryCode)) {
-                $context->buildViolation("Country code '$countryCode' is not valid.")
+            if (!is_string($countryCode = $countryCodeField->getValue())) {
+                continue;
+            }
+
+            if (!Countries::exists($countryCode)) {
+                $context->buildViolation("Country code '{$countryCode}' is not valid.")
                     ->atPath('fields')
-                    ->addViolation();
+                    ->addViolation()
+                ;
             }
         }
     }

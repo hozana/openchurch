@@ -25,13 +25,15 @@ class DoctrineAgentRepository extends DoctrineRepository implements AgentReposit
     {
         $qb = $this->query();
 
+        /** @var array{name: string}|null $row */
         $row = $qb->select('agent.name')
             ->where('agent.apiKey = :apiKey')
             ->setParameter('apiKey', $apiKey)
             ->getQuery()
             // Cache result for 60 seconds
             ->enableResultCache(60)
-            ->getOneOrNullResult();
+            ->getOneOrNullResult()
+        ;
 
         return $row['name'] ?? null;
     }

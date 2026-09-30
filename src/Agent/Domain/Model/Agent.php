@@ -11,6 +11,7 @@ use Stringable;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
+use Webmozart\Assert\Assert;
 
 #[ORM\Entity]
 #[ORM\Table]
@@ -41,7 +42,7 @@ class Agent implements UserInterface, Stringable
 
     public function __toString(): string
     {
-        return $this->id->toString();
+        return $this->id?->toString() ?? '';
     }
 
     public function getRoles(): array
@@ -56,6 +57,8 @@ class Agent implements UserInterface, Stringable
 
     public function getUserIdentifier(): string
     {
+        Assert::stringNotEmpty($this->name);
+
         return $this->name;
     }
 }

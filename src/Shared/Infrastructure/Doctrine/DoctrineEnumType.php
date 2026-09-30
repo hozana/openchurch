@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Shared\Infrastructure\Doctrine;
 
+use App\Shared\Domain\Cast;
 use App\Shared\Domain\Enum\EnumTrait;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\Type;
@@ -28,7 +29,7 @@ abstract class DoctrineEnumType extends Type
             throw new LogicException("Please don't use integer enums in MySQL.");
         }
 
-        $values = array_map(static fn ($val) => "'$val'", $constants);
+        $values = array_map(static fn (mixed $val): string => "'".Cast::toString($val)."'", $constants);
 
         return 'ENUM('.implode(', ', $values).')';
     }

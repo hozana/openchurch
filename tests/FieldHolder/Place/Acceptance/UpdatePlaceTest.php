@@ -58,7 +58,7 @@ final class UpdatePlaceTest extends AcceptanceTestHelper
             ];
         });
 
-        $response = self::assertResponse($this->patch("/places/$place->id", $agent->apiKey, body: [
+        $response = self::assertResponse($this->patch("/places/{$place->id}", $agent->apiKey, body: [
             'fields' => [
                 [
                     'name' => FieldPlace::WIKIDATA_ID,
@@ -186,7 +186,7 @@ final class UpdatePlaceTest extends AcceptanceTestHelper
         $agent = DummyAgentFactory::createOne();
         $id = UuidV7::v7();
 
-        self::assertErrorResponse($this->patch("/places/$id", $agent->apiKey, body: [
+        self::assertErrorResponse($this->patch("/places/{$id}", $agent->apiKey, body: [
             'fields' => [
                 [
                     'name' => FieldPlace::CAPACITY,

@@ -33,7 +33,10 @@ final readonly class FieldHolderUpsertService
      */
     public function toFieldEntities(array $wikidataEntities): array
     {
-        return $this->denormalizer->denormalize($wikidataEntities, Field::class.'[][]');
+        /** @var Field[][] $entities */
+        $entities = $this->denormalizer->denormalize($wikidataEntities, Field::class.'[][]');
+
+        return $entities;
     }
 
     /**
@@ -60,6 +63,6 @@ final readonly class FieldHolderUpsertService
             return $e->getMessage();
         }
 
-        return $e->getDetail();
+        return $e->getDetail() ?? '';
     }
 }

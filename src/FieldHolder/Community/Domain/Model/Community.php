@@ -10,6 +10,7 @@ use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Override;
 use Stringable;
 use Symfony\Component\Intl\Countries;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -34,6 +35,7 @@ class Community extends FieldHolder implements Stringable
      */
     #[ORM\OneToMany(targetEntity: Field::class, mappedBy: 'community')]
     #[Groups(['communities'])]
+    #[Override]
     public Collection $fields;
 
     /**
@@ -58,7 +60,7 @@ class Community extends FieldHolder implements Stringable
 
     public function __toString(): string
     {
-        return $this->id->toString();
+        return $this->id?->toString() ?? '';
     }
 
     #[Assert\Callback()]
@@ -71,16 +73,22 @@ class Community extends FieldHolder implements Stringable
             if ('deleted' === $stateField->getValue() && !$this->getFieldByNameAndAgent(FieldCommunity::DELETION_REASON, $stateField->agent)) {
                 $context->buildViolation('Deletion reason is mandatory when reporting a state=deleted state.')
                     ->atPath('fields')
-                    ->addViolation();
+                    ->addViolation()
+                ;
             }
         }
 
         // Country code validation
         foreach ($this->getFieldsByName(FieldCommunity::CONTACT_COUNTRY_CODE) as $countryCodeField) {
-            if ((null !== $countryCode = $countryCodeField->getValue()) && !Countries::exists($countryCode)) {
-                $context->buildViolation("Country code '$countryCode' is not valid.")
+            if (!is_string($countryCode = $countryCodeField->getValue())) {
+                continue;
+            }
+
+            if (!Countries::exists($countryCode)) {
+                $context->buildViolation("Country code '{$countryCode}' is not valid.")
                     ->atPath('fields')
-                    ->addViolation();
+                    ->addViolation()
+                ;
             }
         }
     }

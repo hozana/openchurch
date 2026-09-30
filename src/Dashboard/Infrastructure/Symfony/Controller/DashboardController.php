@@ -9,7 +9,6 @@ use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\FieldHolder\Place\Domain\Repository\PlaceRepositoryInterface;
 use DateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -25,19 +24,15 @@ class DashboardController extends AbstractController
     #[Route('/dashboard', name: 'dashboard')]
     public function index(): Response
     {
-        $types = [
-            'diocese' => ['repository' => $this->communityRepository, 'type' => 'diocese'],
-            'parish' => ['repository' => $this->communityRepository, 'type' => 'parish'],
-            'church' => ['repository' => $this->placeRepository, 'type' => null],
+        $counts = [
+            'diocese' => $this->communityRepository->withType('diocese')->count(),
+            'parish' => $this->communityRepository->withType('parish')->count(),
+            'church' => $this->placeRepository->count(),
         ];
 
         $input = [];
 
-        foreach ($types as $key => $config) {
-            $count = ($config['type'] !== null)
-                ? $config['repository']->withType($config['type'])->count()
-                : $config['repository']->count();
-
+        foreach ($counts as $key => $count) {
             $redisData = $this->redisClient->getHash($key);
 
             $input[$key] = [
@@ -53,17 +48,15 @@ class DashboardController extends AbstractController
     }
 
     #[Route('/dashboard/{type}', name: 'dashboard_detail', requirements: ['type' => 'diocese|parish|church'])]
-    public function diocese(Request $request): Response
+    public function diocese(string $type): Response
     {
-        $type = $request->get('type');
-
         $result = [];
         $dioceseData = $this->redisClient->getHash($type);
-        $batchSize = $dioceseData['batchSize'] ?? 100;
-        $batchCount = $dioceseData['batchCount'] ?? 0;
+        $batchSize = (int) ($dioceseData['batchSize'] ?? 100);
+        $batchCount = (int) ($dioceseData['batchCount'] ?? 0);
 
         for ($i = 0; $i < $batchCount; ++$i) {
-            $key = "$type".'_'.($i * $batchSize).'-'.(($i + 1) * $batchSize);
+            $key = "{$type}".'_'.($i * $batchSize).'-'.(($i + 1) * $batchSize);
             $keyData = $this->redisClient->getHash($key);
 
             $result[$key]['status'] = $keyData['status'] ?? 'undefined';
@@ -76,12 +69,13 @@ class DashboardController extends AbstractController
     }
 
     /**
-     * @param array<mixed> $data
+     * @param array<string, string> $data
      */
     private function calculateProgress(array $data): float
     {
-        if (array_key_exists('currentBatch', $data)) {
-            return round($data['currentBatch'] / $data['batchCount'], 2) * 100;
+        $batchCount = (int) ($data['batchCount'] ?? 0);
+        if (array_key_exists('currentBatch', $data) && 0 !== $batchCount) {
+            return round((int) $data['currentBatch'] / $batchCount, 2) * 100;
         }
 
         return 0;

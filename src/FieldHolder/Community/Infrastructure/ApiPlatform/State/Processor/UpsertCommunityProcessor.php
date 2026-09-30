@@ -16,6 +16,7 @@ use App\FieldHolder\Community\Domain\Model\Community;
 use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\FieldHolder\Community\Infrastructure\ApiPlatform\Input\CommunityWikidataInput;
 use App\FieldHolder\FieldHolderUpsertService;
+use App\Shared\Domain\Cast;
 use App\Shared\Domain\Manager\TransactionManagerInterface;
 use Webmozart\Assert\Assert;
 
@@ -50,7 +51,11 @@ final readonly class UpsertCommunityProcessor implements ProcessorInterface
                     throw new FieldWikidataIdMissingException();
                 }
 
-                $wikidataId = $wikidataField->value;
+                $wikidataId = Cast::toIntOrNull($wikidataField->value);
+                if (null === $wikidataId) {
+                    throw new FieldWikidataIdMissingException();
+                }
+
                 $wikidataIdFields[$wikidataId] = $fields;
 
                 return $wikidataId;
@@ -59,7 +64,15 @@ final readonly class UpsertCommunityProcessor implements ProcessorInterface
             // Update...
             $communities = $this->communityRepo->addSelectField()->withWikidataIds($wikidataIds)->asCollection();
             foreach ($communities as $community) {
-                $wikidataId = $community->getMostTrustableFieldByName(FieldCommunity::WIKIDATA_ID)->getValue();
+                $wikidataId = Cast::toIntOrNull($community->getMostTrustableFieldByName(FieldCommunity::WIKIDATA_ID)?->getValue());
+                if (null === $wikidataId) {
+                    throw new FieldWikidataIdMissingException();
+                }
+
+                if (!array_key_exists($wikidataId, $wikidataIdFields)) {
+                    continue;
+                }
+
                 try {
                     $this->fieldService->upsertFields($community, $wikidataIdFields[$wikidataId]);
                     $result[$wikidataId] = 'Updated';
@@ -71,9 +84,8 @@ final readonly class UpsertCommunityProcessor implements ProcessorInterface
 
             // Insert...
             foreach ($wikidataIdFields as $wikidataId => $fields) {
-                $community = null;
+                $community = new Community();
                 try {
-                    $community = new Community();
                     $this->communityRepo->add($community);
 
                     $this->fieldService->upsertFields($community, $fields);
