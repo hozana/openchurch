@@ -20,11 +20,6 @@ final class GetPlacesTest extends AcceptanceTestHelper
 {
     use Factories;
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-    }
-
     public function testFilterByParentCommunityId(): void
     {
         [$community1, $community2] = DummyCommunityFactory::createMany(2,

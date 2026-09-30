@@ -95,7 +95,7 @@ final readonly class CommunityCollectionProvider implements ProviderInterface
         }
 
         if (null !== $paginator = $models->paginator()) {
-            $resources = new Paginator(
+            return new Paginator(
                 new ArrayIterator($resources),
                 (float) $paginator->getCurrentPage(),
                 (float) $paginator->getItemsPerPage(),
