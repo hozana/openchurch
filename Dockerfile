@@ -1,6 +1,6 @@
 # Single build file for every image of the project. Stages are selected with --target.
 #   python  : synchro scripts        elastic : search engine
-#   dev     : local PHP runtime      prod    : shipped PHP runtime (no dev dependencies)
+#   dev     : local PHP runtime      prod    : shipped PHP runtime
 
 ARG USER=www-data
 
