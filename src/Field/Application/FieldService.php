@@ -10,6 +10,7 @@ use App\Field\Domain\Exception\FieldEntityNotFoundException;
 use App\Field\Domain\Exception\FieldInvalidNameException;
 use App\Field\Domain\Exception\FieldParentWikidataIdNotFoundException;
 use App\Field\Domain\Exception\FieldUnicityViolationException;
+use App\Field\Domain\FieldValueNormalizer;
 use App\Field\Domain\Model\Field;
 use App\Field\Domain\Repository\FieldRepositoryInterface;
 use App\FieldHolder\Community\Domain\Model\Community;
@@ -21,7 +22,6 @@ use RuntimeException;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Uid\Uuid;
-use Symfony\Component\Uid\UuidV7;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 use function Symfony\Component\String\s;
@@ -38,30 +38,20 @@ final readonly class FieldService
     }
 
     /**
+     * Writes the fields on behalf of $agent, or of the authenticated agent when none is given.
+     *
      * @param Field[] $fieldPayloads
      */
-    public function upsertFields(Place|Community $entity, array $fieldPayloads): void
+    public function upsertFields(Place|Community $entity, array $fieldPayloads, ?Agent $agent = null): void
     {
-        /** @var Agent $agent */
-        $agent = $this->security->getUser();
+        $agent ??= $this->authenticatedAgent();
 
         foreach ($fieldPayloads as $fieldPayload) {
-            $enumValue = match ($entity::class) {
-                Place::class => FieldPlace::tryFrom($fieldPayload->name),
-                Community::class => FieldCommunity::tryFrom($fieldPayload->name),
-                default => null,
-            };
-
-            if (null === $enumValue) {
-                throw new FieldInvalidNameException($fieldPayload->name);
-            }
-
+            $enumValue = self::fieldName($entity, $fieldPayload->name);
             $this->maybeTransformAlias($entity, $enumValue, $fieldPayload);
-            $field = $this->getOrCreate(
-                $entity,
-                $enumValue,
-                $agent,
-            );
+            $field = $entity->getFieldByNameAndAgent($enumValue, $agent);
+            $previousState = null !== $field ? self::state($field) : null;
+            $field ??= $this->create($entity, $agent);
             $value = $this->maybeTransformEntities($enumValue, $fieldPayload->value);
             if ($entity instanceof Community) {
                 $field->community = $entity;
@@ -75,37 +65,82 @@ final readonly class FieldService
             $field->reliability = $fieldPayload->reliability;
             $field->source = $fieldPayload->source;
             $field->explanation = $fieldPayload->explanation;
-            $field->touch();
 
-            // Unique constraints validation (TODO use custom Assert instead)
-            if (null !== $field->value
-                && null !== $entity->id
-                && in_array($field->name, Field::UNIQUE_CONSTRAINTS, true)
-                && $this->fieldRepo->existOusideOf($entity->id, $enumValue, $field->value)
-            ) {
-                throw new FieldUnicityViolationException($field->name, $field->value);
-            }
-
+            $this->ensureUnique($entity, $enumValue, $field);
             $violations = $this->validator->validate($field);
             if (count($violations) > 0) {
                 throw new ValidationException($violations);
             }
 
             $field->applyValue(); // Dynamically set the value to the correct property (intVal, stringVal, ...)
+
+            // The update date tells which value is the most recent one: sending the same value again doesn't change it
+            if (self::state($field) !== $previousState) {
+                $field->touch();
+            }
         }
     }
 
-    private function getOrCreate(Place|Community $entity, FieldPlace|FieldCommunity $nameEnum, Agent $agent): Field
+    /**
+     * @throws FieldInvalidNameException when the field doesn't exist for this kind of entity
+     */
+    private static function fieldName(Place|Community $entity, string $name): FieldPlace|FieldCommunity
     {
-        $field = $entity->getFieldByNameAndAgent($nameEnum, $agent);
-        if (!$field instanceof Field) {
-            $field = new Field();
-            $field->agent = $agent;
-            $this->fieldRepo->add($field);
-            $entity->addField($field);
+        $enumValue = $entity instanceof Place ? FieldPlace::tryFrom($name) : FieldCommunity::tryFrom($name);
+
+        return $enumValue ?? throw new FieldInvalidNameException($name);
+    }
+
+    /**
+     * Unique constraints validation (TODO use custom Assert instead).
+     *
+     * @throws FieldUnicityViolationException
+     */
+    private function ensureUnique(Place|Community $entity, FieldPlace|FieldCommunity $enumValue, Field $field): void
+    {
+        if (null !== $field->value
+            && null !== $entity->id
+            && in_array($field->name, Field::UNIQUE_CONSTRAINTS, true)
+            && $this->fieldRepo->existOusideOf($entity->id, $enumValue, $field->value)
+        ) {
+            throw new FieldUnicityViolationException($field->name, $field->value);
+        }
+    }
+
+    private function authenticatedAgent(): Agent
+    {
+        $user = $this->security->getUser();
+        if (!$user instanceof Agent) {
+            throw new RuntimeException('Fields can only be written on behalf of an agent.');
         }
 
+        return $user;
+    }
+
+    private function create(Place|Community $entity, Agent $agent): Field
+    {
+        $field = new Field();
+        $field->agent = $agent;
+        $this->fieldRepo->add($field);
+        $entity->addField($field);
+
         return $field;
+    }
+
+    /**
+     * What an upsert can change on a field.
+     *
+     * @return list<mixed>
+     */
+    private static function state(Field $field): array
+    {
+        return [
+            FieldValueNormalizer::normalize($field->getValue()),
+            $field->engine,
+            $field->reliability,
+            $field->source,
+            $field->explanation,
+        ];
     }
 
     /**
@@ -131,49 +166,56 @@ final readonly class FieldService
             return [];
         }
 
-        $targetEntityClassName = match (s($type)->trimSuffix('[]')->toString()) {
-            'Community' => Community::class,
-            'Place' => Place::class,
-            default => null,
-        };
-        $repo = match ($targetEntityClassName) {
-            Community::class => $this->communityRepository,
-            Place::class => $this->placeRepository,
+        $repo = $this->relatedRepository($type);
+
+        return str_ends_with($type, '[]')
+            ? self::loadRelatedEntities($repo, $nameEnum, $value)
+            : self::loadRelatedEntity($repo, $nameEnum, $value);
+    }
+
+    private function relatedRepository(string $type): CommunityRepositoryInterface|PlaceRepositoryInterface
+    {
+        return match (s($type)->trimSuffix('[]')->toString()) {
+            'Community' => $this->communityRepository,
+            'Place' => $this->placeRepository,
             default => throw new RuntimeException('Unknown type '.$type),
         };
+    }
 
-        if (str_ends_with($type, '[]')) {
-            // That's an array
-            if (!is_array($value)) {
-                throw new BadRequestHttpException($nameEnum->value.': should be an array');
-            }
-
-            $instances = $repo->ofIds(array_map(
-                static function (mixed $id) use ($nameEnum): UuidV7 {
-                    if (!is_string($id)) {
-                        throw new BadRequestHttpException($nameEnum->value.': should be an array of id strings');
-                    }
-
-                    return UuidV7::fromString($id);
-                },
-                $value
-            ))->asCollection();
-
-            if (count($instances) !== count($value)) {
-                throw new FieldEntityNotFoundException($value);
-            }
-
-            return $instances->toArray();
+    /**
+     * @return array<Community|Place>
+     */
+    private static function loadRelatedEntities(CommunityRepositoryInterface|PlaceRepositoryInterface $repo, FieldCommunity|FieldPlace $nameEnum, mixed $value): array
+    {
+        if (!is_array($value)) {
+            throw new BadRequestHttpException($nameEnum->value.': should be an array');
         }
-        // That's an object
-        assert(is_string($value));
-        $instance = $repo->ofId(Uuid::fromString($value));
 
-        if (null === $instance) {
+        $instances = $repo->ofIds(array_map(
+            static function (mixed $id) use ($nameEnum): Uuid {
+                if (!is_string($id) || !Uuid::isValid($id)) {
+                    throw new BadRequestHttpException($nameEnum->value.': should be an array of id strings');
+                }
+
+                return Uuid::fromString($id);
+            },
+            $value
+        ))->asCollection();
+
+        if (count($instances) !== count($value)) {
             throw new FieldEntityNotFoundException($value);
         }
 
-        return $instance;
+        return $instances->toArray();
+    }
+
+    private static function loadRelatedEntity(CommunityRepositoryInterface|PlaceRepositoryInterface $repo, FieldCommunity|FieldPlace $nameEnum, mixed $value): Community|Place
+    {
+        if (!is_string($value) || !Uuid::isValid($value)) {
+            throw new BadRequestHttpException($nameEnum->value.': should be an id string');
+        }
+
+        return $repo->ofId(Uuid::fromString($value)) ?? throw new FieldEntityNotFoundException($value);
     }
 
     private function maybeTransformAlias(Place|Community $entity, FieldCommunity|FieldPlace &$enumValue, Field $fieldPayload): void

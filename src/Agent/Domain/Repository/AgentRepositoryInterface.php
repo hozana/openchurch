@@ -13,4 +13,6 @@ use App\Shared\Domain\Repository\RepositoryInterface;
 interface AgentRepositoryInterface extends RepositoryInterface
 {
     public function findAgentNameByApiKey(string $apiKey): ?string;
+
+    public function ofName(string $name): ?Agent;
 }

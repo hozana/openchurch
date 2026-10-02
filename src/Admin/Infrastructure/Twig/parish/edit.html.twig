@@ -1,0 +1,95 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+{% form_theme form with ['@EasyAdmin/crud/form_theme.html.twig'] only %}
+
+{% set title = parishName ?? 'Paroisse sans nom' %}
+{% set engine_labels = {human: 'humain', ai: 'IA', scraper: 'scraper'} %}
+{% set reliability_labels = {high: 'fiabilité haute', medium: 'fiabilité moyenne', low: 'fiabilité basse'} %}
+
+{% block page_title title %}
+{% block content_title title %}
+
+{% block page_actions %}
+    <twig:ea:Button htmlElement="a" href="{{ path('admin_parish_index', listState) }}" icon="fa fa-arrow-left">Retour à la liste</twig:ea:Button>
+    <twig:ea:Button variant="primary" form="community-fields-form" class="action-save">Enregistrer</twig:ea:Button>
+{% endblock %}
+
+{% block main %}
+    <p class="text-muted">
+        Identifiant : <code>{{ parish.id }}</code>.
+        Les valeurs saisies ici sont enregistrées au nom de l'agent <strong>{{ app.user.agent.name }}</strong>,
+        commun à tous les admins, avec la fiabilité maximale : elles priment sur les valeurs automatiques
+        (IA, scraper), qui restent conservées. Face à la valeur humaine de même fiabilité d'un autre agent,
+        la plus récente l'emporte.
+        Comme les valeurs, les explications sont publiques : l'API les expose.
+    </p>
+
+    {{ form_start(form, {attr: {id: 'community-fields-form', novalidate: 'novalidate'}}) }}
+        {% if not form.vars.valid %}
+            <div class="alert alert-danger" role="alert">
+                <p class="mb-1">Rien n'a été enregistré.</p>
+                {{ form_errors(form) }}
+            </div>
+        {% endif %}
+
+        <table class="table datagrid community-fields">
+            <thead>
+                <tr>
+                    <th>Champ</th>
+                    <th>Valeurs par agent</th>
+                    <th>Valeur admin</th>
+                    <th><span class="visually-hidden">Actions</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for field in fields %}
+                    <tr data-field="{{ field.name.value }}">
+                        <th scope="row">
+                            {{ field.label }}
+                            <div><code class="small">{{ field.name.value }}</code></div>
+                        </th>
+                        <td>
+                            {% for value in field.values %}
+                                <div class="mb-2 {{ value.isRetained ? 'fw-semibold' }}">
+                                    {{ value.value is same as('') ? '∅' : value.value }}
+                                    {% if value.isRetained %}
+                                        <twig:ea:Badge variant="success">retenue</twig:ea:Badge>
+                                    {% endif %}
+                                    <div class="small text-muted fw-normal">
+                                        {{ value.agentName }} · {{ engine_labels[value.engine] ?? value.engine }} · {{ reliability_labels[value.reliability] ?? value.reliability }}
+                                        {%- if value.updatedAt %} · {{ value.updatedAt|date('d/m/Y') }}{% endif %}
+                                        {%- if value.explanation %} · {{ value.explanation }}{% endif %}
+                                    </div>
+                                </div>
+                            {% else %}
+                                <span class="text-muted">Aucune valeur</span>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% if field.editable %}
+                                {% set field_form = form[field.name.value] %}
+                                {{ form_widget(field_form.value) }}
+                                {{ form_errors(field_form.value) }}
+                                <div class="mt-2">{{ form_widget(field_form.explanation) }}</div>
+                            {% else %}
+                                <span class="text-muted">Lecture seule</span>
+                            {% endif %}
+                        </td>
+                        <td class="actions">
+                            {% if field.editable and field.hasAdminValue %}
+                                <twig:ea:Button variant="danger" size="sm" isInvisible form="reset-{{ field.name.value }}" class="action-reset"
+                                    onclick="return confirm('Supprimer la valeur admin de « {{ field.label|e('js') }} » ? Les modifications non enregistrées de la page seront perdues.')">Réinitialiser</twig:ea:Button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {{ form_end(form) }}
+
+    {# Outside of the main form, since HTML forms can't be nested: the reset buttons point to them through their "form" attribute #}
+    {% for field in fields|filter(field => field.editable and field.hasAdminValue) %}
+        <form id="reset-{{ field.name.value }}" method="post" action="{{ path('admin_parish_reset_field', {id: parish.id, name: field.name.value}|merge(listState)) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token(resetCsrfTokenId) }}">
+        </form>
+    {% endfor %}
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block page_title 'Paroisses' %}
+{% block content_title 'Paroisses' %}
+
+{% block main %}
+    {% set list_state = {q: query, diocese: dioceseId, page: result.page > 1 ? result.page : null}|filter(value => value) %}
+    <form method="get" action="{{ path('admin_parish_index') }}" class="row g-3 align-items-end mb-4" role="search">
+        <div class="col-md-6">
+            <label for="parish-search-q" class="form-label">Recherche</label>
+            <input type="search" id="parish-search-q" name="q" value="{{ query }}" class="form-control"
+                   placeholder="Nom de la paroisse ou du diocèse" autofocus>
+        </div>
+        <div class="col-md-4">
+            <label for="parish-search-diocese" class="form-label">Diocèse</label>
+            <select id="parish-search-diocese" name="diocese" class="form-select"
+                    data-ea-widget="ea-autocomplete"
+                    data-ea-autocomplete-endpoint-url="{{ path('admin_parish_search_communities', {type: 'diocese'}) }}"
+                    data-ea-i18n-no-results-found="Aucun diocèse"
+                    data-ea-i18n-no-more-results="Pas d'autre diocèse"
+                    data-ea-i18n-loading-more-results="Chargement…">
+                <option value="">Tous les diocèses</option>
+                {% if dioceseId %}
+                    <option value="{{ dioceseId }}" selected>{{ dioceseLabel ?? dioceseId }}</option>
+                {% endif %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <twig:ea:Button variant="primary" icon="internal:search" isBlock>Rechercher</twig:ea:Button>
+        </div>
+    </form>
+
+    <table class="table datagrid {{ result.rows is empty ? 'datagrid-empty' }}">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Diocèse</th>
+                <th>Code postal</th>
+                <th>État</th>
+                <th>Wikidata</th>
+                <th>Messes.info</th>
+                <th><span class="visually-hidden">Actions</span></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in result.rows %}
+                <tr>
+                    <td>{{ row.name ?? '—' }}</td>
+                    <td>{{ row.dioceseName ?? '—' }}</td>
+                    <td>{{ row.zipcode ?? '—' }}</td>
+                    <td class="state">
+                        {% if row.state == 'active' %}
+                            <twig:ea:Badge variant="success">Active</twig:ea:Badge>
+                        {% elseif row.state == 'deleted' %}
+                            <twig:ea:Badge variant="danger">Supprimée</twig:ea:Badge>
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if row.wikidataId %}
+                            <a href="https://www.wikidata.org/wiki/Q{{ row.wikidataId }}" target="_blank" rel="noopener noreferrer">Q{{ row.wikidataId }}</a>
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td>{{ row.messesInfoId ?? '—' }}</td>
+                    <td class="actions">
+                        <twig:ea:Button htmlElement="a" href="{{ path('admin_parish_edit', {id: row.id}|merge(list_state)) }}" size="sm" icon="fa fa-pen" class="action-edit">Éditer</twig:ea:Button>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="7" class="no-results">Aucune paroisse trouvée.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% set url_pattern = path('admin_parish_index', {q: query, diocese: dioceseId}|filter(value => value)) %}
+    {% set url_pattern = url_pattern ~ ('?' in url_pattern ? '&' : '?') ~ 'page={page}' %}
+    <twig:ea:Pagination :currentPage="result.page" :lastPage="result.lastPage" :urlPattern="url_pattern" :showResultsCount="false" />
+    <p class="text-muted small results-count">{{ result.total }} paroisse(s) trouvée(s).</p>
+{% endblock %}

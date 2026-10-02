@@ -9,14 +9,13 @@ use App\Field\Domain\Model\Field;
 use App\FieldHolder\Community\Domain\Enum\CommunityType;
 use App\FieldHolder\Community\Domain\Service\SearchHelperInterface;
 use App\FieldHolder\Community\Domain\Service\SearchServiceInterface;
-use App\FieldHolder\Community\Infrastructure\Doctrine\DoctrineCommunityListener;
 use App\Shared\Domain\Enum\SearchIndex;
 use App\Tests\Field\DummyFactory\DummyFieldFactory;
 use App\Tests\FieldHolder\Community\DummyFactory\DummyCommunityFactory;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Zenstruck\Foundry\Test\Factories;
 
-final class DoctrineCommunityListenerTest extends KernelTestCase
+final class CommunityCreationIndexingTest extends KernelTestCase
 {
     use Factories;
 
@@ -24,7 +23,6 @@ final class DoctrineCommunityListenerTest extends KernelTestCase
 
     protected function setUp(): void
     {
-        self::getContainer()->get(DoctrineCommunityListener::class);
         self::getContainer()->get(SearchServiceInterface::class);
         $this->searchHelper = self::getContainer()->get(SearchHelperInterface::class);
 
