@@ -55,6 +55,15 @@ class Agent implements UserInterface, Stringable
     {
     }
 
+    /**
+     * Whether both are the same agent, even if loaded by different entity managers (or before and after
+     * a clear).
+     */
+    public function is(self $other): bool
+    {
+        return $this === $other || (null !== $this->id && $this->id->equals($other->id));
+    }
+
     public function getUserIdentifier(): string
     {
         Assert::stringNotEmpty($this->name);

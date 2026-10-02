@@ -37,4 +37,9 @@ class DoctrineAgentRepository extends DoctrineRepository implements AgentReposit
 
         return $row['name'] ?? null;
     }
+
+    public function ofName(string $name): ?Agent
+    {
+        return $this->em->getRepository(self::ENTITY_CLASS)->findOneBy(['name' => $name]);
+    }
 }

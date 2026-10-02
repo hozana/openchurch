@@ -10,6 +10,7 @@ use App\Field\Domain\Exception\FieldEntityNotFoundException;
 use App\Field\Domain\Exception\FieldInvalidNameException;
 use App\Field\Domain\Exception\FieldParentWikidataIdNotFoundException;
 use App\Field\Domain\Exception\FieldUnicityViolationException;
+use App\Field\Domain\FieldValueNormalizer;
 use App\Field\Domain\Model\Field;
 use App\Field\Domain\Repository\FieldRepositoryInterface;
 use App\FieldHolder\Community\Domain\Model\Community;
@@ -21,7 +22,6 @@ use RuntimeException;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Uid\Uuid;
-use Symfony\Component\Uid\UuidV7;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 use function Symfony\Component\String\s;
@@ -38,12 +38,13 @@ final readonly class FieldService
     }
 
     /**
+     * Writes the fields on behalf of $agent, or of the authenticated agent when none is given.
+     *
      * @param Field[] $fieldPayloads
      */
-    public function upsertFields(Place|Community $entity, array $fieldPayloads): void
+    public function upsertFields(Place|Community $entity, array $fieldPayloads, ?Agent $agent = null): void
     {
-        /** @var Agent $agent */
-        $agent = $this->security->getUser();
+        $agent ??= $this->authenticatedAgent();
 
         foreach ($fieldPayloads as $fieldPayload) {
             $enumValue = match ($entity::class) {
@@ -57,11 +58,9 @@ final readonly class FieldService
             }
 
             $this->maybeTransformAlias($entity, $enumValue, $fieldPayload);
-            $field = $this->getOrCreate(
-                $entity,
-                $enumValue,
-                $agent,
-            );
+            $field = $entity->getFieldByNameAndAgent($enumValue, $agent);
+            $previousState = null !== $field ? self::state($field) : null;
+            $field ??= $this->create($entity, $agent);
             $value = $this->maybeTransformEntities($enumValue, $fieldPayload->value);
             if ($entity instanceof Community) {
                 $field->community = $entity;
@@ -75,7 +74,6 @@ final readonly class FieldService
             $field->reliability = $fieldPayload->reliability;
             $field->source = $fieldPayload->source;
             $field->explanation = $fieldPayload->explanation;
-            $field->touch();
 
             // Unique constraints validation (TODO use custom Assert instead)
             if (null !== $field->value
@@ -92,20 +90,48 @@ final readonly class FieldService
             }
 
             $field->applyValue(); // Dynamically set the value to the correct property (intVal, stringVal, ...)
+
+            // The update date tells which value is the most recent one: sending the same value again doesn't change it
+            if (self::state($field) !== $previousState) {
+                $field->touch();
+            }
         }
     }
 
-    private function getOrCreate(Place|Community $entity, FieldPlace|FieldCommunity $nameEnum, Agent $agent): Field
+    private function authenticatedAgent(): Agent
     {
-        $field = $entity->getFieldByNameAndAgent($nameEnum, $agent);
-        if (!$field instanceof Field) {
-            $field = new Field();
-            $field->agent = $agent;
-            $this->fieldRepo->add($field);
-            $entity->addField($field);
+        $user = $this->security->getUser();
+        if (!$user instanceof Agent) {
+            throw new RuntimeException('Fields can only be written on behalf of an agent.');
         }
 
+        return $user;
+    }
+
+    private function create(Place|Community $entity, Agent $agent): Field
+    {
+        $field = new Field();
+        $field->agent = $agent;
+        $this->fieldRepo->add($field);
+        $entity->addField($field);
+
         return $field;
+    }
+
+    /**
+     * What an upsert can change on a field.
+     *
+     * @return list<mixed>
+     */
+    private static function state(Field $field): array
+    {
+        return [
+            FieldValueNormalizer::normalize($field->getValue()),
+            $field->engine,
+            $field->reliability,
+            $field->source,
+            $field->explanation,
+        ];
     }
 
     /**
@@ -149,12 +175,12 @@ final readonly class FieldService
             }
 
             $instances = $repo->ofIds(array_map(
-                static function (mixed $id) use ($nameEnum): UuidV7 {
-                    if (!is_string($id)) {
+                static function (mixed $id) use ($nameEnum): Uuid {
+                    if (!is_string($id) || !Uuid::isValid($id)) {
                         throw new BadRequestHttpException($nameEnum->value.': should be an array of id strings');
                     }
 
-                    return UuidV7::fromString($id);
+                    return Uuid::fromString($id);
                 },
                 $value
             ))->asCollection();
@@ -166,7 +192,9 @@ final readonly class FieldService
             return $instances->toArray();
         }
         // That's an object
-        assert(is_string($value));
+        if (!is_string($value) || !Uuid::isValid($value)) {
+            throw new BadRequestHttpException($nameEnum->value.': should be an id string');
+        }
         $instance = $repo->ofId(Uuid::fromString($value));
 
         if (null === $instance) {

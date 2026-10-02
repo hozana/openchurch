@@ -41,6 +41,9 @@ class Field
         FieldPlace::WIKIDATA_ID->value,
     ];
 
+    /** Length of the string_val column */
+    public const int STRING_MAX_LENGTH = 255;
+
     #[ORM\Id]
     #[ORM\Column(type: 'uuid', unique: true)]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -224,6 +227,13 @@ class Field
                         ->addViolation()
                     ;
                 }
+            }
+
+            if (is_string($this->value) && 'stringVal' === self::getPropertyName($enum) && mb_strlen($this->value) > self::STRING_MAX_LENGTH) {
+                $context->buildViolation(sprintf('Field %s cannot be longer than %d characters', $this->name, self::STRING_MAX_LENGTH))
+                    ->atPath('value')
+                    ->addViolation()
+                ;
             }
         }
     }

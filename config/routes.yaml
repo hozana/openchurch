@@ -1,3 +1,7 @@
 dashboard_controllers:
   resource: ../src/Dashboard/Infrastructure/Symfony/Controller/
   type: attribute
+
+admin_controllers:
+  resource: ../src/Admin/Infrastructure/Symfony/Controller/
+  type: attribute

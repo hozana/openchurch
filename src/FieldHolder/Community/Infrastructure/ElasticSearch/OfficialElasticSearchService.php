@@ -5,6 +5,7 @@ namespace App\FieldHolder\Community\Infrastructure\ElasticSearch;
 use App\FieldHolder\Community\Domain\Model\Community;
 use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\FieldHolder\Community\Domain\Service\SearchHelperInterface;
+use App\FieldHolder\Community\Domain\Service\SearchResult;
 use App\FieldHolder\Community\Domain\Service\SearchServiceInterface;
 use App\Shared\Domain\Enum\SearchIndex;
 use stdClass;
@@ -31,6 +32,36 @@ class OfficialElasticSearchService implements SearchServiceInterface
         $results = $this->elasticSearchHelper->search(SearchIndex::PARISH, $body);
 
         return $this->extractHitIds($results);
+    }
+
+    public function searchParishes(string $text, ?string $dioceseId, int $limit, int $offset): SearchResult
+    {
+        $body = $this->buildQueryForParishes(
+            $text,
+            $dioceseId,
+            $limit,
+            $offset,
+        );
+        // Beyond 10,000 hits, Elasticsearch only returns a lower bound unless asked for the exact count
+        $body['track_total_hits'] = true;
+
+        $results = $this->elasticSearchHelper->search(SearchIndex::PARISH, $body);
+
+        return new SearchResult($this->extractHitIds($results), $this->extractTotal($results));
+    }
+
+    /**
+     * Extracts the total number of hits out of a raw (untyped) Elasticsearch response.
+     *
+     * @param array<mixed> $results
+     */
+    private function extractTotal(array $results): int
+    {
+        $hits = $results['hits'] ?? null;
+        $total = is_array($hits) ? $hits['total'] ?? null : null;
+        $value = is_array($total) ? $total['value'] ?? null : null;
+
+        return is_int($value) ? $value : 0;
     }
 
     /**
@@ -72,8 +103,11 @@ class OfficialElasticSearchService implements SearchServiceInterface
 
         if ('' === trim($analyzedText)) {
             return [
-                'query' => ['match_all' => new stdClass()],
-                'sort' => [['parishName.french_sort' => ['order' => 'asc']]],
+                'query' => null === $dioceseId
+                    ? ['match_all' => new stdClass()]
+                    : ['bool' => ['filter' => [['term' => ['dioceseId' => $dioceseId]]]]],
+                // Homonyms are frequent: the id makes the order, and therefore the pagination, stable
+                'sort' => [['parishName.french_sort' => ['order' => 'asc']], ['id' => ['order' => 'asc']]],
                 'size' => $limit,
                 'from' => $offset,
                 '_source' => false,
@@ -151,6 +185,7 @@ class OfficialElasticSearchService implements SearchServiceInterface
             'sort' => [
                 ['_score' => ['order' => 'desc']],
                 ['parishName.french_sort' => ['order' => 'asc']],
+                ['id' => ['order' => 'asc']],
             ],
             'size' => $limit,
             'from' => $offset,
