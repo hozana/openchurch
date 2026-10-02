@@ -17,7 +17,7 @@ final readonly class CommunityLabeler
     }
 
     /**
-     * Loads the communities along with their fields, in the order of the given ids
+     * Loads the communities along with their fields, in the order of the given ids.
      *
      * @param list<string> $ids
      *
