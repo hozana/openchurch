@@ -136,6 +136,19 @@ final class AdminParishTest extends WebTestCase
         self::assertSelectorTextContains('#parish-search-diocese option[selected]', 'Diocèse de Nantes');
     }
 
+    public function testListShowsTheState(): void
+    {
+        $this->parish->addField($this->scraperField(FieldCommunity::STATE, 'deleted'));
+        self::getContainer()->get(EntityManagerInterface::class)->flush();
+        $this->client->loginUser($this->adminUser, 'admin');
+
+        $crawler = $this->client->request('GET', '/admin/parishes', ['q' => 'joseph']);
+        self::assertSame('Supprimée', $crawler->filter('table.datagrid tbody tr td.state')->text());
+
+        $crawler = $this->client->request('GET', '/admin/parishes', ['q' => 'blandine']);
+        self::assertSame('—', $crawler->filter('table.datagrid tbody tr td.state')->text(), 'Without state, nothing is displayed');
+    }
+
     public function testEditAndReset(): void
     {
         $this->client->loginUser($this->adminUser, 'admin');

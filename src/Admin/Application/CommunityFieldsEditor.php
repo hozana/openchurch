@@ -53,6 +53,25 @@ final readonly class CommunityFieldsEditor
         $this->ensureApplicable($parish, $agent, $inputs);
 
         $initialViolations = $this->violationMessages($parish);
+        [$payloads, $changes] = $this->prepareChanges($parish, $agent, $inputs);
+        if (0 === $changes) {
+            return 0;
+        }
+
+        $this->write($parish, $agent, $payloads, $initialViolations);
+
+        return $changes;
+    }
+
+    /**
+     * Removes the admin values set to null, and turns the other changed values into payloads for FieldService.
+     *
+     * @param list<AdminFieldInput> $inputs
+     *
+     * @return array{list<Field>, int} the payloads, and the number of changed fields
+     */
+    private function prepareChanges(Community $parish, Agent $agent, array $inputs): array
+    {
         $payloads = [];
         $changes = 0;
 
@@ -76,10 +95,19 @@ final readonly class CommunityFieldsEditor
             ++$changes;
         }
 
-        if (0 === $changes) {
-            return 0;
-        }
+        return [$payloads, $changes];
+    }
 
+    /**
+     * Applies the payloads, checks the community, and writes everything, or nothing if anything is rejected.
+     *
+     * @param list<Field>  $payloads
+     * @param list<string> $initialViolations
+     *
+     * @throws CommunityFieldsRejectedException
+     */
+    private function write(Community $parish, Agent $agent, array $payloads, array $initialViolations): void
+    {
         try {
             $this->fieldService->upsertFields($parish, $payloads, $agent);
             $this->ensureNoNewViolation($parish, $initialViolations);
@@ -102,8 +130,6 @@ final readonly class CommunityFieldsEditor
         }
 
         $this->em->flush();
-
-        return $changes;
     }
 
     /**
@@ -141,20 +167,13 @@ final readonly class CommunityFieldsEditor
      */
     private function relationErrors(Community $parish, AdminFieldInput $input): array
     {
-        $expectedType = match ($input->name) {
-            FieldCommunity::PARENT_COMMUNITY_ID => CommunityType::DIOCESE,
-            FieldCommunity::REPLACES => CommunityType::PARISH,
-            default => null,
-        };
+        $expectedType = self::expectedRelatedType($input->name);
         if (null === $expectedType || null === $input->value) {
             return [];
         }
 
         $label = AdminCommunityFields::label($input->name);
-        $ids = array_values(array_unique(array_map(
-            static fn (string $id): string => Uuid::isValid($id) ? Uuid::fromString($id)->toRfc4122() : $id,
-            array_filter((array) $input->value, is_string(...)),
-        )));
+        $ids = self::relatedIds($input);
         if (in_array($parish->id?->toRfc4122(), $ids, true)) {
             return [sprintf('« %s » : une paroisse ne peut pas se désigner elle-même.', $label)];
         }
@@ -167,11 +186,41 @@ final readonly class CommunityFieldsEditor
         $errors = [];
         foreach ($related as $community) {
             if ($expectedType->value !== $community->getMostTrustableFieldByName(FieldCommunity::TYPE)?->getValue()) {
-                $errors[] = sprintf('« %s » : « %s » n\'est pas un%s %s.', $label, CommunityLabeler::label($community), CommunityType::DIOCESE === $expectedType ? '' : 'e', CommunityType::DIOCESE === $expectedType ? 'diocèse' : 'paroisse');
+                $errors[] = sprintf('« %s » : « %s » n\'est pas %s.', $label, CommunityLabeler::label($community), self::typeName($expectedType));
             }
         }
 
         return $errors;
+    }
+
+    /**
+     * The type of the communities a relation field points to, or null if the field is not a relation.
+     */
+    private static function expectedRelatedType(FieldCommunity $name): ?CommunityType
+    {
+        return match ($name) {
+            FieldCommunity::PARENT_COMMUNITY_ID => CommunityType::DIOCESE,
+            FieldCommunity::REPLACES => CommunityType::PARISH,
+            default => null,
+        };
+    }
+
+    /**
+     * The ids of the related communities, in their canonical (lowercase) form and without duplicates.
+     *
+     * @return list<string>
+     */
+    private static function relatedIds(AdminFieldInput $input): array
+    {
+        return array_values(array_unique(array_map(
+            static fn (string $id): string => Uuid::isValid($id) ? Uuid::fromString($id)->toRfc4122() : $id,
+            array_filter((array) $input->value, is_string(...)),
+        )));
+    }
+
+    private static function typeName(CommunityType $type): string
+    {
+        return CommunityType::DIOCESE === $type ? 'un diocèse' : 'une paroisse';
     }
 
     private static function toPayload(AdminFieldInput $input): Field

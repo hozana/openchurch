@@ -36,6 +36,7 @@
                 <th>Nom</th>
                 <th>Diocèse</th>
                 <th>Code postal</th>
+                <th>État</th>
                 <th>Wikidata</th>
                 <th>Messes.info</th>
                 <th><span class="visually-hidden">Actions</span></th>
@@ -47,6 +48,15 @@
                     <td>{{ row.name ?? '—' }}</td>
                     <td>{{ row.dioceseName ?? '—' }}</td>
                     <td>{{ row.zipcode ?? '—' }}</td>
+                    <td class="state">
+                        {% if row.state == 'active' %}
+                            <twig:ea:Badge variant="success">Active</twig:ea:Badge>
+                        {% elseif row.state == 'deleted' %}
+                            <twig:ea:Badge variant="danger">Supprimée</twig:ea:Badge>
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
                     <td>
                         {% if row.wikidataId %}
                             <a href="https://www.wikidata.org/wiki/Q{{ row.wikidataId }}" target="_blank" rel="noopener noreferrer">Q{{ row.wikidataId }}</a>
@@ -61,7 +71,7 @@
                 </tr>
             {% else %}
                 <tr>
-                    <td colspan="6" class="no-results">Aucune paroisse trouvée.</td>
+                    <td colspan="7" class="no-results">Aucune paroisse trouvée.</td>
                 </tr>
             {% endfor %}
         </tbody>

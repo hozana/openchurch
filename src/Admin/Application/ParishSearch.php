@@ -76,6 +76,7 @@ final readonly class ParishSearch
             name: CommunityLabeler::name($parish),
             dioceseName: null !== $parent ? CommunityLabeler::name($parent) : null,
             zipcode: self::string($parish, FieldCommunity::CONTACT_ZIPCODE),
+            state: self::string($parish, FieldCommunity::STATE),
             wikidataId: self::int($parish, FieldCommunity::WIKIDATA_ID),
             messesInfoId: self::string($parish, FieldCommunity::MESSESINFO_ID),
         );

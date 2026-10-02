@@ -11,6 +11,7 @@ final readonly class ParishRow
         public ?string $name,
         public ?string $dioceseName,
         public ?string $zipcode,
+        public ?string $state,
         public ?int $wikidataId,
         public ?string $messesInfoId,
     ) {
