@@ -61,7 +61,7 @@ class Agent implements UserInterface, Stringable
      */
     public function is(self $other): bool
     {
-        return $this === $other || (null !== $this->id && $this->id->equals($other->id));
+        return $this === $other || (null !== $this->id && null !== $other->id && $this->id->equals($other->id));
     }
 
     public function getUserIdentifier(): string
