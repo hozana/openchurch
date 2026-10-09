@@ -47,6 +47,9 @@ services:
   App\Agent\Domain\Repository\AgentRepositoryInterface:
     class: App\Agent\Infrastructure\Doctrine\DoctrineAgentRepository
 
+  App\Admin\Domain\Repository\AdminUserRepositoryInterface:
+    class: App\Admin\Infrastructure\Doctrine\DoctrineAdminUserRepository
+
   # Services
   App\FieldHolder\Community\Domain\Service\SearchHelperInterface:
     class: App\FieldHolder\Community\Infrastructure\ElasticSearch\OfficialElasticSearchHelper
@@ -61,9 +64,6 @@ services:
     arguments:
       $elasticsearchHost: "%env(ELASTICSEARCH_IRI)%"
   App\Field\Infrastructure\Doctrine\DoctrineFieldListener:
-    arguments:
-      $synchroSecretKey: "%env(SYNCHRO_SECRET_KEY)%"
-  App\FieldHolder\Community\Infrastructure\Doctrine\DoctrineCommunityListener:
     arguments:
       $synchroSecretKey: "%env(SYNCHRO_SECRET_KEY)%"
 

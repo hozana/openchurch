@@ -73,6 +73,18 @@
             "migrations/.gitignore"
         ]
     },
+    "easycorp/easyadmin-bundle": {
+        "version": "5.6",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "4.14",
+            "ref": "13b3e524d1038a6861ad6c7fc64e31b644ba0c54"
+        },
+        "files": [
+            "config/routes/easyadmin.yaml"
+        ]
+    },
     "friendsofphp/php-cs-fixer": {
         "version": "3.65",
         "recipe": {
@@ -387,6 +399,19 @@
     "symfony/string": {
         "version": "v7.1.5"
     },
+    "symfony/translation": {
+        "version": "7.4",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "6.3",
+            "ref": "620a1b84865ceb2ba304c8f8bf2a185fbf32a843"
+        },
+        "files": [
+            "config/packages/translation.yaml",
+            "translations/.gitignore"
+        ]
+    },
     "symfony/twig-bundle": {
         "version": "7.1",
         "recipe": {
@@ -408,6 +433,18 @@
             "version": "7.0",
             "ref": "0df5844274d871b37fc3816c57a768ffc60a43a5"
         }
+    },
+    "symfony/ux-twig-component": {
+        "version": "3.5",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "2.13",
+            "ref": "f367ae2a1faf01c503de2171f1ec22567febeead"
+        },
+        "files": [
+            "config/packages/twig_component.yaml"
+        ]
     },
     "symfony/validator": {
         "version": "7.1",
@@ -442,6 +479,9 @@
     },
     "symfony/yaml": {
         "version": "v7.1.5"
+    },
+    "twig/extra-bundle": {
+        "version": "v3.29.0"
     },
     "zenstruck/foundry": {
         "version": "2.2",
