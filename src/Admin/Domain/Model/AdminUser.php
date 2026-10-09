@@ -18,7 +18,7 @@ use Webmozart\Assert\Assert;
 #[ORM\Table]
 class AdminUser implements UserInterface, PasswordAuthenticatedUserInterface, Stringable
 {
-    /** The agent shared by all admin users, created by the Version20260930151602 migration */
+    /** The agent shared by all admin users, created by the Version20261002134102 migration */
     public const string AGENT_NAME = 'OPENCHURCH_ADMIN';
 
     #[ORM\Id]
