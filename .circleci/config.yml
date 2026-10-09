@@ -401,8 +401,7 @@ workflows:
                 filters:
                     branches:
                         only:
-                            - master
-                            - main
+                            - preprod
                 matrix:
                     parameters:
                         service_name:

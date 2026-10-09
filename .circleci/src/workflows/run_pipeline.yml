@@ -50,8 +50,7 @@ jobs:
       filters:
         branches:
           only:
-            - master
-            - main
+            - preprod
       requires:
         - full-tests
         - hozana/trivy-audit
