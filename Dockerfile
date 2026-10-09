@@ -180,10 +180,12 @@ COPY templates/ /var/www/html/templates/
 # .trivyignore travels with the image so the scanner picks it up wherever the image is scanned.
 COPY --chown=${USER}:${USER} .env .trivyignore /var/www/html/
 
-# The classmap above was built without the application classes, so regenerate it and compile the
-# assets
+# The classmap above was built without the application classes, so regenerate it, install the bundles
+# assets (EasyAdmin, API Platform: public/bundles is not versioned and composer ran with --no-scripts)
+# and compile the app assets
 RUN mkdir -p var/cache var/log var/cache/prod \
     && composer dump-autoload --optimize --classmap-authoritative --no-dev \
+    && APP_ENV=prod APP_DEBUG=0 bin/console assets:install public \
     && APP_ENV=prod APP_DEBUG=0 bin/console asset-map:compile \
     && rm -rf /root/.cache/composer /tmp/* \
     && chown -R ${USER}:${USER} var public vendor
