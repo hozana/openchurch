@@ -28,7 +28,7 @@ final class UpdateCommunityTest extends AcceptanceTestHelper
     {
         $agent = DummyAgentFactory::createOne();
 
-        [$community, $field] = flush_after(function () use ($agent) {
+        [$community, $field] = flush_after(static function () use ($agent) {
             $fieldWikidata = DummyFieldFactory::createOne([
                 'name' => FieldCommunity::WIKIDATA_ID->value,
                 Field::getPropertyName(FieldCommunity::WIKIDATA_ID) => 484848151,
@@ -54,7 +54,7 @@ final class UpdateCommunityTest extends AcceptanceTestHelper
             ];
         });
 
-        $response = self::assertResponse($this->patch("/communities/$community->id", $agent->apiKey, body: [
+        $response = self::assertResponse($this->patch("/communities/{$community->id}", $agent->apiKey, body: [
             'fields' => [
                 [
                     'name' => FieldCommunity::WIKIDATA_ID,
@@ -79,7 +79,7 @@ final class UpdateCommunityTest extends AcceptanceTestHelper
         $agent = DummyAgentFactory::createOne();
         $community = DummyCommunityFactory::createOne();
 
-        self::assertResponse($this->patch("/communities/$community->id", $agent->apiKey, body: [
+        self::assertResponse($this->patch("/communities/{$community->id}", $agent->apiKey, body: [
             'fields' => [
                 [
                     'name' => 'toto',
@@ -98,7 +98,7 @@ final class UpdateCommunityTest extends AcceptanceTestHelper
         $agent = DummyAgentFactory::createOne();
         $community = DummyCommunityFactory::createOne();
 
-        self::assertResponse($this->patch("/communities/$community->id", $agent->apiKey, body: [
+        self::assertResponse($this->patch("/communities/{$community->id}", $agent->apiKey, body: [
             'fields' => [
                 [
                     'name' => FieldCommunity::TYPE,
@@ -115,7 +115,7 @@ final class UpdateCommunityTest extends AcceptanceTestHelper
     public function testShouldThrowIfUnicityConstraintViolation(): void
     {
         $agent = DummyAgentFactory::createOne();
-        $community = flush_after(fn () => DummyCommunityFactory::createOne([
+        $community = flush_after(static fn () => DummyCommunityFactory::createOne([
             'fields' => [
                 DummyFieldFactory::createOne([
                     'name' => FieldCommunity::WIKIDATA_ID->value,
@@ -127,7 +127,7 @@ final class UpdateCommunityTest extends AcceptanceTestHelper
             ],
         ]));
 
-        flush_after(fn () => DummyCommunityFactory::createOne([
+        flush_after(static fn () => DummyCommunityFactory::createOne([
             'fields' => [
                 DummyFieldFactory::createOne([
                     'name' => FieldCommunity::WIKIDATA_ID->value,
@@ -139,7 +139,7 @@ final class UpdateCommunityTest extends AcceptanceTestHelper
             ],
         ]));
 
-        $response = self::assertResponse($this->patch("/communities/$community->id", $agent->apiKey, body: [
+        $response = self::assertResponse($this->patch("/communities/{$community->id}", $agent->apiKey, body: [
             'fields' => [
                 [
                     'name' => FieldCommunity::WIKIDATA_ID,
@@ -160,7 +160,7 @@ final class UpdateCommunityTest extends AcceptanceTestHelper
         $agent = DummyAgentFactory::createOne();
         $id = UuidV7::v7();
 
-        self::assertErrorResponse($this->patch("/communities/$id", $agent->apiKey, body: [
+        self::assertErrorResponse($this->patch("/communities/{$id}", $agent->apiKey, body: [
             'fields' => [
                 [
                     'name' => FieldCommunity::CONTACT_CITY,

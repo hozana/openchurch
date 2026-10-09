@@ -10,17 +10,18 @@ use App\Field\Domain\Exception\FieldEntityNotFoundException;
 use App\Field\Domain\Exception\FieldInvalidNameException;
 use App\Field\Domain\Exception\FieldParentWikidataIdNotFoundException;
 use App\Field\Domain\Exception\FieldUnicityViolationException;
+use App\Field\Domain\FieldValueNormalizer;
 use App\Field\Domain\Model\Field;
 use App\Field\Domain\Repository\FieldRepositoryInterface;
 use App\FieldHolder\Community\Domain\Model\Community;
 use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\FieldHolder\Place\Domain\Model\Place;
 use App\FieldHolder\Place\Domain\Repository\PlaceRepositoryInterface;
+use App\Shared\Domain\Cast;
 use RuntimeException;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Uid\Uuid;
-use Symfony\Component\Uid\UuidV7;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 use function Symfony\Component\String\s;
@@ -37,32 +38,22 @@ final readonly class FieldService
     }
 
     /**
+     * Writes the fields on behalf of $agent, or of the authenticated agent when none is given.
+     *
      * @param Field[] $fieldPayloads
      */
-    public function upsertFields(Place|Community $entity, array $fieldPayloads): void
+    public function upsertFields(Place|Community $entity, array $fieldPayloads, ?Agent $agent = null): void
     {
-        /** @var Agent $agent */
-        $agent = $this->security->getUser();
+        $agent ??= $this->authenticatedAgent();
 
         foreach ($fieldPayloads as $fieldPayload) {
-            $enumValue = match ($entity::class) {
-                Place::class => FieldPlace::tryFrom($fieldPayload->name),
-                Community::class => FieldCommunity::tryFrom($fieldPayload->name),
-                default => null,
-            };
-
-            if (null === $enumValue) {
-                throw new FieldInvalidNameException($fieldPayload->name);
-            }
-
+            $enumValue = self::fieldName($entity, $fieldPayload->name);
             $this->maybeTransformAlias($entity, $enumValue, $fieldPayload);
-            $field = $this->getOrCreate(
-                $entity,
-                $enumValue,
-                $agent,
-            );
+            $field = $entity->getFieldByNameAndAgent($enumValue, $agent);
+            $previousState = null !== $field ? self::state($field) : null;
+            $field ??= $this->create($entity, $agent);
             $value = $this->maybeTransformEntities($enumValue, $fieldPayload->value);
-            if (Community::class === $entity::class) {
+            if ($entity instanceof Community) {
                 $field->community = $entity;
             } else {
                 $field->place = $entity;
@@ -74,40 +65,87 @@ final readonly class FieldService
             $field->reliability = $fieldPayload->reliability;
             $field->source = $fieldPayload->source;
             $field->explanation = $fieldPayload->explanation;
-            $field->touch();
 
-            // Unique constraints validation (TODO use custom Assert instead)
-            if (null !== $field->value
-                && in_array($field->name, Field::UNIQUE_CONSTRAINTS, true)
-                && $this->fieldRepo->existOusideOf($entity->id, $enumValue, $field->value)
-            ) {
-                throw new FieldUnicityViolationException($field->name, $field->value);
-            }
-
+            $this->ensureUnique($entity, $enumValue, $field);
             $violations = $this->validator->validate($field);
             if (count($violations) > 0) {
                 throw new ValidationException($violations);
             }
 
             $field->applyValue(); // Dynamically set the value to the correct property (intVal, stringVal, ...)
+
+            // The update date tells which value is the most recent one: sending the same value again doesn't change it
+            if (self::state($field) !== $previousState) {
+                $field->touch();
+            }
         }
     }
 
-    private function getOrCreate(Place|Community $entity, FieldPlace|FieldCommunity $nameEnum, Agent $agent): Field
+    /**
+     * @throws FieldInvalidNameException when the field doesn't exist for this kind of entity
+     */
+    private static function fieldName(Place|Community $entity, string $name): FieldPlace|FieldCommunity
     {
-        $field = $entity->getFieldByNameAndAgent($nameEnum, $agent);
-        if (!$field instanceof Field) {
-            $field = new Field();
-            $field->agent = $agent;
-            $this->fieldRepo->add($field);
-            $entity->addField($field);
+        $enumValue = $entity instanceof Place ? FieldPlace::tryFrom($name) : FieldCommunity::tryFrom($name);
+
+        return $enumValue ?? throw new FieldInvalidNameException($name);
+    }
+
+    /**
+     * Unique constraints validation (TODO use custom Assert instead).
+     *
+     * @throws FieldUnicityViolationException
+     */
+    private function ensureUnique(Place|Community $entity, FieldPlace|FieldCommunity $enumValue, Field $field): void
+    {
+        if (null !== $field->value
+            && null !== $entity->id
+            && in_array($field->name, Field::UNIQUE_CONSTRAINTS, true)
+            && $this->fieldRepo->existOusideOf($entity->id, $enumValue, $field->value)
+        ) {
+            throw new FieldUnicityViolationException($field->name, $field->value);
         }
+    }
+
+    private function authenticatedAgent(): Agent
+    {
+        $user = $this->security->getUser();
+        if (!$user instanceof Agent) {
+            throw new RuntimeException('Fields can only be written on behalf of an agent.');
+        }
+
+        return $user;
+    }
+
+    private function create(Place|Community $entity, Agent $agent): Field
+    {
+        $field = new Field();
+        $field->agent = $agent;
+        $this->fieldRepo->add($field);
+        $entity->addField($field);
 
         return $field;
     }
 
     /**
-     * @return Community|Community[]|Place|Place[]|null
+     * What an upsert can change on a field.
+     *
+     * @return list<mixed>
+     */
+    private static function state(Field $field): array
+    {
+        return [
+            FieldValueNormalizer::normalize($field->getValue()),
+            $field->engine,
+            $field->reliability,
+            $field->source,
+            $field->explanation,
+        ];
+    }
+
+    /**
+     * Resolves ids into entities for Community/Place typed fields; for any other type the raw
+     * value is returned untouched.
      */
     private function maybeTransformEntities(FieldCommunity|FieldPlace $nameEnum, mixed $value): mixed
     {
@@ -128,50 +166,61 @@ final readonly class FieldService
             return [];
         }
 
-        $targetEntityClassName = match (s($type)->trimSuffix('[]')->toString()) {
-            'Community' => Community::class,
-            'Place' => Place::class,
-            default => null,
-        };
-        $repo = match ($targetEntityClassName) {
-            Community::class => $this->communityRepository,
-            Place::class => $this->placeRepository,
+        $repo = $this->relatedRepository($type);
+
+        return str_ends_with($type, '[]')
+            ? self::loadRelatedEntities($repo, $nameEnum, $value)
+            : self::loadRelatedEntity($repo, $nameEnum, $value);
+    }
+
+    private function relatedRepository(string $type): CommunityRepositoryInterface|PlaceRepositoryInterface
+    {
+        return match (s($type)->trimSuffix('[]')->toString()) {
+            'Community' => $this->communityRepository,
+            'Place' => $this->placeRepository,
             default => throw new RuntimeException('Unknown type '.$type),
         };
+    }
 
-        if (str_ends_with($type, '[]')) {
-            // That's an array
-            if (!is_array($value)) {
-                throw new BadRequestHttpException($nameEnum->value.': should be an array');
-            }
-
-            $instances = $repo->ofIds(array_map(UuidV7::fromString(...), $value))->asCollection();
-
-            if (count($instances) !== count($value)) {
-                throw new FieldEntityNotFoundException($value);
-            }
-
-            return $instances->toArray();
-        } else {
-            // That's an object
-            assert(is_string($value));
-            $instance = $repo->ofId(Uuid::fromString($value));
-
-            if ($instance === null) {
-                throw new FieldEntityNotFoundException($value);
-            }
-
-            return $instance;
+    /**
+     * @return array<Community|Place>
+     */
+    private static function loadRelatedEntities(CommunityRepositoryInterface|PlaceRepositoryInterface $repo, FieldCommunity|FieldPlace $nameEnum, mixed $value): array
+    {
+        if (!is_array($value)) {
+            throw new BadRequestHttpException($nameEnum->value.': should be an array');
         }
+
+        $instances = $repo->ofIds(array_map(
+            static function (mixed $id) use ($nameEnum): Uuid {
+                if (!is_string($id) || !Uuid::isValid($id)) {
+                    throw new BadRequestHttpException($nameEnum->value.': should be an array of id strings');
+                }
+
+                return Uuid::fromString($id);
+            },
+            $value
+        ))->asCollection();
+
+        if (count($instances) !== count($value)) {
+            throw new FieldEntityNotFoundException($value);
+        }
+
+        return $instances->toArray();
+    }
+
+    private static function loadRelatedEntity(CommunityRepositoryInterface|PlaceRepositoryInterface $repo, FieldCommunity|FieldPlace $nameEnum, mixed $value): Community|Place
+    {
+        if (!is_string($value) || !Uuid::isValid($value)) {
+            throw new BadRequestHttpException($nameEnum->value.': should be an id string');
+        }
+
+        return $repo->ofId(Uuid::fromString($value)) ?? throw new FieldEntityNotFoundException($value);
     }
 
     private function maybeTransformAlias(Place|Community $entity, FieldCommunity|FieldPlace &$enumValue, Field $fieldPayload): void
     {
-        $aliases = match ($entity::class) {
-            Place::class => FieldPlace::ALIASES,
-            Community::class => FieldCommunity::ALIASES,
-            default => null,
-        };
+        $aliases = $entity instanceof Community ? FieldCommunity::ALIASES : FieldPlace::ALIASES;
 
         if (!array_key_exists($enumValue->name, $aliases)) {
             return;
@@ -179,11 +228,23 @@ final readonly class FieldService
 
         $enumValue = $aliases[$enumValue->name];
         $fieldPayload->value = match ($fieldPayload->name) {
-            FieldCommunity::PARENT_WIKIDATA_ID->value => $this->wikidataIdToCommunityId($fieldPayload->value),
-            FieldPlace::PARENT_WIKIDATA_IDS->value => $this->wikidataIdsToCommunityIds($fieldPayload->value),
+            FieldCommunity::PARENT_WIKIDATA_ID->value => $this->wikidataIdToCommunityId($this->toWikidataId($fieldPayload->value)),
+            FieldPlace::PARENT_WIKIDATA_IDS->value => $this->wikidataIdsToCommunityIds(
+                array_map($this->toWikidataId(...), is_array($fieldPayload->value) ? $fieldPayload->value : [])
+            ),
             default => null,
         };
         $fieldPayload->name = $enumValue->value;
+    }
+
+    /**
+     * A wikidata id is an integer, accepted either as a JSON number or as its string form;
+     * anything else in the payload is a client error.
+     */
+    private function toWikidataId(mixed $value): int
+    {
+        return Cast::toIntOrNull($value)
+            ?? throw new BadRequestHttpException(sprintf('wikidataId should be an integer, %s given', get_debug_type($value)));
     }
 
     private function wikidataIdToCommunityId(int $wikidataId): string
@@ -193,7 +254,16 @@ final readonly class FieldService
             throw new FieldParentWikidataIdNotFoundException([$wikidataId]);
         }
 
-        return $fields[0]->community->id->toString() ?? $fields[0]->place->id->toString();
+        return $this->holderIdOf($fields[0])
+            ?? throw new FieldParentWikidataIdNotFoundException([$wikidataId]);
+    }
+
+    /**
+     * Id of the Community or Place the field is attached to.
+     */
+    private function holderIdOf(Field $field): ?string
+    {
+        return $field->community?->id?->toString() ?? $field->place?->id?->toString();
     }
 
     /**
@@ -204,12 +274,15 @@ final readonly class FieldService
     private function wikidataIdsToCommunityIds(array $wikidataIds): array
     {
         $fields = $this->fieldRepo->getNameValueFields(FieldCommunity::WIKIDATA_ID, $wikidataIds);
-        $foundWikidataIds = array_map(fn (Field $field) => $field->getValue(), $fields);
+        $foundWikidataIds = array_values(array_filter(
+            array_map(static fn (Field $field): mixed => $field->getValue(), $fields),
+            is_int(...)
+        ));
         $missingWikidataIds = array_diff($wikidataIds, $foundWikidataIds);
         if (count($fields) !== count($wikidataIds)) {
             throw new FieldParentWikidataIdNotFoundException($missingWikidataIds);
         }
 
-        return array_map(fn (Field $field) => $field->community->id->toString() ?? $field->place->id->toString(), $fields);
+        return array_map(fn (Field $field): string => $this->holderIdOf($field) ?? '', $fields);
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Field\Domain\Enum;
 
 use App\Shared\Infrastructure\Doctrine\DoctrineEnumType;
@@ -7,7 +9,9 @@ use App\Shared\Infrastructure\Doctrine\DoctrineEnumType;
 class FieldReliability extends DoctrineEnumType
 {
     public const HIGH = 'high';
+
     public const MEDIUM = 'medium';
+
     public const LOW = 'low';
 
     public function getName(): string

@@ -7,100 +7,91 @@ namespace App\Field\Infrastructure\Doctrine;
 use App\Agent\Domain\Model\Agent;
 use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Model\Field;
-use App\FieldHolder\Community\Domain\Enum\CommunityType;
-use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
-use App\FieldHolder\Community\Domain\Service\SearchHelperInterface;
-use App\Shared\Domain\Enum\SearchIndex;
+use App\FieldHolder\Community\Application\CommunitySearchIndexer;
+use App\FieldHolder\Community\Domain\Model\Community;
+use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 use Doctrine\ORM\Events;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Contracts\Service\ResetInterface;
+use Throwable;
 
-#[AsEntityListener(event: Events::postUpdate, method: 'postUpdate', entity: Field::class)]
-final readonly class DoctrineFieldListener
+/**
+ * Reindexes the communities whose searchable fields were created, updated or removed, including
+ * new communities.
+ *
+ * Communities are collected during the flush and indexed in postFlush, all at once. A plain flush has
+ * committed its transaction by then, so a failed write never reaches the index; inside an explicit
+ * transaction, postFlush runs before the final commit.
+ * The index is a copy of the database: when indexing fails, the error is logged and the write is kept
+ * (app:index:communities rebuilds the index).
+ */
+#[AsEntityListener(event: Events::postPersist, method: 'onFieldChange', entity: Field::class)]
+#[AsEntityListener(event: Events::postUpdate, method: 'onFieldChange', entity: Field::class)]
+#[AsEntityListener(event: Events::postRemove, method: 'onFieldChange', entity: Field::class)]
+#[AsDoctrineListener(event: Events::postFlush)]
+final class DoctrineFieldListener implements ResetInterface
 {
+    private const array INDEXED_FIELDS = [
+        FieldCommunity::TYPE->value,
+        FieldCommunity::NAME->value,
+        FieldCommunity::PARENT_COMMUNITY_ID->value,
+    ];
+
+    /** @var array<int, Community> Keyed by object id to index each community once */
+    private array $communitiesToIndex = [];
+
     public function __construct(
-        private string $synchroSecretKey,
-        private Security $security,
-        private SearchHelperInterface $searchHelper,
-        private CommunityRepositoryInterface $communityRepo,
+        private readonly string $synchroSecretKey,
+        private readonly Security $security,
+        private readonly CommunitySearchIndexer $indexer,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
-    public function postUpdate(Field $field): void
+    public function onFieldChange(Field $field): void
     {
-        /** @var Agent $agent */
-        $agent = $this->security->getUser();
-        if ($agent && $agent->apiKey === $this->synchroSecretKey) {
+        $user = $this->security->getUser();
+        // We do not index during bulk synchronization from wikidata
+        if ($user instanceof Agent && $user->apiKey === $this->synchroSecretKey) {
             return;
         }
 
-        if ($field->name === FieldCommunity::NAME->value) {
-            $this->onFieldNameChange($field);
+        // We only index community
+        if (null === $field->community || !in_array($field->name, self::INDEXED_FIELDS, true)) {
+            return;
         }
-        if ($field->name === FieldCommunity::PARENT_COMMUNITY_ID->value) {
-            $this->onFieldParentCommunityChange($field);
+
+        $this->communitiesToIndex[spl_object_id($field->community)] = $field->community;
+    }
+
+    public function postFlush(): void
+    {
+        $communities = $this->communitiesToIndex;
+        $this->reset();
+        if ([] === $communities) {
+            return;
+        }
+
+        try {
+            $this->indexer->index(...array_values($communities));
+        } catch (Throwable $e) {
+            // Whatever the failure, the data is already written: reporting an error would wrongly tell it wasn't
+            $this->logger->error('Could not index communities {ids}: {message}', [
+                'ids' => implode(', ', array_map(static fn (Community $community): string => (string) $community->id?->toString(), $communities)),
+                'message' => $e->getMessage(),
+                'exception' => $e,
+            ]);
         }
     }
 
-    private function onFieldNameChange(Field $field): void
+    /**
+     * Forgets the communities of a flush that failed, so that they don't leak into the next request
+     * of a long-running worker.
+     */
+    public function reset(): void
     {
-        $community = $field->community;
-        $typeField = $community->getMostTrustableFieldByName(FieldCommunity::TYPE);
-
-        if ($typeField->getValue() === CommunityType::PARISH->value) {
-            // We updated the name of a parish. We need to update the index
-            $this->searchHelper->upsertElement(
-                SearchIndex::PARISH,
-                $community->id->toString(),
-                [
-                    'parishName' => $field->getValue(),
-                ]
-            );
-        }
-
-        if ($typeField->getValue() === CommunityType::DIOCESE->value) {
-            // We updated the name of a diocese. We need to update the index
-            $dioceseName = $community->getMostTrustableFieldByName(FieldCommunity::NAME)->getValue();
-            $this->searchHelper->upsertElement(
-                SearchIndex::DIOCESE,
-                $community->id->toString(),
-                [
-                    'dioceseName' => $dioceseName,
-                ]
-            );
-
-            // We updated the name of a diocese. We have to update all parish children
-            $parishes = $this->communityRepo->addSelectField()->withParentCommunityId($community->id);
-            foreach ($parishes as $parish) {
-                $this->searchHelper->upsertElement(
-                    SearchIndex::PARISH,
-                    $parish->id->toString(),
-                    [
-                        'dioceseName' => $dioceseName,
-                    ]
-                );
-            }
-        }
-    }
-
-    private function onFieldParentCommunityChange(Field $field): void
-    {
-        $community = $field->community;
-        $typeField = $community->getMostTrustableFieldByName(FieldCommunity::TYPE);
-        if ($typeField->getValue() === CommunityType::PARISH->value) {
-            // parent of parish have been updated. We need to update the index if the parent is a diocese
-            $parent = $this->communityRepo->addSelectField()->ofId($field->getValue()->id);
-            $parentTypeField = $parent->getMostTrustableFieldByName(FieldCommunity::TYPE);
-            if ($parentTypeField->getValue() === CommunityType::DIOCESE->value) {
-                $dioceseName = $parent->getMostTrustableFieldByName(FieldCommunity::NAME)?->getValue();
-                $this->searchHelper->upsertElement(
-                    SearchIndex::PARISH,
-                    $community->id->toString(),
-                    [
-                        'dioceseName' => $dioceseName,
-                    ]
-                );
-            }
-        }
+        $this->communitiesToIndex = [];
     }
 }

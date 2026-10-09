@@ -1,0 +1,5 @@
+executor: php-executor
+steps:
+  - checkout
+  - run: composer install --ignore-platform-reqs
+  - run: composer audit

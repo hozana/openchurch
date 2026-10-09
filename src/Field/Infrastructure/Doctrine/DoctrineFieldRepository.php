@@ -19,6 +19,7 @@ use Symfony\Component\Uid\Uuid;
 class DoctrineFieldRepository extends DoctrineRepository implements FieldRepositoryInterface
 {
     private const string ENTITY_CLASS = Field::class;
+
     private const string ALIAS = 'field';
 
     public function __construct(EntityManagerInterface $em)
@@ -38,7 +39,8 @@ class DoctrineFieldRepository extends DoctrineRepository implements FieldReposit
     {
         $qb = $this->query();
 
-        return $qb->where($this->whereFieldEquals(
+        /** @var Field[] $fields */
+        $fields = $qb->where($this->whereFieldEquals(
             $qb,
             $fieldName,
             $fieldValue,
@@ -46,7 +48,10 @@ class DoctrineFieldRepository extends DoctrineRepository implements FieldReposit
             ->andWhere($qb->expr()->eq('field.name', ':fieldName'))
             ->setParameter('fieldName', $fieldName)
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
+
+        return $fields;
     }
 
     public function existOusideOf(Uuid $id, FieldPlace|FieldCommunity $fieldName, mixed $fieldValue): bool
@@ -67,9 +72,10 @@ class DoctrineFieldRepository extends DoctrineRepository implements FieldReposit
             ))
             ->setParameter('id', $id->toBinary())
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getOneOrNullResult()
+        ;
 
-        return isset($row['attachedToId']);
+        return is_array($row) && isset($row['attachedToId']);
     }
 
     private function whereFieldEquals(QueryBuilder $qb, FieldPlace|FieldCommunity $fieldName, mixed $fieldValue, string $alias = 'field'): Comparison|Func
@@ -80,9 +86,9 @@ class DoctrineFieldRepository extends DoctrineRepository implements FieldReposit
         $qb->setParameter($parameterName, $fieldValue);
 
         if (is_array($fieldValue)) {
-            return $qb->expr()->in("$alias.$propertyName", ":$parameterName");
+            return $qb->expr()->in("{$alias}.{$propertyName}", ":{$parameterName}");
         }
 
-        return $qb->expr()->eq("$alias.$propertyName", ":$parameterName");
+        return $qb->expr()->eq("{$alias}.{$propertyName}", ":{$parameterName}");
     }
 }

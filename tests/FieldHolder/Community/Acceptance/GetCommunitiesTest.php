@@ -16,7 +16,6 @@ use App\Shared\Domain\Enum\SearchIndex;
 use App\Tests\Field\DummyFactory\DummyFieldFactory;
 use App\Tests\FieldHolder\Community\DummyFactory\DummyCommunityFactory;
 use App\Tests\Helper\AcceptanceTestHelper;
-use Override;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Zenstruck\Foundry\Test\Factories;
 
@@ -26,11 +25,9 @@ final class GetCommunitiesTest extends AcceptanceTestHelper
 
     public SearchHelperInterface $searchHelper;
 
-    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
-
         $this->searchHelper = self::getContainer()->get(SearchHelperInterface::class);
         self::getContainer()->get(SearchServiceInterface::class);
     }
@@ -104,7 +101,7 @@ final class GetCommunitiesTest extends AcceptanceTestHelper
 
         self::assertCount(2, $response);
 
-        $returnedIds = array_map(fn (array $r) => $r['id'], $response);
+        $returnedIds = array_map(static fn (array $r) => $r['id'], $response);
         self::assertContains($communities[0]->id->toString(), $returnedIds);
         self::assertContains($communities[2]->id->toString(), $returnedIds);
         self::assertNotContains($communities[1]->id->toString(), $returnedIds);
@@ -155,8 +152,8 @@ final class GetCommunitiesTest extends AcceptanceTestHelper
 
         $this->searchHelper->bulkIndex(
             SearchIndex::PARISH,
-            array_map(fn (Community $community) => $community->id->toString(), [$community1, $community2, $community3]),
-            array_map(fn (Community $community) => ['parishName' => $community->getMostTrustableFieldByName(FieldCommunity::NAME)->stringVal], [$community1, $community2, $community3]),
+            array_map(static fn (Community $community) => $community->id->toString(), [$community1, $community2, $community3]),
+            array_map(static fn (Community $community) => ['parishName' => $community->getMostTrustableFieldByName(FieldCommunity::NAME)->stringVal], [$community1, $community2, $community3]),
         );
         $this->searchHelper->refresh(SearchIndex::PARISH);
         $this->em->flush();

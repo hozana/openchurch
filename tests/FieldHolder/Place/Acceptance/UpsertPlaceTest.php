@@ -35,7 +35,7 @@ final class UpsertPlaceTest extends AcceptanceTestHelper
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
 
-        [$field] = flush_after(function () use ($agent) {
+        [$field] = flush_after(static function () use ($agent) {
             $fieldWikidata = DummyFieldFactory::createOne([
                 'name' => FieldPlace::WIKIDATA_ID->value,
                 Field::getPropertyName(FieldPlace::WIKIDATA_ID) => 9999999,
@@ -127,7 +127,7 @@ final class UpsertPlaceTest extends AcceptanceTestHelper
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
 
-        [$parentCommunity, $field] = flush_after(function () use ($agent) {
+        [$parentCommunity, $field] = flush_after(static function () use ($agent) {
             $fieldWikidata = DummyFieldFactory::createOne([
                 'name' => FieldPlace::WIKIDATA_ID->value,
                 Field::getPropertyName(FieldPlace::WIKIDATA_ID) => 9999999,
@@ -217,7 +217,7 @@ final class UpsertPlaceTest extends AcceptanceTestHelper
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
 
-        [$parentCommunities, $fieldWikidataPlace, $fieldWikidata1, $fieldWikidata2] = flush_after(function () use ($agent) {
+        [$parentCommunities, $fieldWikidataPlace, $fieldWikidata1, $fieldWikidata2] = flush_after(static function () use ($agent) {
             $fieldWikidataPlace = DummyFieldFactory::createOne([
                 'name' => FieldPlace::WIKIDATA_ID->value,
                 Field::getPropertyName(FieldPlace::WIKIDATA_ID) => 00011225,
@@ -316,7 +316,7 @@ final class UpsertPlaceTest extends AcceptanceTestHelper
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
 
-        [$fieldWikidataPlace, $fieldWikidataCommunity, $community] = flush_after(function () use ($agent) {
+        [$fieldWikidataPlace, $fieldWikidataCommunity, $community] = flush_after(static function () use ($agent) {
             $fieldWikidataPlace = DummyFieldFactory::createOne([
                 'name' => FieldPlace::WIKIDATA_ID->value,
                 Field::getPropertyName(FieldPlace::WIKIDATA_ID) => 00011225,
@@ -412,7 +412,7 @@ final class UpsertPlaceTest extends AcceptanceTestHelper
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
 
-        [$fieldWikidata1] = flush_after(function () use ($agent) {
+        [$fieldWikidata1] = flush_after(static function () use ($agent) {
             $fieldWikidata1 = DummyFieldFactory::createOne([
                 'name' => FieldCommunity::WIKIDATA_ID->value,
                 Field::getPropertyName(FieldCommunity::WIKIDATA_ID) => 9999999,
@@ -599,7 +599,7 @@ final class UpsertPlaceTest extends AcceptanceTestHelper
         self::assertCount(0, $placeRepository);
         $agent = DummyAgentFactory::createOne();
 
-        [$place, $field] = flush_after(function () use ($agent) {
+        [$place, $field] = flush_after(static function () use ($agent) {
             $fieldWikidata = DummyFieldFactory::createOne([
                 'name' => FieldPlace::WIKIDATA_ID->value,
                 Field::getPropertyName(FieldPlace::WIKIDATA_ID) => 9999999,
@@ -653,5 +653,60 @@ final class UpsertPlaceTest extends AcceptanceTestHelper
         self::assertEquals($response, [
             8888888 => 'Found duplicate for field messesInfoId with value messeInfoId',
         ]);
+    }
+
+    /**
+     * The place is matched through the intVal of one wikidataId field, but the *most trustable*
+     * one carries the id as a string. If the processor fails to recognise it, the place is
+     * neither updated nor unset, and the insert loop silently creates a duplicate.
+     */
+    public function testShouldUpdateAndNotDuplicateWhenMostTrustableWikidataIdIsAString(): void
+    {
+        /** @var PlaceRepositoryInterface $placeRepository */
+        $placeRepository = self::getContainer()->get(PlaceRepositoryInterface::class);
+
+        self::assertCount(0, $placeRepository);
+        $agent = DummyAgentFactory::createOne();
+
+        flush_after(static function () use ($agent) {
+            DummyPlaceFactory::createOne([
+                'fields' => [
+                    // Matched by the withWikidataIds() query, which filters on intVal.
+                    DummyFieldFactory::createOne([
+                        'name' => FieldPlace::WIKIDATA_ID->value,
+                        Field::getPropertyName(FieldPlace::WIKIDATA_ID) => 9999999,
+                        'reliability' => FieldReliability::LOW,
+                        'agent' => $agent,
+                    ]),
+                    // Same id, stored as a string, and more trustable: this is what getValue() returns.
+                    DummyFieldFactory::createOne([
+                        'name' => FieldPlace::WIKIDATA_ID->value,
+                        'stringVal' => '9999999',
+                        'reliability' => FieldReliability::HIGH,
+                        'agent' => $agent,
+                    ]),
+                ],
+            ]);
+        });
+
+        self::assertCount(1, $placeRepository);
+
+        $response = self::assertResponse($this->put('/places/upsert', 'secret', body: [
+            'wikidataEntities' => [
+                [
+                    [
+                        'name' => FieldPlace::WIKIDATA_ID,
+                        'value' => 9999999,
+                        'reliability' => FieldReliability::HIGH,
+                        'source' => 'custom_source',
+                        'explanation' => 'yolo',
+                        'engine' => FieldEngine::AI,
+                    ],
+                ],
+            ],
+        ]), HttpFoundationResponse::HTTP_OK);
+
+        self::assertEquals($response, [9999999 => 'Updated']);
+        self::assertCount(1, $placeRepository, 'the existing place must be updated, not duplicated');
     }
 }

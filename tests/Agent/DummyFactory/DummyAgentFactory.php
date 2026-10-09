@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Agent\DummyFactory;
 
 use App\Agent\Domain\Model\Agent;
@@ -39,8 +41,7 @@ final class DummyAgentFactory extends PersistentObjectFactory
     #[Override]
     protected function initialize(): static
     {
-        return $this
-            // ->afterInstantiate(function(Agent $agent): void {})
-        ;
+        return $this;
+        // ->afterInstantiate(function(Agent $agent): void {})
     }
 }

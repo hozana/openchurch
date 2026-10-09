@@ -9,6 +9,7 @@ use App\Field\Domain\Enum\FieldPlace;
 use App\Field\Domain\Enum\FieldReliability;
 use App\FieldHolder\Community\Domain\Model\Community;
 use App\FieldHolder\Place\Domain\Model\Place;
+use App\Shared\Domain\Cast;
 use App\Shared\Infrastructure\Doctrine\Trait\DoctrineTimestampableTrait;
 use DateTime;
 use DateTimeImmutable;
@@ -32,12 +33,16 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class Field
 {
     use DoctrineTimestampableTrait;
+
     public const UNIQUE_CONSTRAINTS = [
         FieldCommunity::MESSESINFO_ID->value,
         FieldCommunity::WIKIDATA_ID->value,
         FieldPlace::MESSESINFO_ID->value,
         FieldPlace::WIKIDATA_ID->value,
     ];
+
+    /** Length of the string_val column */
+    public const int STRING_MAX_LENGTH = 255;
 
     #[ORM\Id]
     #[ORM\Column(type: 'uuid', unique: true)]
@@ -143,6 +148,9 @@ class Field
         $this->placesVal = new ArrayCollection();
     }
 
+    /**
+     * @return string|int|float|DateTimeImmutable|Community|Place|array<int, Community|Place>
+     */
     #[Groups(['communities', 'places'])]
     #[SerializedName('value')]
     public function getValue(): mixed
@@ -166,7 +174,8 @@ class Field
         if (!(null !== $this->community xor null !== $this->place)) {
             $context->buildViolation('Field must be attached to a community or a place, not none, not both')
                 ->atPath('community')
-                ->addViolation();
+                ->addViolation()
+            ;
         }
 
         // Ensure name is OK according to community/place
@@ -174,7 +183,8 @@ class Field
         if (null === $enum) {
             $context->buildViolation(sprintf('Field %s is not acceptable', $this->name))
                 ->atPath('name')
-                ->addViolation();
+                ->addViolation()
+            ;
         }
 
         // Ensure type is OK
@@ -188,31 +198,42 @@ class Field
             if (is_array($type)) {
                 // That's an enum value! Validate its value
                 if (!in_array($this->value, $type, true)) {
-                    $context->buildViolation(sprintf('Field %s does not accept value %s (accepted values: %s)', $this->name, $this->value, implode(', ', $type)))
+                    // The value is mixed by design here: this branch reports an unexpected value,
+                    // so it only has to be rendered, never interpreted.
+                    $context->buildViolation(sprintf('Field %s does not accept value %s (accepted values: %s)', $this->name, Cast::toString($this->value), implode(', ', array_map(Cast::toString(...), $type))))
                         ->atPath('value')
-                        ->addViolation();
+                        ->addViolation()
+                    ;
                 }
             } else {
                 $isValid = match ($type) {
                     Types::STRING => is_string($this->value),
                     Types::FLOAT => is_float($this->value),
                     Types::INTEGER => is_int($this->value),
-                    Types::DATETIME_MUTABLE => (bool) DateTime::createFromFormat('Y-m-d H:i:s', $this->value),
-                    Types::DATE_MUTABLE => (bool) DateTime::createFromFormat('Y-m-d', $this->value),
-                    Types::DATETIME_IMMUTABLE => (bool) DateTime::createFromFormat('Y-m-d H:i:s', $this->value),
-                    Types::DATE_IMMUTABLE => (bool) DateTime::createFromFormat('Y-m-d', $this->value),
+                    Types::DATETIME_MUTABLE => is_string($this->value) && false !== DateTime::createFromFormat('Y-m-d H:i:s', $this->value),
+                    Types::DATE_MUTABLE => is_string($this->value) && false !== DateTime::createFromFormat('Y-m-d', $this->value),
+                    Types::DATETIME_IMMUTABLE => is_string($this->value) && false !== DateTime::createFromFormat('Y-m-d H:i:s', $this->value),
+                    Types::DATE_IMMUTABLE => is_string($this->value) && false !== DateTime::createFromFormat('Y-m-d', $this->value),
                     'Community' => $this->value instanceof Community,
-                    'Community[]' => is_array($this->value) && count($this->value) === count(array_filter($this->value, fn (mixed $item) => $item instanceof Community)),
+                    'Community[]' => is_array($this->value) && count($this->value) === count(array_filter($this->value, static fn (mixed $item) => $item instanceof Community)),
                     'Place' => $this->value instanceof Place,
-                    'Place[]' => is_array($this->value) && count($this->value) === count(array_filter($this->value, fn (mixed $item) => $item instanceof Place)),
+                    'Place[]' => is_array($this->value) && count($this->value) === count(array_filter($this->value, static fn (mixed $item) => $item instanceof Place)),
                     default => false,
                 };
 
                 if (!$isValid) {
                     $context->buildViolation(sprintf('Field %s expected value of type %s', $this->name, $type))
                         ->atPath('value')
-                        ->addViolation();
+                        ->addViolation()
+                    ;
                 }
+            }
+
+            if (is_string($this->value) && 'stringVal' === self::getPropertyName($enum) && mb_strlen($this->value) > self::STRING_MAX_LENGTH) {
+                $context->buildViolation(sprintf('Field %s cannot be longer than %d characters', $this->name, self::STRING_MAX_LENGTH))
+                    ->atPath('value')
+                    ->addViolation()
+                ;
             }
         }
     }
@@ -253,21 +274,22 @@ class Field
     public function applyValue(): void
     {
         $typeEnum = $this->getTypeEnum();
-        if (false === $typeEnum) {
+        if (!$typeEnum instanceof FieldCommunity && !$typeEnum instanceof FieldPlace) {
             throw new RuntimeException('You must attach this Field to a Community or Place before attempting to call '.__METHOD__);
         }
         $propertyName = self::getPropertyName($typeEnum);
         $value = $this->value;
 
         if (is_array($this->value)) {
-            $value = new ArrayCollection($value);
+            $value = new ArrayCollection($this->value);
         }
 
-        if ('datetimeVal' === $propertyName) {
-            $value = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $value);
-        }
-        if ('dateVal' === $propertyName) {
-            $value = DateTimeImmutable::createFromFormat('Y-m-d', $value);
+        if ('datetimeVal' === $propertyName || 'dateVal' === $propertyName) {
+            if (!is_string($value)) {
+                throw new RuntimeException(sprintf('Field %s expects a string value to build a date, %s given', $this->name, get_debug_type($value)));
+            }
+
+            $value = DateTimeImmutable::createFromFormat('datetimeVal' === $propertyName ? 'Y-m-d H:i:s' : 'Y-m-d', $value);
         }
 
         $propertyAccessor = new PropertyAccessor();

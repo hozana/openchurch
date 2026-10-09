@@ -1,0 +1,79 @@
+jobs:
+  - php-cs-fix
+  - audit-compose-json
+  - composer-validate
+  - symfony-security-checks
+  - enforce-strict-typing-on-new-php-files
+  - rector:
+      requires:
+        - hozana/build-via-n8n
+  - phpstan:
+      requires:
+        - hozana/build-via-n8n
+  - lint-container:
+      requires:
+        - hozana/build-via-n8n
+  - lint-yaml:
+      requires:
+        - hozana/build-via-n8n
+  - lint-twig:
+      requires:
+        - hozana/build-via-n8n
+  - doctrine-schema-validate:
+      requires:
+        - hozana/build-via-n8n
+  - hozana/build-via-n8n:
+      docker_image_name: openchurch-backend
+      target: prod
+      resource_class: hozana/hetzner
+  - hozana/trivy-audit:
+      docker_image_name: openchurch-backend
+      severity: CRITICAL,HIGH
+      resource_class: hozana/hetzner
+      requires:
+        - hozana/build-via-n8n
+  - test-suite:
+      name: full-tests
+      suite-name: Full test suite
+      artifact-name: full-coverage
+      requires:
+        - hozana/build-via-n8n
+  - hozana/deploy-to-swarm:
+      name: deploy-<< matrix.service_name >>
+      docker_image_name: openchurch-backend
+      resource_class: hozana/hetzner
+      matrix:
+        parameters:
+          service_name:
+            - openchurch_backend
+            - openchurch_cli
+      filters:
+        branches:
+          only:
+            - master
+            - main
+      requires:
+        - full-tests
+        - hozana/trivy-audit
+  - hozana/deploy-to-swarm:
+      name: deploy-<< matrix.service_name >>
+      docker_image_name: openchurch-backend
+      resource_class: hozana/hetzner
+      matrix:
+        parameters:
+          service_name:
+            - openchurch-prod_backend-prod
+            - openchurch-prod_cli-prod
+      filters:
+        branches:
+          only:
+            - prod
+      requires:
+        - full-tests
+        - hozana/trivy-audit
+        - lint-container
+        - lint-yaml
+        - lint-twig
+        - doctrine-schema-validate
+        - rector
+        - phpstan

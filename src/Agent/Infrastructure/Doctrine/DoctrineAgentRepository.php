@@ -13,6 +13,7 @@ use Doctrine\ORM\EntityManagerInterface;
 class DoctrineAgentRepository extends DoctrineRepository implements AgentRepositoryInterface
 {
     private const string ENTITY_CLASS = Agent::class;
+
     private const string ALIAS = 'agent';
 
     public function __construct(EntityManagerInterface $em)
@@ -24,14 +25,21 @@ class DoctrineAgentRepository extends DoctrineRepository implements AgentReposit
     {
         $qb = $this->query();
 
+        /** @var array{name: string}|null $row */
         $row = $qb->select('agent.name')
             ->where('agent.apiKey = :apiKey')
             ->setParameter('apiKey', $apiKey)
             ->getQuery()
             // Cache result for 60 seconds
             ->enableResultCache(60)
-            ->getOneOrNullResult();
+            ->getOneOrNullResult()
+        ;
 
         return $row['name'] ?? null;
+    }
+
+    public function ofName(string $name): ?Agent
+    {
+        return $this->em->getRepository(self::ENTITY_CLASS)->findOneBy(['name' => $name]);
     }
 }

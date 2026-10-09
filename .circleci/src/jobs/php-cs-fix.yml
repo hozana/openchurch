@@ -1,0 +1,4 @@
+executor: php-executor
+steps:
+  - checkout
+  - run: /tools/php-cs-fixer --using-cache=no --config=.php-cs-fixer.php --dry-run --diff fix
