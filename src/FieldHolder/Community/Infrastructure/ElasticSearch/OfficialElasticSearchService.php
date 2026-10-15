@@ -2,6 +2,7 @@
 
 namespace App\FieldHolder\Community\Infrastructure\ElasticSearch;
 
+use App\FieldHolder\Community\Domain\Enum\CommunityState;
 use App\FieldHolder\Community\Domain\Model\Community;
 use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\FieldHolder\Community\Domain\Service\SearchHelperInterface;
@@ -20,7 +21,7 @@ class OfficialElasticSearchService implements SearchServiceInterface
     }
 
     /** @return string[] */
-    public function searchParishIds(string $text, ?string $dioceseId, int $limit, int $offset): array
+    public function searchParishIds(string $text, ?string $dioceseId, int $limit, int $offset, bool $activeOnly = false): array
     {
         $body = $this->buildQueryForParishes(
             $text,
@@ -28,6 +29,14 @@ class OfficialElasticSearchService implements SearchServiceInterface
             $limit,
             $offset,
         );
+        if ($activeOnly) {
+            $body['query'] = [
+                'bool' => [
+                    'must' => [$body['query']],
+                    'must_not' => [['term' => ['state' => CommunityState::DELETED->value]]],
+                ],
+            ];
+        }
 
         $results = $this->elasticSearchHelper->search(SearchIndex::PARISH, $body);
 

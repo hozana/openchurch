@@ -1,0 +1,24 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+{% form_theme form with ['@EasyAdmin/crud/form_theme.html.twig'] only %}
+
+{% block page_title 'Nouvelle paroisse' %}
+{% block content_title 'Nouvelle paroisse' %}
+
+{% block page_actions %}
+    <twig:ea:Button htmlElement="a" href="{{ path('admin_parish_index', listState) }}" icon="fa fa-arrow-left">Retour à la liste</twig:ea:Button>
+    <twig:ea:Button variant="primary" form="community-fields-form" class="action-saveAndReturn">Créer</twig:ea:Button>
+{% endblock %}
+
+{% block main %}
+    <twig:ea:Alert>
+        Le type « paroisse » est ajouté automatiquement.
+        Les valeurs saisies ici sont enregistrées au nom de l'agent <strong>{{ app.user.agent.name }}</strong>,
+        commun à tous les admins, avec la fiabilité maximale : elles priment sur les valeurs automatiques
+        (IA, scraper) que d'autres agents pourront ajouter. Comme les valeurs, les explications sont publiques :
+        l'API les expose.
+    </twig:ea:Alert>
+
+    {{ form_start(form, {attr: {id: 'community-fields-form', novalidate: 'novalidate'}}) }}
+        {{ form_widget(form) }}
+    {{ form_end(form) }}
+{% endblock %}
