@@ -1,3 +1,6 @@
+<!-- No required heading outline is defined for this README. -->
+<!-- markdownlint-disable MD043 -->
+
 # 💒 OpenChurch
 
 <!-- markdownlint-disable MD033 -->
