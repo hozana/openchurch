@@ -1,4 +1,6 @@
-<h1 align="center">💒<br>OpenChurch</h1>
+# 💒 OpenChurch
+
+<!-- markdownlint-disable MD033 -->
 
 <p align="center">
   <strong>A collaborative API for Catholic Church data.</strong><br>
@@ -6,8 +8,18 @@
 </p>
 
 <p align="center">
-  <a href="https://app.codacy.com/gh/hozana/openchurch/dashboard?utm_source=gh&amp;utm_medium=referral&amp;utm_campaign=Badge_grade"><img src="https://app.codacy.com/project/badge/Grade/1ce733955a9847b08d5c56364d2cf56a" alt="Codacy code quality"></a>
-  <a href="https://app.codacy.com/gh/hozana/openchurch/dashboard?utm_source=gh&amp;utm_medium=referral&amp;utm_campaign=Badge_coverage"><img src="https://app.codacy.com/project/badge/Coverage/1ce733955a9847b08d5c56364d2cf56a" alt="Codacy test coverage"></a>
+  <a
+    href="https://app.codacy.com/gh/hozana/openchurch/dashboard?utm_source=gh&amp;utm_medium=referral&amp;utm_campaign=Badge_grade">
+    <img
+      src="https://app.codacy.com/project/badge/Grade/1ce733955a9847b08d5c56364d2cf56a"
+      alt="Codacy code quality">
+  </a>
+  <a
+    href="https://app.codacy.com/gh/hozana/openchurch/dashboard?utm_source=gh&amp;utm_medium=referral&amp;utm_campaign=Badge_coverage">
+    <img
+      src="https://app.codacy.com/project/badge/Coverage/1ce733955a9847b08d5c56364d2cf56a"
+      alt="Codacy test coverage">
+  </a>
 </p>
 
 <p align="center">
@@ -17,11 +29,13 @@
   <a href="#api-examples">API examples</a>
 </p>
 
+<!-- markdownlint-enable MD033 -->
+
 ---
 
-OpenChurch provides an API for finding and contributing data about dioceses, parishes,
-and churches. It powers the [Rosario app](https://rosario.app/), helping people join
-a parish to pray the rosary.
+OpenChurch provides an API for finding and contributing data about dioceses,
+parishes, and churches. It powers the [Rosario app](https://rosario.app/), helping
+people join a parish to pray the rosary.
 
 Church structures and information can be complex. Rather than treating every value
 as definitive, OpenChurch records data from multiple agents, with a source and
@@ -164,7 +178,10 @@ https://api.openchurch.local/api/communities?type=parish&contactZipcodes[]=40270
 
 ### Example response
 
-The collection includes each community's fields, contributing agent, and source metadata.
+The collection includes each community's fields, contributing agent, and source
+metadata.
+
+<!-- markdownlint-disable MD033 -->
 
 <details>
 <summary>View the full JSON response</summary>
@@ -390,3 +407,5 @@ The collection includes each community's fields, contributing agent, and source 
 ```
 
 </details>
+
+<!-- markdownlint-enable MD033 -->
