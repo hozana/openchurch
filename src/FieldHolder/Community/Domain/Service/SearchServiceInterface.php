@@ -13,6 +13,11 @@ interface SearchServiceInterface
      */
     public function searchParishIds(string $text, ?string $dioceseId, int $limit, int $offset): array;
 
+    /**
+     * Same search as searchParishIds(), also counting all the matching parishes.
+     */
+    public function searchParishes(string $text, ?string $dioceseId, int $limit, int $offset): SearchResult;
+
     public function findParish(string $id): ?Community;
 
     /**

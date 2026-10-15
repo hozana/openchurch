@@ -15,16 +15,23 @@ interface PlaceRepositoryInterface extends RepositoryInterface
 {
     public function ofId(Uuid $placeid): ?Place;
 
+    /**
+     * @param array<Uuid> $ids
+     */
+    public function ofIds(array $ids): static;
+
     public function add(Place $place): void;
 
     public function addSelectField(): static;
 
+    // The filters below are optional: a null value leaves the query unchanged.
+
     public function withWikidataId(?int $value): static;
 
     /**
-     * @param array<int> $wikidataIds
+     * @param array<int>|null $wikidataIds
      */
-    public function withWikidataIds(array $wikidataIds): static;
+    public function withWikidataIds(?array $wikidataIds): static;
 
-    public function withParentCommunityId(Uuid $parentId): static;
+    public function withParentCommunityId(?Uuid $parentId): static;
 }

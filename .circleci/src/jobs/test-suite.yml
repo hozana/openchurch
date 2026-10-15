@@ -1,0 +1,84 @@
+### Isolate jobs and improve performances of ci
+executor: openchurch-app-hetzner
+working_directory: /tmp/project
+shell: /bin/bash -e
+parameters:
+  suite-name:
+    description: PHPUnit test suite name
+    type: string
+  artifact-name:
+    description: Artifact name for coverage files
+    type: string
+steps:
+  - checkout:
+      path: /tmp/project
+  - run:
+      name: Create .env.test.local
+      command: |
+        echo "DATABASE_URL=mysql://root:symfony@127.0.0.1:3306/openchurch?serverVersion=11.5.2-MariaDB&charset=utf8mb4" > .env.test.local
+  - run:
+      name: Install Xdebug and activate it
+      command: |
+        apt-get update && apt-get install -y autoconf make gcc g++
+        install-php-extensions xdebug
+  - run:
+      name: Install dependencies
+      command: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+  - run:
+      name: Wait for persistance database to be stable
+      command: |
+        count=0
+        max_iterations=60
+        until bin/console doctrine:migration:status > /dev/null 2>&1; do
+            count=$((count + 1))
+            if [ "$count" -ge "$max_iterations" ]; then
+                echo "\nMax attempts reached. Exiting..."
+                exit 1
+            fi
+            echo -n .
+            sleep 5
+        done
+        echo "\nMariaDB is UP!"
+
+  - run:
+      name: Wait for elasticsearch to be stable...
+      command: |
+        count=0
+        max_iterations=60
+        until curl -s -u elastic:admin -f http://127.0.0.1:9200/_cluster/health > /dev/null 2>&1; do
+            count=$((count + 1))
+            if [ "$count" -ge "$max_iterations" ]; then
+                echo "\nMax attempts reached. Exiting..."
+                exit 1
+            fi
+            echo -n .
+            sleep 5
+        done
+        echo "\nElasticsearch is UP!"
+  - run:
+      name: Run migrations
+      command: php bin/console doctrine:migrations:migrate --no-interaction
+  - run:
+      name: Run Tests (<< parameters.suite-name >>)
+      command: |
+        XDEBUG_MODE=coverage php -d memory_limit=1G vendor/bin/phpunit --debug --verbose --coverage-html "build/coverage/<< parameters.artifact-name >>-html" --coverage-clover "build/coverage/<< parameters.artifact-name >>-clover.xml" --log-junit "build/coverage/<< parameters.artifact-name >>-junit.xml" --coverage-php "build/coverage/<< parameters.artifact-name >>-coverage.cov" --testsuite "<< parameters.suite-name >>"
+  - run:
+      name: Upload Coverage to Codacy
+      command: |
+        curl -Ls https://coverage.codacy.com/get.sh -o /tmp/codacy-get.sh
+        bash /tmp/codacy-get.sh report -r "build/coverage/<< parameters.artifact-name >>-clover.xml" -t $CODACY_PROJECT_TOKEN
+      when: always
+  - store_artifacts:
+      path: build/coverage/<< parameters.artifact-name >>-html
+      destination: << parameters.artifact-name >>-html
+  - store_artifacts:
+      path: build/coverage/<< parameters.artifact-name >>-coverage.cov
+      destination: << parameters.artifact-name >>
+  - store_artifacts:
+      path: build/coverage/<< parameters.artifact-name >>-junit.xml
+      destination: << parameters.artifact-name >>
+  - store_artifacts:
+      path: build/coverage/<< parameters.artifact-name >>-clover.xml
+      destination: << parameters.artifact-name >>
+  - store_test_results:
+      path: build/coverage/<< parameters.artifact-name >>-junit.xml

@@ -4,6 +4,7 @@ namespace App\FieldHolder;
 
 use App\Agent\Domain\Model\Agent;
 use App\Field\Domain\Enum\FieldCommunity;
+use App\Field\Domain\Enum\FieldEngine;
 use App\Field\Domain\Enum\FieldPlace;
 use App\Field\Domain\Enum\FieldReliability;
 use App\Field\Domain\Model\Field;
@@ -22,7 +23,8 @@ class FieldHolder
     public function getFieldsByName(FieldCommunity|FieldPlace $name): Collection
     {
         return $this->fields
-            ->filter(fn (Field $field) => $field->name === $name->value);
+            ->filter(static fn (Field $field) => $field->name === $name->value)
+        ;
     }
 
     public function getMostTrustableFieldByName(FieldCommunity|FieldPlace $name): ?Field
@@ -32,7 +34,12 @@ class FieldHolder
             return null;
         }
 
-        usort($result, fn (Field $a, Field $b) => FieldReliability::compare($a->reliability, $b->reliability));
+        // On equal reliability, a human correction wins over automated sources. Then the most recent
+        // value wins.
+        usort($result, static fn (Field $a, Field $b) => FieldReliability::compare($a->reliability, $b->reliability)
+            ?: FieldEngine::compare($a->engine, $b->engine)
+            ?: ($b->updatedAt ?? $b->createdAt) <=> ($a->updatedAt ?? $a->createdAt)
+            ?: strcmp((string) $b->id?->toRfc4122(), (string) $a->id?->toRfc4122()));
 
         return $result[0];
     }
@@ -40,7 +47,7 @@ class FieldHolder
     public function getFieldByNameAndAgent(FieldCommunity|FieldPlace $name, Agent $agent): ?Field
     {
         return $this->getFieldsByName($name)
-            ->filter(fn (Field $field) => $field->agent === $agent)
+            ->filter(static fn (Field $field) => $field->agent->is($agent))
             ->first() ?: null;
     }
 }

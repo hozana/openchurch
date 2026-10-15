@@ -14,6 +14,14 @@ interface SearchHelperInterface
      */
     public function bulkIndex(SearchIndex $index, array $ids, array $bodies): void;
 
+    /**
+     * Indexes (replacing them) and deletes documents, in a single request.
+     *
+     * @param list<array{index: SearchIndex, id: string, body: array<string, mixed>}> $documents
+     * @param list<array{index: SearchIndex, id: string}>                             $deletions documents which may not exist
+     */
+    public function bulkWrite(array $documents, array $deletions = []): void;
+
     public function createIndex(SearchIndex $index): mixed;
 
     /**
@@ -29,6 +37,11 @@ interface SearchHelperInterface
      * @return array<mixed>|null
      */
     public function getDocument(SearchIndex $index, string $id): ?array;
+
+    /**
+     * Removes the document if it exists.
+     */
+    public function deleteDocument(SearchIndex $index, string $id): void;
 
     /**
      * @return array<mixed>

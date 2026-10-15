@@ -1,0 +1,12 @@
+executor: openchurch-app-light-hetzner
+working_directory: /tmp/project
+shell: /bin/sh -e
+steps:
+  - checkout:
+      path: /tmp/project
+  - run:
+      name: Install dependencies
+      command: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+  - run:
+      name: "lint:container"
+      command: php bin/console lint:container

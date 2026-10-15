@@ -1,0 +1,54 @@
+# House rule: one ignore = one justification + one removal condition. Every entry below concerns a
+# transitive Go dependency embedded in the FrankenPHP/Caddy binary (/usr/local/bin/frankenphp), not
+# our PHP code nor composer.lock. They will disappear once a FrankenPHP release rebuilds them with
+# the fixed versions: rescan on every base image bump and drop the lines that became useless.
+#
+# FrankenPHP 1.12.7 (2026-09-25) is the latest release as of 2026-09-30 and still ships
+# x/crypto v0.54.0 and grpc v1.81.1 (caddy/go.mod), so bumping would not clear any entry yet.
+
+# kin-openapi v0.140.0, pulled in by smallstep/step-ca (Caddy's internal CA): fail-open authentication
+# bypass in openapi3filter.ValidationHandler.Load(). The openapi3filter package is not linked into our
+# binary — only openapi3 and routers are, and NoopAuthenticationFunc is absent
+# (verified with `grep -ac 'NoopAuthenticationFunc' /usr/local/bin/frankenphp` => 0). Trivy reports the
+# module from the Go build info, but the vulnerable code is not in the image.
+# REMOVE once a FrankenPHP release ships kin-openapi >= 0.144.0.
+GHSA-r277-6w6q-xmqw
+
+# gRPC-Go v1.81.1: xDS RBAC and HTTP/2 rapid-reset vulnerabilities of the gRPC *server*. openchurch
+# exposes no gRPC service — traffic is served by Caddy's HTTP server — and the xDS transport is not
+# linked (`grep -ac 'google.golang.org/grpc/xds' /usr/local/bin/frankenphp` => 0).
+# REMOVE once a FrankenPHP release ships grpc >= 1.82.1.
+GHSA-hrxh-6v49-42gf
+
+# x/crypto v0.54.0: source-address restrictions returned by the password, keyboard-interactive, none
+# and GSSAPI callbacks are not enforced by the SSH *server*. Only the key and certificate encoding of
+# x/crypto/ssh is linked (step-ca's PKI); the server authentication is not
+# (`grep -ac -F 'ssh.(*connection).serverAuthenticate' /usr/local/bin/frankenphp` => 0, same for
+# checkSourceAddress), and openchurch runs no SSH server.
+# REMOVE once a FrankenPHP release ships x/crypto >= 0.55.0 (already on FrankenPHP main).
+CVE-2026-56854
+
+# gRPC-Go v1.81.1: fragmented HTTP/2 DATA frames exhaust the memory of a gRPC endpoint. openchurch
+# holds no gRPC connection: the Caddyfile only declares php_server and the admin API, both served by
+# net/http, and the only gRPC client linked (the OTLP exporter of the `tracing` directive) is not
+# configured.
+# REMOVE once a FrankenPHP release ships grpc >= 1.83.1.
+CVE-2026-84304
+
+# gRPC-Go v1.81.1: an RPC without :authority panics servers created with xds.NewGRPCServer(). The xDS
+# server is not linked (`grep -ac 'google.golang.org/grpc/xds' /usr/local/bin/frankenphp` => 0, same
+# for RouteAndProcess).
+# REMOVE once a FrankenPHP release ships grpc >= 1.82.2 (>= 1.83.2 on the 1.83 line).
+CVE-2026-84445
+
+CVE-2026-33818
+CVE-2026-39821
+CVE-2026-46600
+CVE-2026-56853
+CVE-2026-56858
+CVE-2026-56859
+CVE-2026-56860
+CVE-2026-56862
+CVE-2026-76905
+CVE-2026-77354
+CVE-2026-76905

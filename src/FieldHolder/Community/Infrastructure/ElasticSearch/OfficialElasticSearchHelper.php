@@ -6,10 +6,12 @@ use App\FieldHolder\Community\Domain\Service\SearchHelperInterface;
 use App\Shared\Domain\Enum\SearchIndex;
 use Elastic\Elasticsearch\Client;
 use Elastic\Elasticsearch\ClientBuilder;
+use Elastic\Elasticsearch\Exception\ClientResponseException;
 use Elastic\Elasticsearch\Response\Elasticsearch;
 use Http\Promise\Promise;
 use InvalidArgumentException;
 use stdClass;
+use Symfony\Component\HttpFoundation\Response;
 
 class OfficialElasticSearchHelper implements SearchHelperInterface
 {
@@ -20,7 +22,22 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
         $this->elasticsearchClient = ClientBuilder::create()
             ->setHosts([$elasticsearchHost])
             ->setSSLVerification(false)
-            ->build();
+            ->build()
+        ;
+    }
+
+    /**
+     * The client is built in synchronous mode: its calls always return a concrete response,
+     * never a Promise. This assertion makes that guarantee explicit so that the asArray()/asBool()
+     * methods are reachable.
+     */
+    private function sync(Elasticsearch|Promise $response): Elasticsearch
+    {
+        if (!$response instanceof Elasticsearch) {
+            throw new InvalidArgumentException('The Elasticsearch client is expected to run in synchronous mode.');
+        }
+
+        return $response;
     }
 
     /**
@@ -35,8 +52,8 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                 'normalizer' => [
                     'french_normalizer' => [
                         'type' => 'custom',
-                        'filter' => ['lowercase', 'asciifolding']
-                    ]
+                        'filter' => ['lowercase', 'asciifolding'],
+                    ],
                 ],
                 'filter' => [
                     'french_stemmer' => [
@@ -61,9 +78,9 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                             'aura', 'aurons', 'aurez', 'auront', 'aurais', 'aurait', 'aurions', 'auriez',
                             'auraient', 'avais', 'avait', 'avions', 'aviez', 'avaient', 'eut', 'eûmes',
                             'eûtes', 'eurent', 'aie', 'aies', 'ait', 'ayons', 'ayez', 'aient', 'eusse',
-                            'eusses', 'eût', 'eussions', 'eussiez', 'eussent'
+                            'eusses', 'eût', 'eussions', 'eussiez', 'eussent',
                         ], // Full french list without 'notre' (usefull for Notre-Dame-...)
-                        'ignore_case' => true
+                        'ignore_case' => true,
                     ],
                     'french_elision' => [
                         'type' => 'elision',
@@ -81,7 +98,7 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                             'asciifolding',
                             'french_elision',
                             'french_stop',
-                        ]
+                        ],
                     ],
                     'edge_ngram_analyzer' => [
                         'type' => 'custom',
@@ -100,7 +117,7 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                         'filter' => [
                             'lowercase',
                             'asciifolding',
-                        ]
+                        ],
                     ],
                 ],
                 'tokenizer' => [
@@ -108,9 +125,9 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                         'type' => 'edge_ngram',
                         'min_gram' => 2,
                         'max_gram' => 15,
-                        'token_chars' => ['letter', 'digit']
-                    ]
-                ]
+                        'token_chars' => ['letter', 'digit'],
+                    ],
+                ],
             ],
         ];
     }
@@ -135,17 +152,17 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                             'type' => 'icu_collation_keyword',
                             'language' => 'fr',
                             'country' => 'FR',
-                            'strength' => 'secondary'
+                            'strength' => 'secondary',
                         ],
                         'exact' => [
                             'type' => 'text',
-                            'analyzer' => 'exact_analyzer'
+                            'analyzer' => 'exact_analyzer',
                         ],
                         'edge_ngram' => [
                             'type' => 'text',
                             'analyzer' => 'edge_ngram_analyzer',
                         ],
-                    ]
+                    ],
                 ],
                 'dioceseName' => [
                     'type' => 'text',
@@ -157,9 +174,9 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                         ],
                         'exact' => [
                             'type' => 'text',
-                            'analyzer' => 'exact_analyzer'
+                            'analyzer' => 'exact_analyzer',
                         ],
-                    ]
+                    ],
                 ],
                 'dioceseId' => [
                     'type' => 'keyword',
@@ -184,19 +201,19 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                     'fields' => [
                         'edge_ngram' => [
                             'type' => 'text',
-                            'analyzer' => 'edge_ngram_analyzer'
+                            'analyzer' => 'edge_ngram_analyzer',
                         ],
                         'exact' => [
                             'type' => 'text',
-                            'analyzer' => 'exact_analyzer'
+                            'analyzer' => 'exact_analyzer',
                         ],
                         'french_sort' => [
                             'type' => 'icu_collation_keyword',
                             'language' => 'fr',
                             'country' => 'FR',
-                            'strength' => 'secondary'
-                        ]
-                    ]
+                            'strength' => 'secondary',
+                        ],
+                    ],
                 ],
             ],
         ];
@@ -212,26 +229,39 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             throw new InvalidArgumentException('ids and bodies should be of same size');
         }
 
-        /** @var array{body: array{}} $params */
-        $params = ['body' => []];
-        $counter = count($ids);
-
-        for ($i = 0; $i < $counter; ++$i) {
-            $params['body'][] = [
-                'index' => [
-                    '_index' => $index->value,
-                    '_id' => $ids[$i],
-                ],
-            ];
-
-            $params['body'][] = $bodies[$i];
-
-            $this->elasticsearchClient->bulk($params);
-            $params = ['body' => []];
+        $bodies = array_values($bodies);
+        $documents = [];
+        foreach (array_values($ids) as $i => $id) {
+            $body = $bodies[$i];
+            if (!is_array($body)) {
+                throw new InvalidArgumentException('bodies should be arrays');
+            }
+            /** @var array<string, mixed> $body */
+            $documents[] = ['index' => $index, 'id' => (string) $id, 'body' => $body];
         }
 
-        if ($params['body'] !== []) {
-            $this->elasticsearchClient->bulk($params);
+        $this->bulkWrite($documents);
+    }
+
+    public function bulkWrite(array $documents, array $deletions = []): void
+    {
+        $operations = [];
+        foreach ($documents as $document) {
+            $operations[] = ['index' => ['_index' => $document['index']->value, '_id' => $document['id']]];
+            $operations[] = $document['body'];
+        }
+        foreach ($deletions as $deletion) {
+            $operations[] = ['delete' => ['_index' => $deletion['index']->value, '_id' => $deletion['id']]];
+        }
+
+        if ([] === $operations) {
+            return;
+        }
+
+        // Failures are reported per operation. Deleting a missing document is not one.
+        $response = $this->sync($this->elasticsearchClient->bulk(['body' => $operations]))->asArray();
+        if (true === ($response['errors'] ?? false)) {
+            throw BulkIndexException::fromResponse($response);
         }
     }
 
@@ -262,7 +292,7 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             'id' => $id,
         ];
 
-        return $this->elasticsearchClient->exists($params)->asBool();
+        return $this->sync($this->elasticsearchClient->exists($params))->asBool();
     }
 
     public function getDocument(SearchIndex $index, string $id): ?array
@@ -276,7 +306,19 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             return null;
         }
 
-        return $this->elasticsearchClient->get($params)->asArray();
+        return $this->sync($this->elasticsearchClient->get($params))->asArray();
+    }
+
+    public function deleteDocument(SearchIndex $index, string $id): void
+    {
+        try {
+            $this->elasticsearchClient->delete(['index' => $index->value, 'id' => $id]);
+        } catch (ClientResponseException $e) {
+            // Nothing to delete: neither the document nor the index exist
+            if (Response::HTTP_NOT_FOUND !== $e->getCode()) {
+                throw $e;
+            }
+        }
     }
 
     /**
@@ -297,10 +339,10 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                 'doc' => $body,
             ];
 
-            return $this->elasticsearchClient->update($params)->asArray();
+            return $this->sync($this->elasticsearchClient->update($params))->asArray();
         }
 
-        return $this->elasticsearchClient->index($params)->asArray();
+        return $this->sync($this->elasticsearchClient->index($params))->asArray();
     }
 
     /**
@@ -315,7 +357,7 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             'body' => $body,
         ];
 
-        return $this->elasticsearchClient->search($params)->asArray();
+        return $this->sync($this->elasticsearchClient->search($params))->asArray();
     }
 
     /**
@@ -334,7 +376,7 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             'from' => 0,
         ];
 
-        return $this->elasticsearchClient->search($params)->asArray();
+        return $this->sync($this->elasticsearchClient->search($params))->asArray();
     }
 
     private function existIndex(SearchIndex $index): bool
@@ -343,7 +385,7 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             'index' => [$index->value],
         ];
 
-        return $this->elasticsearchClient->indices()->exists($params)->asBool();
+        return $this->sync($this->elasticsearchClient->indices()->exists($params))->asBool();
     }
 
     /**
@@ -359,7 +401,7 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             'index' => $index->value,
         ];
 
-        return $this->elasticsearchClient->indices()->delete($params)->asArray();
+        return $this->sync($this->elasticsearchClient->indices()->delete($params))->asArray();
     }
 
     /**
@@ -375,7 +417,7 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
             },
         ];
 
-        return $this->elasticsearchClient->indices()->putMapping($params)->asArray();
+        return $this->sync($this->elasticsearchClient->indices()->putMapping($params))->asArray();
     }
 
     public function refresh(SearchIndex $index): void

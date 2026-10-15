@@ -2,6 +2,7 @@ twig:
   file_name_pattern: "*.twig"
   paths:
     "%kernel.project_dir%/src/Dashboard/Infrastructure/Twig": dashboard
+    "%kernel.project_dir%/src/Admin/Infrastructure/Twig": admin
 
 when@test:
   twig:

@@ -13,19 +13,12 @@ use App\Tests\FieldHolder\Community\DummyFactory\DummyCommunityFactory;
 use App\Tests\FieldHolder\Place\DummyFactory\DummyPlaceFactory;
 use App\Tests\Helper\AcceptanceTestHelper;
 use Doctrine\Common\Collections\ArrayCollection;
-use Override;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Zenstruck\Foundry\Test\Factories;
 
 final class GetPlacesTest extends AcceptanceTestHelper
 {
     use Factories;
-
-    #[Override]
-    protected function setUp(): void
-    {
-        parent::setUp();
-    }
 
     public function testFilterByParentCommunityId(): void
     {
@@ -79,7 +72,7 @@ final class GetPlacesTest extends AcceptanceTestHelper
         $response = self::assertResponse($this->get('/places', querystring: [
             FieldCommunity::PARENT_COMMUNITY_ID->value => $community1->id->toString(),
         ]), HttpFoundationResponse::HTTP_OK);
-        $churchIds = array_map(fn (array $church) => $church['id'], $response);
+        $churchIds = array_map(static fn (array $church) => $church['id'], $response);
         self::assertCount(2, $churchIds);
         self::assertContains($church1->id->toString(), $churchIds);
         self::assertContains($church2->id->toString(), $churchIds);
@@ -87,10 +80,38 @@ final class GetPlacesTest extends AcceptanceTestHelper
         $response = self::assertResponse($this->get('/places', querystring: [
             FieldCommunity::PARENT_COMMUNITY_ID->value => $community2->id->toString(),
         ]), HttpFoundationResponse::HTTP_OK);
-        $churchIds = array_map(fn (array $church) => $church['id'], $response);
+        $churchIds = array_map(static fn (array $church) => $church['id'], $response);
         self::assertCount(2, $churchIds);
         self::assertContains($church3->id->toString(), $churchIds);
         self::assertContains($church4->id->toString(), $churchIds);
+    }
+
+    public function testShouldReturnEveryPlaceWhenParentCommunityIdIsMissing(): void
+    {
+        $community = DummyCommunityFactory::createOne([
+            'fields' => [
+                DummyFieldFactory::createOne([
+                    'name' => FieldCommunity::TYPE->value,
+                    Field::getPropertyName(FieldCommunity::TYPE) => CommunityType::PARISH->value,
+                ]),
+            ],
+        ]);
+
+        $attached = DummyPlaceFactory::createOne([
+            'fields' => [
+                DummyFieldFactory::createOne([
+                    'name' => FieldPlace::PARENT_COMMUNITIES->value,
+                    Field::getPropertyName(FieldPlace::PARENT_COMMUNITIES) => new ArrayCollection([$community]),
+                ]),
+            ],
+        ]);
+        $orphan = DummyPlaceFactory::createOne(['fields' => []]);
+
+        $response = self::assertResponse($this->get('/places'), HttpFoundationResponse::HTTP_OK);
+        $churchIds = array_map(static fn (array $church) => $church['id'], $response);
+
+        self::assertContains($attached->id->toString(), $churchIds);
+        self::assertContains($orphan->id->toString(), $churchIds, 'a place without parent community must still be listed');
     }
 
     public function testShouldErrorIfParentCommunityIdNotAUuid(): void

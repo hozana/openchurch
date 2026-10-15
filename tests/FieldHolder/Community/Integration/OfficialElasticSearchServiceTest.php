@@ -6,6 +6,7 @@ namespace App\Tests\FieldHolder\Community\Integration;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
+use App\FieldHolder\Community\Infrastructure\ElasticSearch\BulkIndexException;
 use App\FieldHolder\Community\Infrastructure\ElasticSearch\OfficialElasticSearchHelper;
 use App\FieldHolder\Community\Infrastructure\ElasticSearch\OfficialElasticSearchService;
 use App\Shared\Domain\Enum\SearchIndex;
@@ -13,6 +14,7 @@ use App\Shared\Domain\Enum\SearchIndex;
 final class OfficialElasticSearchServiceTest extends ApiTestCase
 {
     public OfficialElasticSearchHelper $elasticHelper;
+
     public OfficialElasticSearchService $elasticService;
 
     protected function setUp(): void
@@ -47,7 +49,7 @@ final class OfficialElasticSearchServiceTest extends ApiTestCase
         $this->elasticHelper->bulkIndex(
             SearchIndex::DIOCESE,
             $dioceseIds,
-            array_map(fn (string $id) => ['dioceseName' => $id], $dioceseIds),
+            array_map(static fn (string $id) => ['dioceseName' => $id], $dioceseIds),
         );
 
         $this->elasticHelper->refresh(SearchIndex::DIOCESE);
@@ -73,7 +75,7 @@ final class OfficialElasticSearchServiceTest extends ApiTestCase
         $this->elasticHelper->bulkIndex(
             SearchIndex::PARISH,
             array_column($parishes, 'parishName'),
-            array_map(fn (array $parish) => ['parishName' => $parish['parishName'], 'dioceseName' => $parish['dioceseName']], $parishes),
+            array_map(static fn (array $parish) => ['parishName' => $parish['parishName'], 'dioceseName' => $parish['dioceseName']], $parishes),
         );
         $this->elasticHelper->refresh(SearchIndex::PARISH);
 
@@ -92,6 +94,66 @@ final class OfficialElasticSearchServiceTest extends ApiTestCase
         self::assertSame([0 => $parishes[3]['parishName']], $ids);
     }
 
+    public function testSearchParishesCountsAllMatchesAndFiltersByDiocese(): void
+    {
+        $parishes = [
+            'p1' => ['dioceseId' => 'd1', 'dioceseName' => 'Diocèse de Valence', 'parishName' => 'Paroisse Saint-Marcel-du-Diois'],
+            'p2' => ['dioceseId' => 'd1', 'dioceseName' => 'Diocèse de Valence', 'parishName' => 'Paroisse Notre-Dame-de-la-Valloire'],
+            'p3' => ['dioceseId' => 'd2', 'dioceseName' => 'Archidiocèse de Paris', 'parishName' => "Paroisse Notre-Dame-d'Auteuil"],
+        ];
+        $this->elasticHelper->bulkIndex(SearchIndex::PARISH, array_keys($parishes), array_values($parishes));
+        $this->elasticHelper->refresh(SearchIndex::PARISH);
+
+        $result = $this->elasticService->searchParishes('notre dame', null, 1, 0);
+        self::assertCount(1, $result->ids);
+        self::assertSame(2, $result->total);
+
+        $result = $this->elasticService->searchParishes('notre dame', 'd1', 10, 0);
+        self::assertSame(['p2'], $result->ids);
+        self::assertSame(1, $result->total);
+
+        // Without text, the diocese filter still applies, and parishes are sorted by name
+        $result = $this->elasticService->searchParishes('', 'd1', 10, 0);
+        self::assertSame(['p2', 'p1'], $result->ids);
+        self::assertSame(2, $result->total);
+
+        $result = $this->elasticService->searchParishes('', null, 10, 0);
+        self::assertSame(3, $result->total);
+    }
+
+    public function testBulkIndexReportsRejectedDocuments(): void
+    {
+        $this->expectException(BulkIndexException::class);
+        $this->expectExceptionMessage('1 operation(s) failed: parish/p2:');
+
+        // The mapping is strict: unknown properties are rejected
+        $this->elasticHelper->bulkIndex(SearchIndex::PARISH, ['p1', 'p2'], [['parishName' => 'Paroisse 1'], ['unknownProperty' => 'x']]);
+    }
+
+    public function testBulkWriteIndexesAndDeletes(): void
+    {
+        $this->elasticHelper->bulkIndex(SearchIndex::PARISH, ['p1'], [['parishName' => 'Paroisse 1']]);
+
+        // Deleting a missing document is not a failure
+        $this->elasticHelper->bulkWrite(
+            [['index' => SearchIndex::PARISH, 'id' => 'p2', 'body' => ['parishName' => 'Paroisse 2']]],
+            [['index' => SearchIndex::PARISH, 'id' => 'p1'], ['index' => SearchIndex::DIOCESE, 'id' => 'missing']],
+        );
+
+        self::assertFalse($this->elasticHelper->existDocument(SearchIndex::PARISH, 'p1'));
+        self::assertTrue($this->elasticHelper->existDocument(SearchIndex::PARISH, 'p2'));
+    }
+
+    public function testDeleteDocumentIgnoresMissingDocuments(): void
+    {
+        $this->elasticHelper->bulkIndex(SearchIndex::PARISH, ['p1'], [['parishName' => 'Paroisse 1']]);
+
+        $this->elasticHelper->deleteDocument(SearchIndex::PARISH, 'p1');
+        $this->elasticHelper->deleteDocument(SearchIndex::PARISH, 'p1');
+
+        self::assertFalse($this->elasticHelper->existDocument(SearchIndex::PARISH, 'p1'));
+    }
+
     public function testSearchDioceseOnSmallText(): void
     {
         $dioceses = [
@@ -106,7 +168,7 @@ final class OfficialElasticSearchServiceTest extends ApiTestCase
         $this->elasticHelper->bulkIndex(
             SearchIndex::DIOCESE,
             $dioceses,
-            array_map(fn (string $dioceseName) => ['dioceseName' => $dioceseName], $dioceses),
+            array_map(static fn (string $dioceseName) => ['dioceseName' => $dioceseName], $dioceses),
         );
         $this->elasticHelper->refresh(SearchIndex::DIOCESE);
 
@@ -136,7 +198,7 @@ final class OfficialElasticSearchServiceTest extends ApiTestCase
         $this->elasticHelper->bulkIndex(
             SearchIndex::PARISH,
             array_column($parishes, 'parishName'),
-            array_map(fn (array $parish) => ['parishName' => $parish['parishName'], 'dioceseName' => $parish['dioceseName']], $parishes),
+            array_map(static fn (array $parish) => ['parishName' => $parish['parishName'], 'dioceseName' => $parish['dioceseName']], $parishes),
         );
         $this->elasticHelper->refresh(SearchIndex::PARISH);
 
@@ -219,7 +281,7 @@ final class OfficialElasticSearchServiceTest extends ApiTestCase
         $this->elasticHelper->bulkIndex(
             SearchIndex::PARISH,
             array_column($parishes, 'parishName'),
-            array_map(fn (array $parish) => ['parishName' => $parish['parishName'], 'dioceseName' => $parish['dioceseName']], $parishes),
+            array_map(static fn (array $parish) => ['parishName' => $parish['parishName'], 'dioceseName' => $parish['dioceseName']], $parishes),
         );
         $this->elasticHelper->refresh(SearchIndex::PARISH);
 
@@ -255,7 +317,7 @@ final class OfficialElasticSearchServiceTest extends ApiTestCase
         $this->elasticHelper->bulkIndex(
             SearchIndex::PARISH,
             array_column($parishes, 'parishName'),
-            array_map(fn (array $parish) => ['parishName' => $parish['parishName'], 'dioceseId' => $parish['dioceseId'], 'dioceseName' => $parish['dioceseName']], $parishes),
+            array_map(static fn (array $parish) => ['parishName' => $parish['parishName'], 'dioceseId' => $parish['dioceseId'], 'dioceseName' => $parish['dioceseName']], $parishes),
         );
         $this->elasticHelper->refresh(SearchIndex::PARISH);
 
@@ -289,12 +351,12 @@ final class OfficialElasticSearchServiceTest extends ApiTestCase
         $this->elasticHelper->bulkIndex(
             SearchIndex::DIOCESE,
             array_column($parishes, 'dioceseName'),
-            array_map(fn (array $parish) => ['dioceseName' => $parish['dioceseName']], $parishes),
+            array_map(static fn (array $parish) => ['dioceseName' => $parish['dioceseName']], $parishes),
         );
         $this->elasticHelper->bulkIndex(
             SearchIndex::PARISH,
             array_column($parishes, 'parishName'),
-            array_map(fn (array $parish) => ['parishName' => $parish['parishName'], 'dioceseName' => $parish['dioceseName']], $parishes),
+            array_map(static fn (array $parish) => ['parishName' => $parish['parishName'], 'dioceseName' => $parish['dioceseName']], $parishes),
         );
         $this->elasticHelper->refresh(SearchIndex::DIOCESE);
         $this->elasticHelper->refresh(SearchIndex::PARISH);
@@ -343,7 +405,7 @@ final class OfficialElasticSearchServiceTest extends ApiTestCase
         $this->elasticHelper->bulkIndex(
             SearchIndex::PARISH,
             $parishes,
-            array_map(fn (string $parishName) => ['parishName' => $parishName], $parishes),
+            array_map(static fn (string $parishName) => ['parishName' => $parishName], $parishes),
         );
         $this->elasticHelper->refresh(SearchIndex::PARISH);
 
@@ -373,7 +435,7 @@ final class OfficialElasticSearchServiceTest extends ApiTestCase
         $this->elasticHelper->bulkIndex(
             SearchIndex::PARISH,
             $parishes,
-            array_map(fn (string $parishName) => ['parishName' => $parishName], $parishes),
+            array_map(static fn (string $parishName) => ['parishName' => $parishName], $parishes),
         );
         $this->elasticHelper->refresh(SearchIndex::PARISH);
 
@@ -402,7 +464,7 @@ final class OfficialElasticSearchServiceTest extends ApiTestCase
         $this->elasticHelper->bulkIndex(
             SearchIndex::DIOCESE,
             $dioceses,
-            array_map(fn (string $dioceseName) => ['dioceseName' => $dioceseName], $dioceses),
+            array_map(static fn (string $dioceseName) => ['dioceseName' => $dioceseName], $dioceses),
         );
         $this->elasticHelper->refresh(SearchIndex::DIOCESE);
 

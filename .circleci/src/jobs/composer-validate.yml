@@ -1,0 +1,6 @@
+executor: php-executor
+steps:
+  - checkout
+  - run:
+      name: composer validate
+      command: composer validate --strict

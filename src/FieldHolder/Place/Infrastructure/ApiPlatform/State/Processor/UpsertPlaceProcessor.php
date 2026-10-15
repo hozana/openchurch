@@ -16,6 +16,7 @@ use App\FieldHolder\FieldHolderUpsertService;
 use App\FieldHolder\Place\Domain\Model\Place;
 use App\FieldHolder\Place\Domain\Repository\PlaceRepositoryInterface;
 use App\FieldHolder\Place\Infrastructure\ApiPlatform\Input\PlaceWikidataInput;
+use App\Shared\Domain\Cast;
 use App\Shared\Domain\Manager\TransactionManagerInterface;
 use Webmozart\Assert\Assert;
 
@@ -45,21 +46,34 @@ final readonly class UpsertPlaceProcessor implements ProcessorInterface
             $wikidataIdFields = [];
             $result = [];
 
+            $wikidataEntities = $this->fieldHolderUpsertService->toFieldEntities($data->wikidataEntities);
             $wikidataIds = array_map(function (array $fields) use (&$wikidataIdFields) {
                 $wikidataField = $this->fieldHolderUpsertService->getFieldByName($fields, FieldPlace::WIKIDATA_ID->value);
                 if (!$wikidataField instanceof Field) {
                     throw new FieldWikidataIdMissingException();
                 }
-                $wikidataId = $wikidataField->value;
+                $wikidataId = Cast::toIntOrNull($wikidataField->value);
+                if (null === $wikidataId) {
+                    throw new FieldWikidataIdMissingException();
+                }
+
                 $wikidataIdFields[$wikidataId] = $fields;
 
                 return $wikidataId;
-            }, $data->wikidataEntities);
+            }, $wikidataEntities);
 
             // Update...
             $places = $this->placeRepo->addSelectField()->withWikidataIds($wikidataIds)->asCollection();
             foreach ($places as $place) {
-                $wikidataId = $place->getMostTrustableFieldByName(FieldPlace::WIKIDATA_ID)->getValue();
+                $wikidataId = Cast::toIntOrNull($place->getMostTrustableFieldByName(FieldPlace::WIKIDATA_ID)?->getValue());
+                if (null === $wikidataId) {
+                    throw new FieldWikidataIdMissingException();
+                }
+
+                if (!array_key_exists($wikidataId, $wikidataIdFields)) {
+                    continue;
+                }
+
                 try {
                     $this->fieldService->upsertFields($place, $wikidataIdFields[$wikidataId]);
                     $result[$wikidataId] = 'Updated';
@@ -71,9 +85,8 @@ final readonly class UpsertPlaceProcessor implements ProcessorInterface
 
             // Insert...
             foreach ($wikidataIdFields as $wikidataId => $fields) {
-                $place = null;
+                $place = new Place();
                 try {
-                    $place = new Place();
                     $this->placeRepo->add($place);
 
                     $this->fieldService->upsertFields($place, $fields);

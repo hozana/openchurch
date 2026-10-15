@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\FieldHolder\Community\Infrastructure\Symfony;
 
-use App\Field\Domain\Enum\FieldCommunity;
+use App\FieldHolder\Community\Application\CommunitySearchIndexer;
 use App\FieldHolder\Community\Domain\Enum\CommunityType;
-use App\FieldHolder\Community\Domain\Model\Community;
 use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use App\FieldHolder\Community\Domain\Service\SearchHelperInterface;
+use App\FieldHolder\Community\Infrastructure\ElasticSearch\BulkIndexException;
 use App\Shared\Domain\Enum\SearchIndex;
-use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -24,6 +23,7 @@ class IndexCommunitiesCommand extends Command
     public function __construct(
         private readonly SearchHelperInterface $elasticHelper,
         private readonly CommunityRepositoryInterface $communityRepo,
+        private readonly CommunitySearchIndexer $indexer,
     ) {
         parent::__construct();
     }
@@ -40,92 +40,49 @@ class IndexCommunitiesCommand extends Command
         $this->elasticHelper->putMapping(SearchIndex::PARISH);
         $this->elasticHelper->putMapping(SearchIndex::DIOCESE);
 
-        // We get all dioceses
-        $dioceses = $this->communityRepo
-            ->addSelectField()
-            ->withType(CommunityType::DIOCESE->value)
-            ->asCollection();
-
+        // Candidates are the communities some agent gives the type to: the indexer keeps those whose
+        // retained type it is
         $output->writeln('Indexing dioceses...');
-        $this->createDioceseIndexes($dioceses);
+        $dioceses = $this->communityRepo->addSelectField()->withType(CommunityType::DIOCESE->value)->asCollection();
+        $succeeded = $this->write(SearchIndex::DIOCESE, CommunitySearchIndexer::dioceseDocuments($dioceses), $output);
+
         $output->writeln('Indexing parishes...');
-        $this->createParishIndexes($dioceses, $output);
-
-        return Command::SUCCESS;
-    }
-
-    /**
-     * @param Collection<int, Community> $dioceses
-     */
-    private function createDioceseIndexes(Collection $dioceses): void
-    {
-        $idsToIndex = [];
-        $diocesesToIndex = [];
-        foreach ($dioceses as $diocese) {
-            $idsToIndex[] = $diocese->id->toString();
-            $dioceseName = $diocese->getMostTrustableFieldByName(FieldCommunity::NAME)->getValue();
-
-            $diocesesToIndex[] = [
-                'dioceseName' => $dioceseName,
-            ];
-        }
-
-        $this->elasticHelper->bulkIndex(
-            SearchIndex::DIOCESE, $idsToIndex, $diocesesToIndex
-        );
-    }
-
-    /**
-     * @param Collection<int, Community> $dioceses
-     */
-    private function createParishIndexes(Collection $dioceses, OutputInterface $output): void
-    {
-        $i = 1;
         $totalCount = $this->communityRepo->addSelectField()->withType(CommunityType::PARISH->value)->count();
-
-        while (true) {
-            $output->writeln(sprintf('iteration %s/%s', $i, ceil($totalCount / self::BULK_SIZE)));
+        for ($page = 1;; ++$page) {
+            $output->writeln(sprintf('iteration %s/%s', $page, ceil($totalCount / self::BULK_SIZE)));
             $parishes = $this->communityRepo
                 ->addSelectField()
                 ->withType(CommunityType::PARISH->value)
-                ->withPagination($i, self::BULK_SIZE);
+                ->withPagination($page, self::BULK_SIZE)
+            ;
+            $candidates = iterator_to_array($parishes, false);
+            $succeeded = $this->write(SearchIndex::PARISH, $this->indexer->parishDocuments($candidates), $output) && $succeeded;
 
-            $idsToIndex = [];
-            $parishesToIndex = [];
-
-            foreach ($parishes as $parish) {
-                $dioceseName = $dioceseId = null;
-                $parishName = $parish->getMostTrustableFieldByName(FieldCommunity::NAME)->getValue();
-                $parentId = $parish->getMostTrustableFieldByName(FieldCommunity::PARENT_COMMUNITY_ID)?->getValue()?->id?->toString();
-
-                if ($parentId) {
-                    $parentDiocese =
-                        $dioceses->filter(fn (Community $diocese) => $diocese->id->toString() === $parentId)->first();
-
-                    if ($parentDiocese) {
-                        $dioceseId = $parentDiocese->id->toString();
-                        $dioceseName = $parentDiocese->getMostTrustableFieldByName(FieldCommunity::NAME)->getValue();
-                    }
-                }
-
-                $idsToIndex[] = $parish->id;
-                $parishesToIndex[] = [
-                    'parishName' => $parishName,
-                    'dioceseId' => $dioceseId,
-                    'dioceseName' => $dioceseName,
-                ];
-            }
-
-            $this->elasticHelper->bulkIndex(
-                SearchIndex::PARISH, $idsToIndex, $parishesToIndex
-            );
-
-            if (count($idsToIndex) < self::BULK_SIZE) {
+            if (count($candidates) < self::BULK_SIZE) {
                 break; // we stop the loop once we reach the last bulk
             }
 
             $parishes->clear();
-            ++$i;
+        }
+
+        return $succeeded ? Command::SUCCESS : Command::FAILURE;
+    }
+
+    /**
+     * A rejected batch doesn't stop the indexing: the other ones are still worth indexing.
+     *
+     * @param array<string, array<string, mixed>> $documents indexed by id
+     */
+    private function write(SearchIndex $index, array $documents, OutputInterface $output): bool
+    {
+        try {
+            $this->elasticHelper->bulkIndex($index, array_keys($documents), array_values($documents));
+
+            return true;
+        } catch (BulkIndexException $e) {
+            $output->writeln(sprintf('<error>%s</error>', $e->getMessage()));
+
+            return false;
         }
     }
 }

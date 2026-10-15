@@ -12,10 +12,15 @@ class RedisClient
     }
 
     /**
-     * @return array<mixed>
+     * Redis hashes only ever hold string values.
+     *
+     * @return array<string, string>
      */
     public function getHash(string $key): array
     {
-        return $this->client->hgetall($key);
+        /** @var array<string, string> $hash */
+        $hash = $this->client->hgetall($key);
+
+        return $hash;
     }
 }

@@ -8,10 +8,31 @@ security:
       entity:
         class: 'App\Agent\Domain\Model\Agent'
         property: "name"
+    admin_user_provider:
+      entity:
+        class: 'App\Admin\Domain\Model\AdminUser'
+        property: "email"
   firewalls:
     dev:
       pattern: ^/(_(profiler|wdt)|css|images|js)/
       security: false
+    # Admin backend: humans logging in with a session, unlike the stateless API agents
+    admin:
+      pattern: ^/admin
+      lazy: true
+      provider: admin_user_provider
+      form_login:
+        login_path: admin_login
+        check_path: admin_login
+        default_target_path: admin
+        enable_csrf: true
+      login_throttling:
+        max_attempts: 5
+        interval: "15 minutes"
+      logout:
+        path: admin_logout
+        target: admin_login
+        enable_csrf: true
     main:
       lazy: true
       stateless: true
@@ -29,7 +50,8 @@ security:
   # Easy way to control access for large sections of your site
   # Note: Only the *first* access control that matches will be used
   access_control:
-    # - { path: ^/admin, roles: ROLE_ADMIN }
+    - { path: ^/admin/login$, roles: PUBLIC_ACCESS }
+    - { path: ^/admin, roles: ROLE_ADMIN }
     # - { path: ^/, roles: ROLE_USER }
 
 when@test:

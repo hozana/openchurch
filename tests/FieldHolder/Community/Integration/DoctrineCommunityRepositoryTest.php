@@ -220,7 +220,7 @@ final class DoctrineCommunityRepositoryTest extends KernelTestCase
         self::assertNull($repository->paginator());
 
         $communities = array_map(
-            fn (Community $community) => $community,
+            static fn (Community $community) => $community,
             DummyCommunityFactory::createMany(3)
         );
 
@@ -256,7 +256,7 @@ final class DoctrineCommunityRepositoryTest extends KernelTestCase
         $repository = self::getContainer()->get(DoctrineCommunityRepository::class);
 
         $communities = array_map(
-            fn (Community $community) => $community,
+            static fn (Community $community) => $community,
             DummyCommunityFactory::createMany(3)
         );
         foreach ($communities as $community) {

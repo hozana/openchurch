@@ -3,6 +3,9 @@
 $finder = (new PhpCsFixer\Finder())
     ->in(__DIR__)
     ->exclude('var')
+    // Auto-generated Symfony config reference: must not be reformatted (e.g. the literal
+    // JSON-LD "@type" in the Mercure docs would be rewritten to "@var" by phpdoc_no_alias_tag).
+    ->notPath('config/reference.php')
 ;
 
 return (new PhpCsFixer\Config())

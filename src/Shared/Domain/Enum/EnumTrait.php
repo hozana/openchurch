@@ -2,6 +2,7 @@
 
 namespace App\Shared\Domain\Enum;
 
+use App\Shared\Domain\Cast;
 use InvalidArgumentException;
 use ReflectionClass;
 
@@ -20,7 +21,7 @@ trait EnumTrait
     /**
      * Get all the values, indexed by their constant name as defined in the class.
      *
-     * @return array<mixed>
+     * @return array<string, mixed>
      */
     public static function constants(): array
     {
@@ -40,6 +41,10 @@ trait EnumTrait
      */
     public static function label(mixed $value): ?string
     {
+        if (!is_string($value) && !is_int($value)) {
+            return null;
+        }
+
         return static::$LABELS[$value] ?? null;
     }
 
@@ -85,10 +90,10 @@ trait EnumTrait
         if (!self::isValid($value, $nullable, $strictCheck)) {
             $callerContext = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1];
             $callerMethod = array_key_exists('class', $callerContext)
-                ? $callerContext['class'].$callerContext['type'].$callerContext['function']
-                : $callerContext['file'].'::'.$callerContext['function'];
+                ? $callerContext['class'].($callerContext['type'] ?? '::').$callerContext['function']
+                : ($callerContext['file'] ?? '').'::'.$callerContext['function'];
 
-            throw new InvalidArgumentException(sprintf('Invalid argument provided to %s - expected one of "%s", got "%s"', $callerMethod, implode(', ', self::constants()), var_export($value, true)));
+            throw new InvalidArgumentException(sprintf('Invalid argument provided to %s - expected one of "%s", got "%s"', $callerMethod, implode(', ', array_map(Cast::toString(...), self::constants())), var_export($value, true)));
         }
     }
 }
