@@ -1,9 +1,9 @@
 <!-- No required heading outline is defined for this README. -->
 <!-- markdownlint-disable MD043 -->
 
-# 💒 OpenChurch
-
 <!-- markdownlint-disable MD033 -->
+
+<h1 align="center">💒<br>OpenChurch</h1>
 
 <p align="center">
   <strong>A collaborative API for Catholic Church data.</strong><br>
