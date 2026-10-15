@@ -73,6 +73,24 @@ final readonly class CommunityLabeler
         return $parent instanceof Community ? $parent : null;
     }
 
+    /**
+     * The communities whose « replaces » field designates this one.
+     *
+     * @return array<string, string> labels indexed by community id
+     */
+    public static function replacers(Community $community): array
+    {
+        $replacers = [];
+        foreach ($community->fieldsAsCommunitiesVal as $field) {
+            $replacer = $field->community;
+            if (FieldCommunity::REPLACES->value === $field->name && null !== $replacer?->id) {
+                $replacers[$replacer->id->toString()] = self::label($replacer);
+            }
+        }
+
+        return $replacers;
+    }
+
     public static function name(Community $community): ?string
     {
         $name = $community->getMostTrustableFieldByName(FieldCommunity::NAME)?->getValue();

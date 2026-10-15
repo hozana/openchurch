@@ -10,6 +10,8 @@ use App\Field\Domain\Enum\FieldCommunity;
 use App\Field\Domain\Enum\FieldEngine;
 use App\Field\Domain\Enum\FieldReliability;
 use App\Field\Domain\Model\Field;
+use App\FieldHolder\Community\Domain\Enum\CommunityDeletionReason;
+use App\FieldHolder\Community\Domain\Enum\CommunityState;
 use App\FieldHolder\Community\Domain\Enum\CommunityType;
 use App\FieldHolder\Community\Domain\Model\Community;
 use App\FieldHolder\Community\Domain\Service\SearchHelperInterface;
@@ -121,6 +123,7 @@ final class AdminParishTest extends WebTestCase
         self::assertCount(1, $rows);
         self::assertStringContainsString('Paroisse Saint-Joseph du Haillon', $rows->text());
         self::assertStringContainsString('Diocèse de Nantes', $rows->text());
+        self::assertSame((string) $this->parish->id, $rows->filter('td.id')->text());
         self::assertSame("/admin/parishes/{$this->parish->id}/edit?q=joseph", $rows->filter('a.action-edit')->attr('href'));
     }
 
@@ -183,6 +186,131 @@ final class AdminParishTest extends WebTestCase
         self::assertSame([], $this->storedValues(FieldCommunity::CONTACT_EMAIL));
     }
 
+    public function testCreate(): void
+    {
+        $this->client->loginUser($this->adminUser, 'admin');
+        $crawler = $this->client->request('GET', '/admin/parishes');
+        $crawler = $this->client->click($crawler->selectLink('Créer une paroisse')->link());
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('h1', 'Nouvelle paroisse');
+        self::assertPageTitleContains('Nouvelle paroisse');
+        self::assertSelectorNotExists('[name="community_fields[type][value]"]', 'The type is always a parish');
+        self::assertSelectorNotExists('[name="community_fields[wikidataId][value]"]');
+        self::assertCount(1, $crawler->filter('legend.required'), 'Only the name is marked as required');
+        self::assertSelectorTextContains('legend.required', 'Nom');
+
+        $form = $crawler->filter('#community-fields-form')->form([
+            'community_fields[name][value]' => 'Paroisse de la Chapelle',
+            'community_fields[contactEmail][value]' => 'accueil@chapelle.example',
+            'community_fields[contactEmail][explanation]' => 'https://chapelle.example/contact',
+        ]);
+        // The options come from the autocomplete: the page only holds the selected ones
+        $form['community_fields[parentCommunityId][value]']->disableValidation()->setValue((string) $this->diocese->id?->toString());
+        $this->client->submit($form);
+
+        $location = (string) $this->client->getResponse()->headers->get('Location');
+        self::assertMatchesRegularExpression('#^/admin/parishes/[0-9a-f-]{36}/edit$#', $location);
+
+        $this->client->followRedirect();
+        self::assertSelectorTextContains('.alert-success', 'La paroisse a été créée.');
+        self::assertSelectorTextContains('h1', 'Paroisse de la Chapelle');
+        self::assertSelectorTextContains('tr[data-field="type"]', 'parish');
+        self::assertSelectorTextContains('tr[data-field="contactEmail"]', 'accueil@chapelle.example');
+        self::assertSelectorTextContains('tr[data-field="parentCommunityId"]', 'Diocèse de Nantes');
+
+        self::getContainer()->get(SearchHelperInterface::class)->refresh(SearchIndex::PARISH);
+        $crawler = $this->client->request('GET', '/admin/parishes', ['q' => 'chapelle']);
+        $rows = $crawler->filter('table.datagrid tbody tr');
+        self::assertCount(1, $rows);
+        self::assertStringContainsString('Paroisse de la Chapelle', $rows->text());
+        self::assertStringContainsString('Diocèse de Nantes', $rows->text());
+    }
+
+    public function testCreateWithoutANameIsRejected(): void
+    {
+        $communities = $this->communityCount();
+        $this->client->loginUser($this->adminUser, 'admin');
+        $crawler = $this->client->request('GET', '/admin/parishes/new');
+
+        $form = $crawler->filter('#community-fields-form')->form(['community_fields[contactCity][value]' => 'Nantes']);
+        $this->client->submit($form);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('#community_fields_name', 'Ce champ est obligatoire pour créer une paroisse.');
+        self::assertInputValueSame('community_fields[contactCity][value]', 'Nantes', 'The input of the admin is kept');
+        self::assertSame($communities, $this->communityCount());
+    }
+
+    public function testCreationRejectedByTheEditorDisplaysTheErrors(): void
+    {
+        $communities = $this->communityCount();
+        $this->client->loginUser($this->adminUser, 'admin');
+        $form = $this->client->request('GET', '/admin/parishes/new')->filter('#community-fields-form')->form(['community_fields[name][value]' => 'Paroisse de la Chapelle']);
+        // The options come from the autocomplete: the page only holds the selected ones
+        $form['community_fields[parentCommunityId][value]']->disableValidation()->setValue((string) $this->otherParish->id?->toString());
+        $this->client->submit($form);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('#community-fields-form', '« Diocèse » : « Paroisse Sainte-Blandine » n\'est pas un diocèse.');
+        self::assertInputValueSame('community_fields[name][value]', 'Paroisse de la Chapelle', 'The input of the admin is kept');
+        self::assertSame($communities, $this->communityCount());
+    }
+
+    public function testCreationFormCsrfProtection(): void
+    {
+        $communities = $this->communityCount();
+        $this->client->loginUser($this->adminUser, 'admin');
+        $this->client->request('POST', '/admin/parishes/new', [
+            'community_fields' => ['name' => ['value' => 'Paroisse de la Chapelle'], '_token' => 'csrf-token'],
+        ], server: ['HTTP_ORIGIN' => 'https://attacker.example']);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSame($communities, $this->communityCount());
+    }
+
+    public function testRejectedCreationIsNotWritten(): void
+    {
+        $communities = $this->communityCount();
+        $this->client->loginUser($this->adminUser, 'admin');
+        $crawler = $this->client->request('GET', '/admin/parishes/new');
+
+        $form = $crawler->filter('#community-fields-form')->form([
+            'community_fields[name][value]' => 'Paroisse de la Chapelle',
+            'community_fields[state][value]' => 'deleted',
+        ]);
+        $this->client->submit($form);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('#community_fields_deletionReason', 'Un motif de suppression est obligatoire pour une paroisse supprimée.');
+        self::assertInputValueSame('community_fields[name][value]', 'Paroisse de la Chapelle', 'The input of the admin is kept');
+        self::assertSame($communities, $this->communityCount());
+    }
+
+    public function testCreationRequiresAnAdmin(): void
+    {
+        $communities = $this->communityCount();
+        $this->client->request('GET', '/admin/parishes/new');
+        self::assertResponseRedirects('http://localhost/admin/login');
+
+        $this->client->request('POST', '/admin/parishes/new', server: ['HTTP_AUTHORIZATION' => "Bearer {$this->scraper->apiKey}"]);
+        self::assertResponseRedirects('http://localhost/admin/login');
+        self::assertSame($communities, $this->communityCount());
+    }
+
+    public function testTheListSearchIsKeptWhileCreating(): void
+    {
+        $this->client->loginUser($this->adminUser, 'admin');
+        $crawler = $this->client->request('GET', '/admin/parishes', ['q' => 'joseph']);
+        self::assertSame('/admin/parishes/new?q=joseph', $crawler->selectLink('Créer une paroisse')->attr('href'));
+
+        $crawler = $this->client->click($crawler->selectLink('Créer une paroisse')->link());
+        self::assertSame('/admin/parishes?q=joseph', $crawler->selectLink('Retour à la liste')->attr('href'));
+
+        $this->client->submit($crawler->filter('#community-fields-form')->form(['community_fields[name][value]' => 'Paroisse de la Chapelle']));
+        self::assertMatchesRegularExpression('#^/admin/parishes/[0-9a-f-]{36}/edit\?q=joseph$#', (string) $this->client->getResponse()->headers->get('Location'));
+    }
+
     public function testTheListSearchIsKeptWhileEditing(): void
     {
         $this->client->loginUser($this->adminUser, 'admin');
@@ -210,6 +338,110 @@ final class AdminParishTest extends WebTestCase
         $this->client->followRedirect();
         self::assertSelectorTextContains('tr[data-field="parentCommunityId"]', 'Diocèse de Lyon');
         self::assertSelectorTextContains('#community_fields_parentCommunityId_value option[selected]', 'Diocèse de Lyon');
+    }
+
+    public function testReplacedParishesAreDeletedAndLinked(): void
+    {
+        $remy = $this->createCommunity(CommunityType::PARISH, 'Saint Remy des trois rivières', $this->diocese);
+        $searchHelper = self::getContainer()->get(SearchHelperInterface::class);
+        $searchHelper->refresh(SearchIndex::PARISH);
+        $this->client->loginUser($this->adminUser, 'admin');
+        $editUrl = "/admin/parishes/{$this->parish->id}/edit";
+
+        $this->client->request('GET', '/admin/parishes/search-communities', ['type' => 'parish', 'query' => 'remy']);
+        self::assertCount(1, json_decode((string) $this->client->getResponse()->getContent(), true)['results'], 'An alive parish is offered');
+
+        $crawler = $this->client->request('GET', $editUrl);
+        self::assertSelectorTextContains('#community-fields-form', 'Les paroisses sélectionnées sont supprimées (motif : dissoute)');
+        $form = $crawler->filter('#community-fields-form')->form();
+        // The options come from the autocomplete: the page only holds the selected ones
+        $form['community_fields[replaces][value]']->disableValidation()->setValue([(string) $remy->id?->toString()]);
+        $this->client->submit($form);
+        self::assertResponseRedirects($editUrl);
+
+        $this->client->followRedirect();
+        self::assertSelectorTextContains('tr[data-field="replaces"]', 'Saint Remy des trois rivières');
+
+        $searchHelper->refresh(SearchIndex::PARISH);
+        $crawler = $this->client->request('GET', '/admin/parishes', ['q' => 'remy']);
+        $row = $crawler->filter('table.datagrid tbody tr');
+        self::assertCount(1, $row);
+        self::assertSelectorTextContains('td.state', 'Supprimée');
+        self::assertSelectorTextContains('td.state .replaced-by', 'Remplacée par Paroisse Saint-Joseph du Haillon');
+        self::assertSame("/admin/parishes/{$this->parish->id}/edit?q=remy", $row->filter('.replaced-by a')->attr('href'));
+
+        $this->client->request('GET', "/admin/parishes/{$remy->id}/edit");
+        self::assertSelectorTextContains('.alert.replaced-by', 'Cette paroisse est remplacée par Paroisse Saint-Joseph du Haillon');
+        self::assertSelectorTextContains('tr[data-field="state"]', 'deleted');
+        self::assertSelectorTextContains('tr[data-field="deletionReason"]', 'dissolved');
+
+        $this->client->request('GET', '/admin/parishes/search-communities', ['type' => 'parish', 'query' => 'remy']);
+        self::assertSame([], json_decode((string) $this->client->getResponse()->getContent(), true)['results'], 'A deleted parish is no longer offered');
+
+        // The replaced parish is brought back when the link is removed
+        $form = $this->client->request('GET', $editUrl)->filter('#community-fields-form')->form();
+        $form['community_fields[replaces][value]']->disableValidation()->setValue([]);
+        $this->client->submit($form);
+        self::assertResponseRedirects($editUrl);
+
+        $searchHelper->refresh(SearchIndex::PARISH);
+        $this->client->request('GET', '/admin/parishes/search-communities', ['type' => 'parish', 'query' => 'remy']);
+        self::assertCount(1, json_decode((string) $this->client->getResponse()->getContent(), true)['results']);
+        $this->client->request('GET', "/admin/parishes/{$remy->id}/edit");
+        self::assertSelectorNotExists('.alert.replaced-by');
+    }
+
+    public function testResettingTheReplacesFieldBringsTheParishesBack(): void
+    {
+        $remy = $this->createCommunity(CommunityType::PARISH, 'Saint Remy des trois rivières', $this->diocese);
+        $this->client->loginUser($this->adminUser, 'admin');
+        $editUrl = "/admin/parishes/{$this->parish->id}/edit";
+        $form = $this->client->request('GET', $editUrl)->filter('#community-fields-form')->form();
+        $form['community_fields[replaces][value]']->disableValidation()->setValue([(string) $remy->id?->toString()]);
+        $this->client->submit($form);
+        $crawler = $this->client->followRedirect();
+
+        self::assertStringContainsString('Les paroisses remplacées seront réactivées', (string) $crawler->filter('tr[data-field="replaces"] .action-reset')->attr('onclick'));
+
+        $this->client->submit($crawler->filter('form#reset-replaces')->form());
+        self::assertResponseRedirects($editUrl);
+
+        $this->client->request('GET', "/admin/parishes/{$remy->id}/edit");
+        self::assertSelectorNotExists('.alert.replaced-by');
+        self::assertSelectorTextContains('tr[data-field="state"]', 'Aucune valeur');
+    }
+
+    public function testADeletedParishCannotBeReplacedAgain(): void
+    {
+        $merged = $this->createCommunity(CommunityType::PARISH, 'Saint Vigor au pays athisien', $this->diocese, [
+            $this->scraperField(FieldCommunity::STATE, CommunityState::DELETED->value),
+            $this->scraperField(FieldCommunity::DELETION_REASON, CommunityDeletionReason::DUPLICATE->value),
+        ]);
+        $this->client->loginUser($this->adminUser, 'admin');
+        $form = $this->client->request('GET', "/admin/parishes/{$this->parish->id}/edit")->filter('#community-fields-form')->form();
+        // A page opened before the parish was deleted, for instance
+        $form['community_fields[replaces][value]']->disableValidation()->setValue([(string) $merged->id?->toString()]);
+        $this->client->submit($form);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('#community-fields-form', '« Remplace » : « Saint Vigor au pays athisien » est déjà supprimée.');
+        self::assertSame([], $this->storedValues(FieldCommunity::REPLACES));
+    }
+
+    public function testParishesCanBeReplacedAtCreation(): void
+    {
+        $remy = $this->createCommunity(CommunityType::PARISH, 'Saint Remy des trois rivières', $this->diocese);
+        $this->client->loginUser($this->adminUser, 'admin');
+        $crawler = $this->client->request('GET', '/admin/parishes/new');
+        self::assertSelectorTextContains('#community-fields-form', 'Les paroisses sélectionnées sont supprimées (motif : dissoute)');
+
+        $form = $crawler->filter('#community-fields-form')->form(['community_fields[name][value]' => 'Paroisse Saint Joseph en Bocage']);
+        $form['community_fields[replaces][value]']->disableValidation()->setValue([(string) $remy->id?->toString()]);
+        $this->client->submit($form);
+        self::assertMatchesRegularExpression('#^/admin/parishes/[0-9a-f-]{36}/edit$#', (string) $this->client->getResponse()->headers->get('Location'));
+
+        $this->client->request('GET', "/admin/parishes/{$remy->id}/edit");
+        self::assertSelectorTextContains('.alert.replaced-by', 'Cette paroisse est remplacée par Paroisse Saint Joseph en Bocage');
     }
 
     public function testMainFormCsrfProtection(): void
@@ -368,12 +600,21 @@ final class AdminParishTest extends WebTestCase
         );
     }
 
-    private function createCommunity(CommunityType $type, string $name, ?Community $parent = null): Community
+    private function communityCount(): int
+    {
+        return self::getContainer()->get(EntityManagerInterface::class)->getRepository(Community::class)->count([]);
+    }
+
+    /**
+     * @param list<Field> $extraFields
+     */
+    private function createCommunity(CommunityType $type, string $name, ?Community $parent = null, array $extraFields = []): Community
     {
         $fields = [
             $this->scraperField(FieldCommunity::TYPE, $type->value),
             $this->scraperField(FieldCommunity::NAME, $name),
             $this->scraperField(FieldCommunity::WIKIDATA_ID, random_int(1, 1_000_000_000)),
+            ...$extraFields,
         ];
         if (null !== $parent) {
             $fields[] = $this->scraperField(FieldCommunity::PARENT_COMMUNITY_ID, $parent);

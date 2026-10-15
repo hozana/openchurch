@@ -121,6 +121,22 @@ final class OfficialElasticSearchServiceTest extends ApiTestCase
         self::assertSame(3, $result->total);
     }
 
+    public function testSearchParishIdsCanLeaveDeletedParishesOut(): void
+    {
+        $parishes = [
+            'p1' => ['dioceseName' => 'Diocèse de Bayeux', 'parishName' => 'Paroisse Saint-Remy-des-trois-rivières', 'state' => 'deleted'],
+            'p2' => ['dioceseName' => 'Diocèse de Bayeux', 'parishName' => 'Paroisse Saint-Vigor-au-pays-athisien', 'state' => 'active'],
+            'p3' => ['dioceseName' => 'Diocèse de Bayeux', 'parishName' => 'Paroisse Sainte-Anne-de-la-Varenne'],
+        ];
+        $this->elasticHelper->bulkIndex(SearchIndex::PARISH, array_keys($parishes), array_values($parishes));
+        $this->elasticHelper->refresh(SearchIndex::PARISH);
+
+        self::assertSame(['p1', 'p2', 'p3'], $this->elasticService->searchParishIds('', null, 10, 0), 'Deleted parishes are found by default');
+        self::assertSame(['p2', 'p3'], $this->elasticService->searchParishIds('', null, 10, 0, activeOnly: true));
+        self::assertSame([], $this->elasticService->searchParishIds('remy', null, 10, 0, activeOnly: true));
+        self::assertSame(['p1'], $this->elasticService->searchParishIds('remy', null, 10, 0));
+    }
+
     public function testBulkIndexReportsRejectedDocuments(): void
     {
         $this->expectException(BulkIndexException::class);

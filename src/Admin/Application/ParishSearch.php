@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Admin\Application;
 
 use App\Field\Domain\Enum\FieldCommunity;
+use App\FieldHolder\Community\Domain\Enum\CommunityState;
 use App\FieldHolder\Community\Domain\Model\Community;
 use App\FieldHolder\Community\Domain\Service\SearchServiceInterface;
 
@@ -70,15 +71,18 @@ final readonly class ParishSearch
     private static function toRow(Community $parish): ParishRow
     {
         $parent = CommunityLabeler::parent($parish);
+        $state = self::string($parish, FieldCommunity::STATE);
 
         return new ParishRow(
             id: $parish->id?->toString() ?? '',
             name: CommunityLabeler::name($parish),
             dioceseName: null !== $parent ? CommunityLabeler::name($parent) : null,
             zipcode: self::string($parish, FieldCommunity::CONTACT_ZIPCODE),
-            state: self::string($parish, FieldCommunity::STATE),
+            state: $state,
             wikidataId: self::int($parish, FieldCommunity::WIKIDATA_ID),
             messesInfoId: self::string($parish, FieldCommunity::MESSESINFO_ID),
+            // Only the deleted ones can be replaced: this spares a query per alive parish
+            replacedBy: CommunityState::DELETED->value === $state ? CommunityLabeler::replacers($parish) : [],
         );
     }
 

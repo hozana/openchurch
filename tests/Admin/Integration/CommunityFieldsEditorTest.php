@@ -7,6 +7,7 @@ namespace App\Tests\Admin\Integration;
 use App\Admin\Application\AdminFieldInput;
 use App\Admin\Application\CommunityFieldsEditor;
 use App\Admin\Application\CommunityFieldsRejectedException;
+use App\Admin\Application\ParishReplacements;
 use App\Admin\Domain\Model\AdminUser;
 use App\Agent\Domain\Model\Agent;
 use App\Field\Domain\Enum\FieldCommunity;
@@ -14,6 +15,7 @@ use App\Field\Domain\Enum\FieldEngine;
 use App\Field\Domain\Enum\FieldReliability;
 use App\Field\Domain\FieldValueNormalizer;
 use App\Field\Domain\Model\Field;
+use App\FieldHolder\Community\Domain\Enum\CommunityDeletionReason;
 use App\FieldHolder\Community\Domain\Enum\CommunityState;
 use App\FieldHolder\Community\Domain\Enum\CommunityType;
 use App\FieldHolder\Community\Domain\Model\Community;
@@ -99,6 +101,249 @@ final class CommunityFieldsEditorTest extends KernelTestCase
         self::assertSame('https://haillon.example/contact', $email->explanation);
 
         self::assertSame('Paroisse du Haillon-sur-Loire', $this->parishDocument()['parishName']);
+    }
+
+    public function testCreatedParishHoldsItsTypeAndTheValuesOfTheAdminAgent(): void
+    {
+        $created = $this->editor->create($this->adminUser, [
+            new AdminFieldInput(FieldCommunity::NAME, 'Paroisse de la Chapelle'),
+            new AdminFieldInput(FieldCommunity::PARENT_COMMUNITY_ID, $this->diocese->id?->toString()),
+            new AdminFieldInput(FieldCommunity::CONTACT_EMAIL, 'accueil@chapelle.example', 'https://chapelle.example/contact'),
+            new AdminFieldInput(FieldCommunity::WEBSITE, null),
+        ]);
+
+        $parish = $this->reload($created);
+        self::assertCount(4, $parish->fields, 'The type, the name, the diocese and the email');
+
+        $type = $parish->getMostTrustableFieldByName(FieldCommunity::TYPE);
+        self::assertSame(CommunityType::PARISH->value, $type?->getValue());
+        self::assertSame(AdminUser::AGENT_NAME, $type->agent->name);
+        self::assertSame(FieldEngine::HUMAN, $type->engine);
+        self::assertSame(FieldReliability::HIGH, $type->reliability);
+        self::assertSame(CommunityFieldsEditor::SOURCE, $type->source);
+
+        $email = $parish->getMostTrustableFieldByName(FieldCommunity::CONTACT_EMAIL);
+        self::assertSame('accueil@chapelle.example', $email?->getValue());
+        self::assertSame('https://chapelle.example/contact', $email->explanation);
+        self::assertSame(AdminUser::AGENT_NAME, $email->agent->name);
+
+        $document = $this->parishDocument($parish);
+        self::assertSame('Paroisse de la Chapelle', $document['parishName']);
+        self::assertSame($this->diocese->id?->toString(), $document['dioceseId']);
+    }
+
+    public function testCreatedParishRequiresAName(): void
+    {
+        $this->expectException(CommunityFieldsRejectedException::class);
+        $this->expectExceptionMessage('« Nom » : obligatoire pour créer une paroisse.');
+
+        $this->editor->create($this->adminUser, [new AdminFieldInput(FieldCommunity::CONTACT_EMAIL, 'accueil@chapelle.example')]);
+    }
+
+    public function testEveryErrorOfACreationIsReported(): void
+    {
+        try {
+            $this->editor->create($this->adminUser, [new AdminFieldInput(FieldCommunity::CONTACT_EMAIL, null, 'https://chapelle.example/contact')]);
+            self::fail('A parish without a name must be rejected');
+        } catch (CommunityFieldsRejectedException $e) {
+            self::assertSame([
+                '« Nom » : obligatoire pour créer une paroisse.',
+                '« Email » : une explication ne peut accompagner qu\'une valeur.',
+            ], $e->errors);
+        }
+    }
+
+    public function testRejectedCreationIsNotWritten(): void
+    {
+        $communities = $this->em->getRepository(Community::class)->count([]);
+        $fields = $this->em->getRepository(Field::class)->count([]);
+
+        try {
+            $this->editor->create($this->adminUser, [
+                new AdminFieldInput(FieldCommunity::NAME, 'Paroisse de la Chapelle'),
+                new AdminFieldInput(FieldCommunity::STATE, CommunityState::DELETED->value),
+            ]);
+            self::fail('A deleted state without deletion reason must be rejected');
+        } catch (CommunityFieldsRejectedException $e) {
+            self::assertSame(['Deletion reason is mandatory when reporting a state=deleted state.'], $e->errors);
+        }
+
+        self::assertSame($communities, $this->em->getRepository(Community::class)->count([]));
+        self::assertSame($fields, $this->em->getRepository(Field::class)->count([]));
+    }
+
+    public function testCreatedParishParentMustBeADiocese(): void
+    {
+        $this->expectException(CommunityFieldsRejectedException::class);
+        $this->expectExceptionMessage('« Diocèse » : « Paroisse du Haillon » n\'est pas un diocèse.');
+
+        $this->editor->create($this->adminUser, [
+            new AdminFieldInput(FieldCommunity::NAME, 'Paroisse de la Chapelle'),
+            new AdminFieldInput(FieldCommunity::PARENT_COMMUNITY_ID, $this->parish->id?->toString()),
+        ]);
+    }
+
+    public function testDesignatedParishesAreDeletedAsDissolved(): void
+    {
+        $remy = $this->createCommunity(CommunityType::PARISH, 'Saint Remy des trois rivières');
+        $callo = $this->createCommunity(CommunityType::PARISH, 'Bienheureux Marcel Callo de Flers');
+        $untouched = $this->createCommunity(CommunityType::PARISH, 'Notre-Dame en Houlme');
+
+        $this->editor->apply($this->parish, $this->adminUser, [
+            new AdminFieldInput(FieldCommunity::REPLACES, [(string) $remy->id?->toString(), (string) $callo->id?->toString()]),
+        ]);
+
+        foreach ([$remy, $callo] as $replaced) {
+            $replaced = $this->reload($replaced);
+            $state = $replaced->getMostTrustableFieldByName(FieldCommunity::STATE);
+            self::assertSame(CommunityState::DELETED->value, $state?->getValue());
+            self::assertSame(AdminUser::AGENT_NAME, $state->agent->name);
+            self::assertSame(FieldReliability::HIGH, $state->reliability);
+            self::assertSame(ParishReplacements::SOURCE, $state->source);
+
+            $reason = $replaced->getMostTrustableFieldByName(FieldCommunity::DELETION_REASON);
+            self::assertSame(CommunityDeletionReason::DISSOLVED->value, $reason?->getValue());
+            self::assertSame('Remplacée par Paroisse du Haillon', $reason->explanation);
+            self::assertCount(0, self::getContainer()->get(ValidatorInterface::class)->validate($replaced));
+            self::assertSame(CommunityState::DELETED->value, $this->parishDocument($replaced)['state']);
+        }
+
+        self::assertNull($this->reload($untouched)->getMostTrustableFieldByName(FieldCommunity::STATE));
+        self::assertNull($this->parishDocument($untouched)['state']);
+        self::assertNull($this->reload($this->parish)->getMostTrustableFieldByName(FieldCommunity::STATE), 'The replacing parish stays alive');
+    }
+
+    public function testAParishAlreadyReplacedStaysLinkedWhenOtherFieldsChange(): void
+    {
+        $remy = $this->createCommunity(CommunityType::PARISH, 'Saint Remy des trois rivières');
+        $replaces = new AdminFieldInput(FieldCommunity::REPLACES, [(string) $remy->id?->toString()]);
+        $this->editor->apply($this->parish, $this->adminUser, [$replaces]);
+
+        // The replaced parish is deleted by now: it is not designated again, so it is not an error
+        $changes = $this->editor->apply($this->parish, $this->adminUser, [$replaces, new AdminFieldInput(FieldCommunity::CONTACT_CITY, 'Flers')]);
+
+        self::assertSame(1, $changes);
+        self::assertSame(CommunityState::DELETED->value, $this->reload($remy)->getMostTrustableFieldByName(FieldCommunity::STATE)?->getValue());
+    }
+
+    public function testReleasedParishesAreBroughtBack(): void
+    {
+        $remy = $this->createCommunity(CommunityType::PARISH, 'Saint Remy des trois rivières');
+        $callo = $this->createCommunity(CommunityType::PARISH, 'Bienheureux Marcel Callo de Flers');
+        $this->editor->apply($this->parish, $this->adminUser, [
+            new AdminFieldInput(FieldCommunity::REPLACES, [(string) $remy->id?->toString(), (string) $callo->id?->toString()]),
+        ]);
+
+        $this->editor->apply($this->parish, $this->adminUser, [
+            new AdminFieldInput(FieldCommunity::REPLACES, [(string) $callo->id?->toString()]),
+        ]);
+
+        $remy = $this->reload($remy);
+        self::assertNull($remy->getMostTrustableFieldByName(FieldCommunity::STATE));
+        self::assertNull($remy->getMostTrustableFieldByName(FieldCommunity::DELETION_REASON));
+        self::assertNull($this->parishDocument($remy)['state']);
+        self::assertSame(CommunityState::DELETED->value, $this->reload($callo)->getMostTrustableFieldByName(FieldCommunity::STATE)?->getValue());
+
+        // Removing the value of the field releases the other ones
+        $this->editor->apply($this->reload($this->parish), $this->adminUser, [new AdminFieldInput(FieldCommunity::REPLACES, null)]);
+
+        self::assertNull($this->reload($callo)->getMostTrustableFieldByName(FieldCommunity::STATE));
+        self::assertNull($this->parishDocument($callo)['state']);
+    }
+
+    public function testReleasingKeepsAStateGivenByHand(): void
+    {
+        $remy = $this->createCommunity(CommunityType::PARISH, 'Saint Remy des trois rivières');
+        $this->editor->apply($this->parish, $this->adminUser, [
+            new AdminFieldInput(FieldCommunity::REPLACES, [(string) $remy->id?->toString()]),
+        ]);
+        // An admin then takes over the state of the replaced parish
+        $this->editor->apply($this->reload($remy), $this->adminUser, [
+            new AdminFieldInput(FieldCommunity::STATE, CommunityState::DELETED->value, 'Confirmé par le diocèse'),
+        ]);
+
+        $this->editor->apply($this->reload($this->parish), $this->adminUser, [new AdminFieldInput(FieldCommunity::REPLACES, null)]);
+
+        $state = $this->reload($remy)->getMostTrustableFieldByName(FieldCommunity::STATE);
+        self::assertSame(CommunityState::DELETED->value, $state?->getValue());
+        self::assertSame(CommunityFieldsEditor::SOURCE, $state->source);
+    }
+
+    public function testADeletedParishCannotBeDesignated(): void
+    {
+        $merged = $this->createCommunity(CommunityType::PARISH, 'Saint Vigor au pays athisien', [
+            $this->scraperField(FieldCommunity::STATE, CommunityState::DELETED->value),
+            $this->scraperField(FieldCommunity::DELETION_REASON, CommunityDeletionReason::DUPLICATE->value),
+        ]);
+        $fields = $this->em->getRepository(Field::class)->count([]);
+
+        try {
+            $this->editor->apply($this->parish, $this->adminUser, [
+                new AdminFieldInput(FieldCommunity::REPLACES, [(string) $merged->id?->toString()]),
+            ]);
+            self::fail('A deleted parish must not be designated');
+        } catch (CommunityFieldsRejectedException $e) {
+            self::assertSame(['« Remplace » : « Saint Vigor au pays athisien » est déjà supprimée.'], $e->errors);
+        }
+
+        self::assertSame($fields, $this->em->getRepository(Field::class)->count([]));
+    }
+
+    public function testADeletedParishCannotReplaceOthers(): void
+    {
+        $deleted = $this->createCommunity(CommunityType::PARISH, 'Paroisse dissoute', [
+            $this->scraperField(FieldCommunity::STATE, CommunityState::DELETED->value),
+            $this->scraperField(FieldCommunity::DELETION_REASON, CommunityDeletionReason::DISSOLVED->value),
+        ]);
+        $remy = $this->createCommunity(CommunityType::PARISH, 'Saint Remy des trois rivières');
+
+        try {
+            $this->editor->apply($deleted, $this->adminUser, [
+                new AdminFieldInput(FieldCommunity::REPLACES, [(string) $remy->id?->toString()]),
+            ]);
+            self::fail('A deleted parish must not replace others');
+        } catch (CommunityFieldsRejectedException $e) {
+            self::assertSame(['« Remplace » : une paroisse supprimée ne peut pas en remplacer d\'autres.'], $e->errors);
+        }
+
+        self::assertNull($this->reload($remy)->getMostTrustableFieldByName(FieldCommunity::STATE), 'Nothing is written');
+        self::assertCount(0, $this->reload($deleted)->getFieldsByName(FieldCommunity::REPLACES));
+    }
+
+    public function testCreatedParishDeletesTheOnesItReplaces(): void
+    {
+        $remy = $this->createCommunity(CommunityType::PARISH, 'Saint Remy des trois rivières');
+
+        $created = $this->editor->create($this->adminUser, [
+            new AdminFieldInput(FieldCommunity::NAME, 'Paroisse Saint Joseph en Bocage'),
+            new AdminFieldInput(FieldCommunity::REPLACES, [(string) $remy->id?->toString()]),
+        ]);
+
+        $remy = $this->reload($remy);
+        self::assertSame(CommunityState::DELETED->value, $remy->getMostTrustableFieldByName(FieldCommunity::STATE)?->getValue());
+        self::assertSame('Remplacée par Paroisse Saint Joseph en Bocage', $remy->getMostTrustableFieldByName(FieldCommunity::DELETION_REASON)?->explanation);
+        self::assertNull($this->reload($created)->getMostTrustableFieldByName(FieldCommunity::STATE));
+    }
+
+    public function testCreationReportsEveryErrorAboutReplacedParishes(): void
+    {
+        $merged = $this->createCommunity(CommunityType::PARISH, 'Saint Vigor au pays athisien', [
+            $this->scraperField(FieldCommunity::STATE, CommunityState::DELETED->value),
+            $this->scraperField(FieldCommunity::DELETION_REASON, CommunityDeletionReason::DUPLICATE->value),
+        ]);
+        $communities = $this->em->getRepository(Community::class)->count([]);
+
+        try {
+            $this->editor->create($this->adminUser, [new AdminFieldInput(FieldCommunity::REPLACES, [(string) $merged->id?->toString()])]);
+            self::fail('A deleted parish must not be designated');
+        } catch (CommunityFieldsRejectedException $e) {
+            self::assertSame([
+                '« Nom » : obligatoire pour créer une paroisse.',
+                '« Remplace » : « Saint Vigor au pays athisien » est déjà supprimée.',
+            ], $e->errors);
+        }
+
+        self::assertSame($communities, $this->em->getRepository(Community::class)->count([]));
     }
 
     public function testUnchangedValuesAreNotWrittenAgain(): void
@@ -285,6 +530,10 @@ final class CommunityFieldsEditorTest extends KernelTestCase
     private function reload(Community $community): Community
     {
         $this->em->clear();
+        // Detached by the clear: the editor writes on behalf of its agent
+        $adminUser = $this->em->find(AdminUser::class, $this->adminUser->id);
+        self::assertInstanceOf(AdminUser::class, $adminUser);
+        $this->adminUser = $adminUser;
         $reloaded = $this->em->find(Community::class, $community->id);
         self::assertInstanceOf(Community::class, $reloaded);
 
@@ -294,10 +543,10 @@ final class CommunityFieldsEditorTest extends KernelTestCase
     /**
      * @return array<string, mixed>
      */
-    private function parishDocument(): array
+    private function parishDocument(?Community $parish = null): array
     {
         $this->searchHelper->refresh(SearchIndex::PARISH);
-        $document = $this->searchHelper->getDocument(SearchIndex::PARISH, (string) $this->parish->id?->toString());
+        $document = $this->searchHelper->getDocument(SearchIndex::PARISH, (string) ($parish ?? $this->parish)->id?->toString());
         self::assertIsArray($document);
         self::assertIsArray($document['_source']);
 
