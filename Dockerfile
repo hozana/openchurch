@@ -59,7 +59,7 @@ RUN bin/elasticsearch-plugin install --batch analysis-icu
 # Runtime shared by dev and prod, kept as small as the
 # app allows.
 # ============================================
-FROM dunglas/frankenphp:1.12.6-php8.5-trixie AS base
+FROM dunglas/frankenphp:1.13.1-php8.5-trixie AS base
 LABEL org.opencontainers.image.authors="contact@hozana.org"
 
 ARG USER
