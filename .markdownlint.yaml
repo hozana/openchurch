@@ -1,0 +1,4 @@
+# Inline HTML is used for the centered README header and collapsible examples.
+MD033: false
+# Documents do not follow a prescribed heading outline.
+MD043: false

@@ -1,8 +1,3 @@
-<!-- No required heading outline is defined for this README. -->
-<!-- markdownlint-disable MD043 -->
-
-<!-- markdownlint-disable MD033 -->
-
 <h1 align="center">💒<br>OpenChurch</h1>
 
 <p align="center">
@@ -31,8 +26,6 @@
   <a href="#development">Development</a> ·
   <a href="#api-examples">API examples</a>
 </p>
-
-<!-- markdownlint-enable MD033 -->
 
 ---
 
@@ -184,231 +177,227 @@ https://api.openchurch.local/api/communities?type=parish&contactZipcodes[]=40270
 The collection includes each community's fields, contributing agent, and source
 metadata.
 
-<!-- markdownlint-disable MD033 -->
-
 <details>
 <summary>View the full JSON response</summary>
 
 ```json
 {
-	"@context": "/api/contexts/Community",
-	"@id": "/api/communities",
-	"@type": "Collection",
-	"totalItems": 2,
-	"member": [
-		{
-			"@id": "/api/communities/0194cc58-9ae2-754e-aaa4-0f98ab46bb18",
-			"@type": "Community",
-			"id": "0194cc58-9ae2-754e-aaa4-0f98ab46bb18",
-			"fields": [
-				{
-					"@type": "Field",
-					"@id": "/api/.well-known/genid/636173db41ef2a4797d1",
-					"name": "contactCountryCode",
-					"value": "fr",
-					"agent": {
-						"@type": "Agent",
-						"@id": "/api/.well-known/genid/00694474629cbf0d779a",
-						"id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
-						"name": "CLI_PYTHON"
-					},
-					"reliability": "high",
-					"engine": "scraper",
-					"source": "Wikidata",
-					"explanation": "https://www.wikidata.org/wiki/Q1363973"
-				},
-				{
-					"@type": "Field",
-					"@id": "/api/.well-known/genid/1005b8c821e43a34a907",
-					"name": "name",
-					"value": "Archidiocèse d'Aix-en-Provence et Arles",
-					"agent": {
-						"@type": "Agent",
-						"@id": "/api/.well-known/genid/00694474629cbf0d779a",
-						"id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
-						"name": "CLI_PYTHON"
-					},
-					"reliability": "high",
-					"engine": "scraper",
-					"source": "Wikidata",
-					"explanation": "https://www.wikidata.org/wiki/Q1363973"
-				},
-				{
-					"@type": "Field",
-					"@id": "/api/.well-known/genid/0fb42f164359d0774415",
-					"name": "type",
-					"value": "diocese",
-					"agent": {
-						"@type": "Agent",
-						"@id": "/api/.well-known/genid/00694474629cbf0d779a",
-						"id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
-						"name": "CLI_PYTHON"
-					},
-					"reliability": "high",
-					"engine": "scraper",
-					"source": "Wikidata",
-					"explanation": "https://www.wikidata.org/wiki/Q1363973"
-				},
-				{
-					"@type": "Field",
-					"@id": "/api/.well-known/genid/6c8ccedbe6861c1935d4",
-					"name": "wikidataId",
-					"value": 1363973,
-					"agent": {
-						"@type": "Agent",
-						"@id": "/api/.well-known/genid/00694474629cbf0d779a",
-						"id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
-						"name": "CLI_PYTHON"
-					},
-					"reliability": "high",
-					"engine": "scraper",
-					"source": "Wikidata",
-					"explanation": "https://www.wikidata.org/wiki/Q1363973"
-				},
-				{
-					"@type": "Field",
-					"@id": "/api/.well-known/genid/4ca791f1e444898a57ee",
-					"name": "wikidataUpdatedAt",
-					"value": "2025-03-26T14:01:10+00:00",
-					"agent": {
-						"@type": "Agent",
-						"@id": "/api/.well-known/genid/00694474629cbf0d779a",
-						"id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
-						"name": "CLI_PYTHON"
-					},
-					"reliability": "high",
-					"engine": "scraper",
-					"source": "Wikidata",
-					"explanation": "https://www.wikidata.org/wiki/Q1363973"
-				}
-			]
-		},
-		{
-			"@id": "/api/communities/0194cc58-8931-753b-b77c-f3a75fe04ba8",
-			"@type": "Community",
-			"id": "0194cc58-8931-753b-b77c-f3a75fe04ba8",
-			"fields": [
-				{
-					"@type": "Field",
-					"@id": "/api/.well-known/genid/d9415c4d44f906ff3a69",
-					"name": "contactCountryCode",
-					"value": "fr",
-					"agent": {
-						"@type": "Agent",
-						"@id": "/api/.well-known/genid/00694474629cbf0d779a",
-						"id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
-						"name": "CLI_PYTHON"
-					},
-					"reliability": "high",
-					"engine": "scraper",
-					"source": "Wikidata",
-					"explanation": "https://www.wikidata.org/wiki/Q866776"
-				},
-				{
-					"@type": "Field",
-					"@id": "/api/.well-known/genid/abb294b073a833cdd952",
-					"name": "name",
-					"value": "Diocèse d'Aire et Dax",
-					"agent": {
-						"@type": "Agent",
-						"@id": "/api/.well-known/genid/00694474629cbf0d779a",
-						"id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
-						"name": "CLI_PYTHON"
-					},
-					"reliability": "high",
-					"engine": "scraper",
-					"source": "Wikidata",
-					"explanation": "https://www.wikidata.org/wiki/Q866776"
-				},
-				{
-					"@type": "Field",
-					"@id": "/api/.well-known/genid/ea3c0c5515f041c6a3d0",
-					"name": "type",
-					"value": "diocese",
-					"agent": {
-						"@type": "Agent",
-						"@id": "/api/.well-known/genid/00694474629cbf0d779a",
-						"id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
-						"name": "CLI_PYTHON"
-					},
-					"reliability": "high",
-					"engine": "scraper",
-					"source": "Wikidata",
-					"explanation": "https://www.wikidata.org/wiki/Q866776"
-				},
-				{
-					"@type": "Field",
-					"@id": "/api/.well-known/genid/607b601ece57c173c729",
-					"name": "wikidataId",
-					"value": 866776,
-					"agent": {
-						"@type": "Agent",
-						"@id": "/api/.well-known/genid/00694474629cbf0d779a",
-						"id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
-						"name": "CLI_PYTHON"
-					},
-					"reliability": "high",
-					"engine": "scraper",
-					"source": "Wikidata",
-					"explanation": "https://www.wikidata.org/wiki/Q866776"
-				},
-				{
-					"@type": "Field",
-					"@id": "/api/.well-known/genid/516c82999a0bbc3e23d0",
-					"name": "wikidataUpdatedAt",
-					"value": "2025-05-10T08:18:06+00:00",
-					"agent": {
-						"@type": "Agent",
-						"@id": "/api/.well-known/genid/00694474629cbf0d779a",
-						"id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
-						"name": "CLI_PYTHON"
-					},
-					"reliability": "high",
-					"engine": "scraper",
-					"source": "Wikidata",
-					"explanation": "https://www.wikidata.org/wiki/Q866776"
-				}
-			]
-		}
-	],
-	"view": {
-		"@id": "/api/communities?itemsPerPage=10&name=aix%20en%20provence&type=diocese",
-		"@type": "PartialCollectionView"
-	},
-	"search": {
-		"@type": "IriTemplate",
-		"template": "/api/communities{?type,messeInfoId,parentWikidataId,name}",
-		"variableRepresentation": "BasicRepresentation",
-		"mapping": [
-			{
-				"@type": "IriTemplateMapping",
-				"variable": "type",
-				"property": "type",
-				"required": false
-			},
-			{
-				"@type": "IriTemplateMapping",
-				"variable": "messeInfoId",
-				"property": "wikidataId",
-				"required": false
-			},
-			{
-				"@type": "IriTemplateMapping",
-				"variable": "parentWikidataId",
-				"property": "parentWikidataId",
-				"required": false
-			},
-			{
-				"@type": "IriTemplateMapping",
-				"variable": "name",
-				"property": "name",
-				"required": false
-			}
-		]
-	}
+  "@context": "/api/contexts/Community",
+  "@id": "/api/communities",
+  "@type": "Collection",
+  "totalItems": 2,
+  "member": [
+    {
+      "@id": "/api/communities/0194cc58-9ae2-754e-aaa4-0f98ab46bb18",
+      "@type": "Community",
+      "id": "0194cc58-9ae2-754e-aaa4-0f98ab46bb18",
+      "fields": [
+        {
+          "@type": "Field",
+          "@id": "/api/.well-known/genid/636173db41ef2a4797d1",
+          "name": "contactCountryCode",
+          "value": "fr",
+          "agent": {
+            "@type": "Agent",
+            "@id": "/api/.well-known/genid/00694474629cbf0d779a",
+            "id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
+            "name": "CLI_PYTHON"
+          },
+          "reliability": "high",
+          "engine": "scraper",
+          "source": "Wikidata",
+          "explanation": "https://www.wikidata.org/wiki/Q1363973"
+        },
+        {
+          "@type": "Field",
+          "@id": "/api/.well-known/genid/1005b8c821e43a34a907",
+          "name": "name",
+          "value": "Archidiocèse d'Aix-en-Provence et Arles",
+          "agent": {
+            "@type": "Agent",
+            "@id": "/api/.well-known/genid/00694474629cbf0d779a",
+            "id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
+            "name": "CLI_PYTHON"
+          },
+          "reliability": "high",
+          "engine": "scraper",
+          "source": "Wikidata",
+          "explanation": "https://www.wikidata.org/wiki/Q1363973"
+        },
+        {
+          "@type": "Field",
+          "@id": "/api/.well-known/genid/0fb42f164359d0774415",
+          "name": "type",
+          "value": "diocese",
+          "agent": {
+            "@type": "Agent",
+            "@id": "/api/.well-known/genid/00694474629cbf0d779a",
+            "id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
+            "name": "CLI_PYTHON"
+          },
+          "reliability": "high",
+          "engine": "scraper",
+          "source": "Wikidata",
+          "explanation": "https://www.wikidata.org/wiki/Q1363973"
+        },
+        {
+          "@type": "Field",
+          "@id": "/api/.well-known/genid/6c8ccedbe6861c1935d4",
+          "name": "wikidataId",
+          "value": 1363973,
+          "agent": {
+            "@type": "Agent",
+            "@id": "/api/.well-known/genid/00694474629cbf0d779a",
+            "id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
+            "name": "CLI_PYTHON"
+          },
+          "reliability": "high",
+          "engine": "scraper",
+          "source": "Wikidata",
+          "explanation": "https://www.wikidata.org/wiki/Q1363973"
+        },
+        {
+          "@type": "Field",
+          "@id": "/api/.well-known/genid/4ca791f1e444898a57ee",
+          "name": "wikidataUpdatedAt",
+          "value": "2025-03-26T14:01:10+00:00",
+          "agent": {
+            "@type": "Agent",
+            "@id": "/api/.well-known/genid/00694474629cbf0d779a",
+            "id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
+            "name": "CLI_PYTHON"
+          },
+          "reliability": "high",
+          "engine": "scraper",
+          "source": "Wikidata",
+          "explanation": "https://www.wikidata.org/wiki/Q1363973"
+        }
+      ]
+    },
+    {
+      "@id": "/api/communities/0194cc58-8931-753b-b77c-f3a75fe04ba8",
+      "@type": "Community",
+      "id": "0194cc58-8931-753b-b77c-f3a75fe04ba8",
+      "fields": [
+        {
+          "@type": "Field",
+          "@id": "/api/.well-known/genid/d9415c4d44f906ff3a69",
+          "name": "contactCountryCode",
+          "value": "fr",
+          "agent": {
+            "@type": "Agent",
+            "@id": "/api/.well-known/genid/00694474629cbf0d779a",
+            "id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
+            "name": "CLI_PYTHON"
+          },
+          "reliability": "high",
+          "engine": "scraper",
+          "source": "Wikidata",
+          "explanation": "https://www.wikidata.org/wiki/Q866776"
+        },
+        {
+          "@type": "Field",
+          "@id": "/api/.well-known/genid/abb294b073a833cdd952",
+          "name": "name",
+          "value": "Diocèse d'Aire et Dax",
+          "agent": {
+            "@type": "Agent",
+            "@id": "/api/.well-known/genid/00694474629cbf0d779a",
+            "id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
+            "name": "CLI_PYTHON"
+          },
+          "reliability": "high",
+          "engine": "scraper",
+          "source": "Wikidata",
+          "explanation": "https://www.wikidata.org/wiki/Q866776"
+        },
+        {
+          "@type": "Field",
+          "@id": "/api/.well-known/genid/ea3c0c5515f041c6a3d0",
+          "name": "type",
+          "value": "diocese",
+          "agent": {
+            "@type": "Agent",
+            "@id": "/api/.well-known/genid/00694474629cbf0d779a",
+            "id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
+            "name": "CLI_PYTHON"
+          },
+          "reliability": "high",
+          "engine": "scraper",
+          "source": "Wikidata",
+          "explanation": "https://www.wikidata.org/wiki/Q866776"
+        },
+        {
+          "@type": "Field",
+          "@id": "/api/.well-known/genid/607b601ece57c173c729",
+          "name": "wikidataId",
+          "value": 866776,
+          "agent": {
+            "@type": "Agent",
+            "@id": "/api/.well-known/genid/00694474629cbf0d779a",
+            "id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
+            "name": "CLI_PYTHON"
+          },
+          "reliability": "high",
+          "engine": "scraper",
+          "source": "Wikidata",
+          "explanation": "https://www.wikidata.org/wiki/Q866776"
+        },
+        {
+          "@type": "Field",
+          "@id": "/api/.well-known/genid/516c82999a0bbc3e23d0",
+          "name": "wikidataUpdatedAt",
+          "value": "2025-05-10T08:18:06+00:00",
+          "agent": {
+            "@type": "Agent",
+            "@id": "/api/.well-known/genid/00694474629cbf0d779a",
+            "id": "0193e4d8-4f7a-7ae1-aaa2-8145d3caee4a",
+            "name": "CLI_PYTHON"
+          },
+          "reliability": "high",
+          "engine": "scraper",
+          "source": "Wikidata",
+          "explanation": "https://www.wikidata.org/wiki/Q866776"
+        }
+      ]
+    }
+  ],
+  "view": {
+    "@id": "/api/communities?itemsPerPage=10&name=aix%20en%20provence&type=diocese",
+    "@type": "PartialCollectionView"
+  },
+  "search": {
+    "@type": "IriTemplate",
+    "template": "/api/communities{?type,messeInfoId,parentWikidataId,name}",
+    "variableRepresentation": "BasicRepresentation",
+    "mapping": [
+      {
+        "@type": "IriTemplateMapping",
+        "variable": "type",
+        "property": "type",
+        "required": false
+      },
+      {
+        "@type": "IriTemplateMapping",
+        "variable": "messeInfoId",
+        "property": "wikidataId",
+        "required": false
+      },
+      {
+        "@type": "IriTemplateMapping",
+        "variable": "parentWikidataId",
+        "property": "parentWikidataId",
+        "required": false
+      },
+      {
+        "@type": "IriTemplateMapping",
+        "variable": "name",
+        "property": "name",
+        "required": false
+      }
+    ]
+  }
 }
 ```
 
 </details>
-
-<!-- markdownlint-enable MD033 -->
