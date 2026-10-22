@@ -110,6 +110,7 @@ final class IndexCommunitiesCommandTest extends AcceptanceTestHelper
                     'parishName' => 'Paroisse Saint-Pierre-Saint-Paul-du-Marsan',
                     'dioceseId' => $diocese2->id->toString(),
                     'dioceseName' => "Diocèse d'Aire de Dax",
+                    'state' => null,
                 ],
             ],
             [
@@ -121,6 +122,7 @@ final class IndexCommunitiesCommandTest extends AcceptanceTestHelper
                     'parishName' => 'Ensemble Paroissial de Bagnols-sur-Cèze',
                     'dioceseId' => $diocese1->id->toString(),
                     'dioceseName' => 'Diocèse de Nîmes',
+                    'state' => null,
                 ],
             ],
         ],
@@ -153,6 +155,7 @@ final class IndexCommunitiesCommandTest extends AcceptanceTestHelper
             'parishName' => 'Paroisse du Marsan',
             'dioceseId' => $dax->id->toString(),
             'dioceseName' => "Diocèse d'Aire de Dax",
+            'state' => null,
         ], $fullDocument);
 
         self::getContainer()->get(CommunitySearchIndexer::class)->index($parish, $deanery);

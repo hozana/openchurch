@@ -78,6 +78,31 @@ final class ParishController extends AbstractController
         ]);
     }
 
+    #[AdminRoute('/new', name: 'new', options: ['methods' => ['GET', 'POST']])]
+    public function new(Request $request): Response
+    {
+        $form = $this->createFieldsForm([], requireName: true);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            try {
+                $parish = $this->fieldsEditor->create($this->adminUser(), self::toInputs($form));
+                $this->flash('success', 'La paroisse a été créée.');
+
+                return $this->redirectToRoute('admin_parish_edit', [
+                    'id' => $parish->id?->toRfc4122() ?? throw new LogicException('A created parish has an id.'),
+                ] + self::listState($request));
+            } catch (CommunityFieldsRejectedException $e) {
+                self::addRejectionErrors($form, $e);
+            }
+        }
+
+        return $this->render('@admin/parish/new.html.twig', [
+            'form' => $form->createView(),
+            'listState' => self::listState($request),
+        ], self::formResponse($form));
+    }
+
     #[AdminRoute('/{id}/edit', name: 'edit', options: ['methods' => ['GET', 'POST'], 'requirements' => ['id' => Requirement::UUID]])]
     public function edit(Request $request, string $id): Response
     {
@@ -93,9 +118,7 @@ final class ParishController extends AbstractController
 
                 return $this->redirectToRoute('admin_parish_edit', ['id' => $id] + self::listState($request));
             } catch (CommunityFieldsRejectedException $e) {
-                foreach ($e->errors as $error) {
-                    $form->addError(new FormError($error));
-                }
+                self::addRejectionErrors($form, $e);
                 // The rejected changes were discarded: display the stored values next to the submitted ones
                 $parish = $this->findParish($id);
                 $fields = $this->fieldsOverview->build($parish, $this->adminUser()->agent);
@@ -105,11 +128,12 @@ final class ParishController extends AbstractController
         return $this->render('@admin/parish/edit.html.twig', [
             'parish' => $parish,
             'parishName' => CommunityLabeler::name($parish),
+            'replacedBy' => CommunityLabeler::replacers($parish),
             'fields' => $fields,
             'form' => $form->createView(),
             'listState' => self::listState($request),
             'resetCsrfTokenId' => self::RESET_CSRF_TOKEN_ID,
-        ], new Response(status: $form->getErrors(true)->count() > 0 ? Response::HTTP_UNPROCESSABLE_ENTITY : Response::HTTP_OK));
+        ], self::formResponse($form));
     }
 
     #[AdminRoute('/{id}/fields/{name}/reset', name: 'reset_field', options: ['methods' => ['POST'], 'requirements' => ['id' => Requirement::UUID]])]
@@ -151,7 +175,7 @@ final class ParishController extends AbstractController
         try {
             $ids = $isDiocese
                 ? $this->searchService->searchDioceseIds($query, self::AUTOCOMPLETE_SIZE, 0)
-                : $this->searchService->searchParishIds($query, null, self::AUTOCOMPLETE_SIZE, 0);
+                : $this->searchService->searchParishIds($query, null, self::AUTOCOMPLETE_SIZE, 0, activeOnly: true);
         } catch (ElasticsearchException|TransportException) {
             return new JsonResponse(['results' => [], 'next_page' => null], Response::HTTP_SERVICE_UNAVAILABLE);
         }
@@ -175,12 +199,28 @@ final class ParishController extends AbstractController
     /**
      * @param array<string, array{value: string|int|float|list<string>|null, explanation: ?string}> $data
      */
-    private function createFieldsForm(array $data): FormInterface
+    private function createFieldsForm(array $data, bool $requireName = false): FormInterface
     {
         return $this->createForm(CommunityFieldsType::class, $data, [
             'diocese_autocomplete_url' => $this->generateUrl('admin_parish_search_communities', ['type' => 'diocese']),
             'parish_autocomplete_url' => $this->generateUrl('admin_parish_search_communities', ['type' => 'parish']),
+            'require_name' => $requireName,
         ]);
+    }
+
+    private static function addRejectionErrors(FormInterface $form, CommunityFieldsRejectedException $e): void
+    {
+        foreach ($e->errors as $error) {
+            $form->addError(new FormError($error));
+        }
+    }
+
+    /**
+     * The response a form page is rendered with: unprocessable when the submitted form has errors.
+     */
+    private static function formResponse(FormInterface $form): Response
+    {
+        return new Response(status: $form->getErrors(true)->count() > 0 ? Response::HTTP_UNPROCESSABLE_ENTITY : Response::HTTP_OK);
     }
 
     private function findParish(string $id): Community

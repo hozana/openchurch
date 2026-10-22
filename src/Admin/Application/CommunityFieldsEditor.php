@@ -10,16 +10,14 @@ use App\Admin\Domain\Model\AdminUser;
 use App\Agent\Domain\Model\Agent;
 use App\Field\Application\FieldService;
 use App\Field\Domain\Enum\FieldCommunity;
-use App\Field\Domain\Enum\FieldEngine;
-use App\Field\Domain\Enum\FieldReliability;
 use App\Field\Domain\Model\Field;
 use App\Field\Domain\Repository\FieldRepositoryInterface;
 use App\FieldHolder\Community\Domain\Enum\CommunityType;
 use App\FieldHolder\Community\Domain\Model\Community;
+use App\FieldHolder\Community\Domain\Repository\CommunityRepositoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use LogicException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
-use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -35,12 +33,39 @@ final readonly class CommunityFieldsEditor
         private FieldService $fieldService,
         private CommunityLabeler $communityLabeler,
         private FieldRepositoryInterface $fieldRepo,
+        private CommunityRepositoryInterface $communityRepo,
+        private ParishReplacements $replacements,
         private ValidatorInterface $validator,
         private EntityManagerInterface $em,
     ) {
     }
 
     /**
+     * Creates a parish, whose fields are written like those of an edit. Its type is not an input, since
+     * admins can't change it: it is always a parish. The parishes it replaces are deleted along with it.
+     *
+     * @param list<AdminFieldInput> $inputs
+     *
+     * @throws CommunityFieldsRejectedException
+     */
+    public function create(AdminUser $adminUser, array $inputs): Community
+    {
+        $agent = $adminUser->agent;
+        $parish = new Community();
+        $replacement = $this->replacements->plan($parish, $agent, $inputs);
+        $this->ensureApplicable($parish, $agent, $inputs, [...self::missingNameErrors($inputs), ...$this->replacements->errors($replacement)]);
+        $this->communityRepo->add($parish);
+
+        [$payloads] = $this->prepareChanges($parish, $agent, $inputs);
+        $typePayload = new AdminFieldInput(FieldCommunity::TYPE, CommunityType::PARISH->value)->toPayload(self::SOURCE);
+        $this->write($parish, $agent, [$typePayload, ...$payloads], [], $replacement);
+
+        return $parish;
+    }
+
+    /**
+     * The parishes newly designated in « replaces » are deleted, and the ones removed from it are brought back.
+     *
      * @param list<AdminFieldInput> $inputs
      *
      * @return int the number of changed fields
@@ -50,7 +75,8 @@ final readonly class CommunityFieldsEditor
     public function apply(Community $parish, AdminUser $adminUser, array $inputs): int
     {
         $agent = $adminUser->agent;
-        $this->ensureApplicable($parish, $agent, $inputs);
+        $replacement = $this->replacements->plan($parish, $agent, $inputs);
+        $this->ensureApplicable($parish, $agent, $inputs, $this->replacements->errors($replacement));
 
         $initialViolations = $this->violationMessages($parish);
         [$payloads, $changes] = $this->prepareChanges($parish, $agent, $inputs);
@@ -58,7 +84,7 @@ final readonly class CommunityFieldsEditor
             return 0;
         }
 
-        $this->write($parish, $agent, $payloads, $initialViolations);
+        $this->write($parish, $agent, $payloads, $initialViolations, $replacement);
 
         return $changes;
     }
@@ -91,7 +117,7 @@ final readonly class CommunityFieldsEditor
                 continue;
             }
 
-            $payloads[] = self::toPayload($input);
+            $payloads[] = $input->toPayload(self::SOURCE);
             ++$changes;
         }
 
@@ -106,10 +132,11 @@ final readonly class CommunityFieldsEditor
      *
      * @throws CommunityFieldsRejectedException
      */
-    private function write(Community $parish, Agent $agent, array $payloads, array $initialViolations): void
+    private function write(Community $parish, Agent $agent, array $payloads, array $initialViolations, ParishReplacementPlan $replacement): void
     {
         try {
             $this->fieldService->upsertFields($parish, $payloads, $agent);
+            $this->replacements->apply($parish, $agent, $replacement);
             $this->ensureNoNewViolation($parish, $initialViolations);
         } catch (CommunityFieldsRejectedException $e) {
             $this->discardChanges();
@@ -136,12 +163,12 @@ final readonly class CommunityFieldsEditor
      * Checks what can be checked before changing anything: nothing has to be undone on failure.
      *
      * @param list<AdminFieldInput> $inputs
+     * @param list<string>          $errors the errors already found, reported along with the ones of the inputs
      *
      * @throws CommunityFieldsRejectedException
      */
-    private function ensureApplicable(Community $parish, Agent $agent, array $inputs): void
+    private function ensureApplicable(Community $parish, Agent $agent, array $inputs, array $errors = []): void
     {
-        $errors = [];
         foreach ($inputs as $input) {
             if (!AdminCommunityFields::isEditable($input->name)) {
                 throw new LogicException(sprintf('Field %s cannot be edited from the admin.', $input->name->value));
@@ -161,6 +188,24 @@ final readonly class CommunityFieldsEditor
     }
 
     /**
+     * A parish without a name can't be told apart in the list, nor found by the search.
+     *
+     * @param list<AdminFieldInput> $inputs
+     *
+     * @return list<string>
+     */
+    private static function missingNameErrors(array $inputs): array
+    {
+        foreach ($inputs as $input) {
+            if (FieldCommunity::NAME === $input->name && null !== $input->value) {
+                return [];
+            }
+        }
+
+        return [sprintf('« %s » : obligatoire pour créer une paroisse.', AdminCommunityFields::label(FieldCommunity::NAME))];
+    }
+
+    /**
      * The parent of a parish must be an existing diocese, and a parish only replaces other existing parishes.
      *
      * @return list<string>
@@ -173,7 +218,7 @@ final readonly class CommunityFieldsEditor
         }
 
         $label = AdminCommunityFields::label($input->name);
-        $ids = self::relatedIds($input);
+        $ids = $input->relatedIds();
         if (in_array($parish->id?->toRfc4122(), $ids, true)) {
             return [sprintf('« %s » : une paroisse ne peut pas se désigner elle-même.', $label)];
         }
@@ -205,35 +250,9 @@ final readonly class CommunityFieldsEditor
         };
     }
 
-    /**
-     * The ids of the related communities, in their canonical (lowercase) form and without duplicates.
-     *
-     * @return list<string>
-     */
-    private static function relatedIds(AdminFieldInput $input): array
-    {
-        return array_values(array_unique(array_map(
-            static fn (string $id): string => Uuid::isValid($id) ? Uuid::fromString($id)->toRfc4122() : $id,
-            array_filter((array) $input->value, is_string(...)),
-        )));
-    }
-
     private static function typeName(CommunityType $type): string
     {
         return CommunityType::DIOCESE === $type ? 'un diocèse' : 'une paroisse';
-    }
-
-    private static function toPayload(AdminFieldInput $input): Field
-    {
-        $payload = new Field();
-        $payload->name = $input->name->value;
-        $payload->value = $input->value;
-        $payload->engine = FieldEngine::HUMAN;
-        $payload->reliability = FieldReliability::HIGH;
-        $payload->source = self::SOURCE;
-        $payload->explanation = $input->explanation;
-
-        return $payload;
     }
 
     private function removeField(Community $parish, Field $field): void

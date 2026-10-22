@@ -181,6 +181,9 @@ class OfficialElasticSearchHelper implements SearchHelperInterface
                 'dioceseId' => [
                     'type' => 'keyword',
                 ],
+                'state' => [
+                    'type' => 'keyword',
+                ],
             ],
         ];
     }

@@ -37,6 +37,7 @@ final class DoctrineFieldListener implements ResetInterface
         FieldCommunity::TYPE->value,
         FieldCommunity::NAME->value,
         FieldCommunity::PARENT_COMMUNITY_ID->value,
+        FieldCommunity::STATE->value,
     ];
 
     /** @var array<int, Community> Keyed by object id to index each community once */

@@ -6,6 +6,9 @@ namespace App\Admin\Application;
 
 final readonly class ParishRow
 {
+    /**
+     * @param array<string, string> $replacedBy labels of the parishes replacing this one, indexed by id
+     */
     public function __construct(
         public string $id,
         public ?string $name,
@@ -14,6 +17,7 @@ final readonly class ParishRow
         public ?string $state,
         public ?int $wikidataId,
         public ?string $messesInfoId,
+        public array $replacedBy = [],
     ) {
     }
 }

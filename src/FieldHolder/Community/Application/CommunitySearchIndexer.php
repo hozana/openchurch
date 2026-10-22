@@ -66,7 +66,7 @@ final readonly class CommunitySearchIndexer
      *
      * @param iterable<Community> $communities
      *
-     * @return array<string, array{id: string, parishName: mixed, dioceseId: ?string, dioceseName: mixed}> indexed by id
+     * @return array<string, array{id: string, parishName: mixed, dioceseId: ?string, dioceseName: mixed, state: mixed}> indexed by id
      */
     public function parishDocuments(iterable $communities): array
     {
@@ -86,6 +86,7 @@ final readonly class CommunitySearchIndexer
                 'parishName' => $parish->getMostTrustableFieldByName(FieldCommunity::NAME)?->getValue(),
                 'dioceseId' => $diocese?->id?->toString(),
                 'dioceseName' => $diocese?->getMostTrustableFieldByName(FieldCommunity::NAME)?->getValue(),
+                'state' => $parish->getMostTrustableFieldByName(FieldCommunity::STATE)?->getValue(),
             ];
         }
 
