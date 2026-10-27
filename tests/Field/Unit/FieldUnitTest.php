@@ -90,6 +90,29 @@ final class FieldUnitTest extends KernelTestCase
         self::assertSame('Field replaces expected value of type Community[]', $violations->get(0)->getMessage());
     }
 
+    public function testACommunityCannotBeReplacedBySeveralOnes(): void
+    {
+        $replaced = DummyCommunityFactory::new()->withoutPersisting()->create();
+        $replacing = DummyFieldFactory::new()->withoutPersisting()->create([
+            'community' => DummyCommunityFactory::new()->withoutPersisting()->create(),
+            'name' => FieldCommunity::REPLACES->value,
+            'value' => [$replaced],
+        ]);
+        $replaced->fieldsAsCommunitiesVal->add($replacing);
+
+        $alsoReplacing = DummyFieldFactory::new()->withoutPersisting()->create([
+            'community' => DummyCommunityFactory::new()->withoutPersisting()->create(),
+            'name' => FieldCommunity::REPLACES->value,
+            'value' => [$replaced],
+        ]);
+        $violations = $this->validator->validate($alsoReplacing);
+        self::assertCount(1, $violations);
+        self::assertStringEndsWith('is already replaced by another community: a community is replaced by a single one.', (string) $violations->get(0)->getMessage());
+
+        // The community already replacing it can still edit its own field
+        self::assertCount(0, $this->validator->validate($replacing));
+    }
+
     public function testNotInsertPlacesInReplacesField(): void
     {
         $field = DummyFieldFactory::new()->withoutPersisting()->create([

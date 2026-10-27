@@ -23,6 +23,7 @@ enum FieldCommunity: string
         self::CONTACT_ZIPCODE->value => Types::STRING,
         self::CONTACT_CITY->value => Types::STRING,
         self::CONTACT_COUNTRY_CODE->value => Types::STRING,
+        self::TIMEZONE->value => Types::STRING,
         self::MESSESINFO_ID->value => Types::STRING,
         self::WIKIDATA_ID->value => Types::INTEGER,
         self::WIKIDATA_UPDATED_AT->value => Types::DATETIME_IMMUTABLE,
@@ -46,6 +47,7 @@ enum FieldCommunity: string
     case CONTACT_ZIPCODE = 'contactZipcode';
     case CONTACT_CITY = 'contactCity';
     case CONTACT_COUNTRY_CODE = 'contactCountryCode';
+    case TIMEZONE = 'timezone';
     case MESSESINFO_ID = 'messesInfoId';
     case WIKIDATA_ID = 'wikidataId';
     case WIKIDATA_UPDATED_AT = 'wikidataUpdatedAt';

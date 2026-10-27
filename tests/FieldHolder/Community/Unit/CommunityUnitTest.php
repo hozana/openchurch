@@ -54,6 +54,19 @@ final class CommunityUnitTest extends KernelTestCase
         self::assertSame("Country code '-1' is not valid.", $violations->get(0)->getMessage());
     }
 
+    public function testTimezoneValidation(): void
+    {
+        $community = DummyCommunityFactory::new()->withoutPersisting()->create(['fields' => [
+            DummyFieldFactory::new()->withoutPersisting()->create([
+                'name' => FieldCommunity::TIMEZONE->value, 'stringVal' => 'Europe/Lutece',
+            ]),
+        ]]);
+
+        $violations = $this->validator->validate($community);
+        self::assertCount(1, $violations);
+        self::assertSame("Timezone 'Europe/Lutece' is not valid.", $violations->get(0)->getMessage());
+    }
+
     public function testGetMostTrustableFieldByName(): void
     {
         $community = DummyCommunityFactory::new()->withoutPersisting()->create(['fields' => [
