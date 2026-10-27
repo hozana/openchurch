@@ -17,6 +17,7 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\CountryType;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\TimezoneType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormEvent;
@@ -26,6 +27,7 @@ use Symfony\Component\Form\FormTypeInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Email;
 use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 final class CommunityFieldsType extends AbstractType
 {
@@ -37,6 +39,17 @@ final class CommunityFieldsType extends AbstractType
         'dissolved' => 'Dissoute',
     ];
 
+    /**
+     * Each field is a row holding two inner rows (the value and its explanation). EasyAdmin spaces rows with a large
+     * bottom padding: tighten the inner ones, which would otherwise stack three of them per field. The explanation,
+     * last of the row, has none.
+     */
+    private const array INNER_ROW_ATTR = ['class' => 'pb-2'];
+
+    private const array LAST_INNER_ROW_ATTR = ['class' => 'pb-0'];
+
+    private const string REPLACES_HELP = 'Les paroisses sélectionnées sont supprimées (motif : dissoute) à l\'enregistrement. Retirer une paroisse de la liste la réactive.';
+
     public function __construct(
         private readonly CommunityLabeler $communityLabeler,
     ) {
@@ -45,8 +58,11 @@ final class CommunityFieldsType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         foreach (AdminCommunityFields::editable() as $name) {
+            $required = $options['require_name'] && FieldCommunity::NAME === $name;
             $field = $builder->create($name->value, FormType::class, [
                 'label' => AdminCommunityFields::label($name),
+                // The row has no input of its own: this only drives the required marker of its label
+                'required' => $required,
             ]);
 
             if (self::isRelation($name)) {
@@ -56,12 +72,13 @@ final class CommunityFieldsType extends AbstractType
                 $field->addEventListener(FormEvents::PRE_SET_DATA, $addChoice);
                 $field->addEventListener(FormEvents::PRE_SUBMIT, $addChoice);
             } else {
-                $field->add('value', ...self::valueType($name));
+                $field->add('value', ...self::valueType($name, $required));
             }
 
             $field->add('explanation', TextType::class, [
                 'label' => false,
                 'required' => false,
+                'row_attr' => self::LAST_INNER_ROW_ATTR,
                 'attr' => ['placeholder' => 'Source ou justification (publique, optionnelle)'],
             ]);
             $builder->add($field);
@@ -85,6 +102,9 @@ final class CommunityFieldsType extends AbstractType
         $resolver->setRequired(['diocese_autocomplete_url', 'parish_autocomplete_url']);
         $resolver->setAllowedTypes('diocese_autocomplete_url', 'string');
         $resolver->setAllowedTypes('parish_autocomplete_url', 'string');
+        // Whether the name must be given, as when creating a parish
+        $resolver->setDefault('require_name', false);
+        $resolver->setAllowedTypes('require_name', 'bool');
     }
 
     private static function isRelation(FieldCommunity $name): bool
@@ -95,17 +115,24 @@ final class CommunityFieldsType extends AbstractType
     /**
      * @return array{class-string<FormTypeInterface>, array<string, mixed>}
      */
-    private static function valueType(FieldCommunity $name): array
+    private static function valueType(FieldCommunity $name, bool $required): array
     {
-        $common = ['label' => false, 'required' => false];
+        $common = ['label' => false, 'required' => $required, 'row_attr' => self::INNER_ROW_ATTR];
         $type = $name->getType();
 
         if (FieldCommunity::CONTACT_COUNTRY_CODE === $name) {
             return [CountryType::class, $common + ['placeholder' => '—']];
         }
 
+        if (FieldCommunity::TIMEZONE === $name) {
+            return [TimezoneType::class, $common + ['placeholder' => '—']];
+        }
+
         if (Types::STRING === $type) {
             $constraints = [new Length(max: Field::STRING_MAX_LENGTH)];
+            if ($required) {
+                $constraints[] = new NotBlank(message: 'Ce champ est obligatoire pour créer une paroisse.');
+            }
             if (FieldCommunity::CONTACT_EMAIL === $name) {
                 $constraints[] = new Email();
             }
@@ -153,6 +180,8 @@ final class CommunityFieldsType extends AbstractType
         $form->add('value', ChoiceType::class, [
             'label' => false,
             'required' => false,
+            'row_attr' => self::INNER_ROW_ATTR,
+            'help' => FieldCommunity::REPLACES === $name ? self::REPLACES_HELP : null,
             'multiple' => $multiple,
             'placeholder' => $multiple ? null : '—',
             'choice_loader' => new CommunityIdChoiceLoader(array_keys($labels)),

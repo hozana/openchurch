@@ -37,6 +37,7 @@ final class AdminCommunityFieldsTest extends TestCase
             FieldCommunity::CONTACT_ZIPCODE,
             FieldCommunity::CONTACT_CITY,
             FieldCommunity::CONTACT_COUNTRY_CODE,
+            FieldCommunity::TIMEZONE,
             FieldCommunity::PARENT_COMMUNITY_ID,
             FieldCommunity::REPLACES,
         ], AdminCommunityFields::editable());

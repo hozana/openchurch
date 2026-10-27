@@ -61,7 +61,7 @@ use Symfony\Component\Uid\Uuid;
         provider: CommunityCollectionProvider::class,
     ),
     new Get(
-        normalizationContext: ['groups' => ['communities']],
+        normalizationContext: ['groups' => ['communities', 'community']],
         provider: CommunityItemProvider::class,
     ),
 ], cacheHeaders: [
@@ -70,6 +70,14 @@ use Symfony\Component\Uid\Uuid;
 ])]
 final class CommunityResource
 {
+    /**
+     * Ids of the communities that replace this one. Only on the item: on the collection, it would take a query per community.
+     *
+     * @var list<Uuid>
+     */
+    #[Groups(['community'])]
+    public array $replacedBy = [];
+
     /**
      * @param Field[] $fields
      */

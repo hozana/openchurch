@@ -16,6 +16,7 @@ use App\Shared\Domain\Enum\SearchIndex;
 use App\Tests\Field\DummyFactory\DummyFieldFactory;
 use App\Tests\FieldHolder\Community\DummyFactory\DummyCommunityFactory;
 use App\Tests\Helper\AcceptanceTestHelper;
+use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Zenstruck\Foundry\Test\Factories;
 
@@ -30,6 +31,50 @@ final class GetCommunitiesTest extends AcceptanceTestHelper
         parent::setUp();
         $this->searchHelper = self::getContainer()->get(SearchHelperInterface::class);
         self::getContainer()->get(SearchServiceInterface::class);
+    }
+
+    public function testACommunityListsTheCommunitiesReplacingIt(): void
+    {
+        /** @var Community[] $communities */
+        $communities = DummyCommunityFactory::createMany(3);
+        [$replaced, $replacing, $other] = $communities;
+        DummyFieldFactory::createOne([
+            'name' => FieldCommunity::REPLACES->value,
+            'communitiesVal' => new ArrayCollection([$replaced]),
+            'community' => $replacing,
+        ]);
+        // Like in production, the request loads the replaced community afresh, with the field replacing it
+        $this->em->clear();
+
+        $response = self::assertResponse($this->get('/communities/'.$replaced->id), HttpFoundationResponse::HTTP_OK);
+        self::assertSame([(string) $replacing->id], $response['replacedBy']);
+
+        $response = self::assertResponse($this->get('/communities/'.$other->id), HttpFoundationResponse::HTTP_OK);
+        self::assertSame([], $response['replacedBy']);
+    }
+
+    public function testACommunityGivesItsTimezone(): void
+    {
+        $community = DummyCommunityFactory::createOne();
+        DummyFieldFactory::createOne([
+            'name' => FieldCommunity::TIMEZONE->value,
+            'stringVal' => 'America/Martinique',
+            'community' => $community,
+        ]);
+        $this->em->clear();
+
+        $response = self::assertResponse($this->get('/communities/'.$community->id), HttpFoundationResponse::HTTP_OK);
+        $timezones = array_values(array_filter($response['fields'], static fn (array $field): bool => FieldCommunity::TIMEZONE->value === $field['name']));
+        self::assertCount(1, $timezones);
+        self::assertSame('America/Martinique', $timezones[0]['value']);
+    }
+
+    public function testTheCollectionDoesNotListTheReplacingCommunities(): void
+    {
+        DummyCommunityFactory::createOne();
+
+        $response = self::assertResponse($this->get('/communities'), HttpFoundationResponse::HTTP_OK);
+        self::assertArrayNotHasKey('replacedBy', $response[0]);
     }
 
     public function testFilterByWikidataId(): void

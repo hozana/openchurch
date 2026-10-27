@@ -14,6 +14,12 @@
 {% endblock %}
 
 {% block main %}
+    {% for replacer_id, replacer_label in replacedBy %}
+        <twig:ea:Alert variant="warning" class="replaced-by">
+            Cette paroisse est remplacée par <a href="{{ path('admin_parish_edit', {id: replacer_id}|merge(listState)) }}">{{ replacer_label }}</a>.
+        </twig:ea:Alert>
+    {% endfor %}
+
     <p class="text-muted">
         Identifiant : <code>{{ parish.id }}</code>.
         Les valeurs saisies ici sont enregistrées au nom de l'agent <strong>{{ app.user.agent.name }}</strong>,
@@ -68,6 +74,7 @@
                             {% if field.editable %}
                                 {% set field_form = form[field.name.value] %}
                                 {{ form_widget(field_form.value) }}
+                                {{ form_help(field_form.value) }}
                                 {{ form_errors(field_form.value) }}
                                 <div class="mt-2">{{ form_widget(field_form.explanation) }}</div>
                             {% else %}
@@ -77,7 +84,7 @@
                         <td class="actions">
                             {% if field.editable and field.hasAdminValue %}
                                 <twig:ea:Button variant="danger" size="sm" isInvisible form="reset-{{ field.name.value }}" class="action-reset"
-                                    onclick="return confirm('Supprimer la valeur admin de « {{ field.label|e('js') }} » ? Les modifications non enregistrées de la page seront perdues.')">Réinitialiser</twig:ea:Button>
+                                    onclick="return confirm('Supprimer la valeur admin de « {{ field.label|e('js') }} » ? {% if field.name.value == 'replaces' %}Les paroisses remplacées seront réactivées. {% endif %}Les modifications non enregistrées de la page seront perdues.')">Réinitialiser</twig:ea:Button>
                             {% endif %}
                         </td>
                     </tr>

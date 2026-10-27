@@ -1,10 +1,15 @@
 {% extends '@EasyAdmin/page/content.html.twig' %}
 
+{% set list_state = {q: query, diocese: dioceseId, page: result.page > 1 ? result.page : null}|filter(value => value) %}
+
 {% block page_title 'Paroisses' %}
 {% block content_title 'Paroisses' %}
 
+{% block page_actions %}
+    <twig:ea:Button htmlElement="a" href="{{ path('admin_parish_new', list_state) }}" variant="primary" icon="fa fa-plus" class="action-new">Créer une paroisse</twig:ea:Button>
+{% endblock %}
+
 {% block main %}
-    {% set list_state = {q: query, diocese: dioceseId, page: result.page > 1 ? result.page : null}|filter(value => value) %}
     <form method="get" action="{{ path('admin_parish_index') }}" class="row g-3 align-items-end mb-4" role="search">
         <div class="col-md-6">
             <label for="parish-search-q" class="form-label">Recherche</label>
@@ -33,6 +38,7 @@
     <table class="table datagrid {{ result.rows is empty ? 'datagrid-empty' }}">
         <thead>
             <tr>
+                <th>Id</th>
                 <th>Nom</th>
                 <th>Diocèse</th>
                 <th>Code postal</th>
@@ -45,6 +51,7 @@
         <tbody>
             {% for row in result.rows %}
                 <tr>
+                    <td class="id"><code class="small">{{ row.id }}</code></td>
                     <td>{{ row.name ?? '—' }}</td>
                     <td>{{ row.dioceseName ?? '—' }}</td>
                     <td>{{ row.zipcode ?? '—' }}</td>
@@ -53,6 +60,11 @@
                             <twig:ea:Badge variant="success">Active</twig:ea:Badge>
                         {% elseif row.state == 'deleted' %}
                             <twig:ea:Badge variant="danger">Supprimée</twig:ea:Badge>
+                            {% for replacer_id, replacer_label in row.replacedBy %}
+                                <div class="small text-muted replaced-by">
+                                    Remplacée par <a href="{{ path('admin_parish_edit', {id: replacer_id}|merge(list_state)) }}">{{ replacer_label }}</a>
+                                </div>
+                            {% endfor %}
                         {% else %}
                             —
                         {% endif %}
@@ -71,7 +83,7 @@
                 </tr>
             {% else %}
                 <tr>
-                    <td colspan="7" class="no-results">Aucune paroisse trouvée.</td>
+                    <td colspan="8" class="no-results">Aucune paroisse trouvée.</td>
                 </tr>
             {% endfor %}
         </tbody>

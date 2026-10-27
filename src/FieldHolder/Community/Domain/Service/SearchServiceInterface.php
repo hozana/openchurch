@@ -9,9 +9,11 @@ use App\FieldHolder\Community\Domain\Model\Community;
 interface SearchServiceInterface
 {
     /**
+     * @param bool $activeOnly whether to leave the deleted parishes out
+     *
      * @return string[]
      */
-    public function searchParishIds(string $text, ?string $dioceseId, int $limit, int $offset): array;
+    public function searchParishIds(string $text, ?string $dioceseId, int $limit, int $offset, bool $activeOnly = false): array;
 
     /**
      * Same search as searchParishIds(), also counting all the matching parishes.

@@ -13,6 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Override;
 use Stringable;
 use Symfony\Component\Intl\Countries;
+use Symfony\Component\Intl\Timezones;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -91,6 +92,36 @@ class Community extends FieldHolder implements Stringable
                 ;
             }
         }
+
+        foreach ($this->getFieldsByName(FieldCommunity::TIMEZONE) as $timezoneField) {
+            if (!is_string($timezone = $timezoneField->getValue())) {
+                continue;
+            }
+
+            if (!Timezones::exists($timezone)) {
+                $context->buildViolation("Timezone '{$timezone}' is not valid.")
+                    ->atPath('fields')
+                    ->addViolation()
+                ;
+            }
+        }
+    }
+
+    /**
+     * Ids of the communities that replace this one.
+     *
+     * @return list<Uuid>
+     */
+    public function replacerIds(): array
+    {
+        $replacerIds = [];
+        foreach ($this->fieldsAsCommunitiesVal as $field) {
+            if (FieldCommunity::REPLACES->value === $field->name && null !== $field->community?->id) {
+                $replacerIds[] = $field->community->id;
+            }
+        }
+
+        return $replacerIds;
     }
 
     public function addField(Field $field): static
