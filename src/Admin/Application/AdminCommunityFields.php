@@ -63,6 +63,7 @@ final class AdminCommunityFields
             FieldCommunity::CONTACT_ZIPCODE => 'Code postal',
             FieldCommunity::CONTACT_CITY => 'Ville',
             FieldCommunity::CONTACT_COUNTRY_CODE => 'Code pays',
+            FieldCommunity::TIMEZONE => 'Fuseau horaire',
             FieldCommunity::MESSESINFO_ID => 'Identifiant Messes.info',
             FieldCommunity::WIKIDATA_ID => 'Identifiant Wikidata',
             FieldCommunity::WIKIDATA_UPDATED_AT => 'Mise à jour Wikidata',

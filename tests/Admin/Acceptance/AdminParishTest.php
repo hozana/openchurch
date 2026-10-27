@@ -508,6 +508,18 @@ final class AdminParishTest extends WebTestCase
         self::assertResponseRedirects($editUrl);
     }
 
+    public function testTimezoneIsPickedFromTheTimezoneList(): void
+    {
+        $this->client->loginUser($this->adminUser, 'admin');
+        $editUrl = "/admin/parishes/{$this->parish->id}/edit";
+        $crawler = $this->client->request('GET', $editUrl);
+        self::assertSelectorExists('select[name="community_fields[timezone][value]"] option[value="America/Martinique"]');
+
+        $this->client->submit($crawler->filter('#community-fields-form')->form(['community_fields[timezone][value]' => 'America/Martinique']));
+        self::assertResponseRedirects($editUrl);
+        self::assertSame(['America/Martinique'], $this->storedValues(FieldCommunity::TIMEZONE));
+    }
+
     public function testSearchUnavailable(): void
     {
         $searchService = $this->createStub(SearchServiceInterface::class);

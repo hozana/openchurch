@@ -32,6 +32,9 @@ final readonly class CommunityItemProvider implements ProviderInterface
             throw new CommunityNotFoundException($id);
         }
 
-        return CommunityResource::fromModel($community);
+        $resource = CommunityResource::fromModel($community);
+        $resource->replacedBy = $community->replacerIds();
+
+        return $resource;
     }
 }

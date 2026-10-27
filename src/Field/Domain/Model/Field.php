@@ -236,6 +236,31 @@ class Field
                 ;
             }
         }
+
+        $this->validateSingleReplacement($context);
+    }
+
+    /**
+     * A community is replaced by a single one: its members can only follow one.
+     */
+    private function validateSingleReplacement(ExecutionContextInterface $context): void
+    {
+        if (FieldCommunity::REPLACES->value !== $this->name || null === $this->community || !is_array($this->value)) {
+            return;
+        }
+
+        // The value, not communitiesVal: it is applied once validated
+        foreach (array_filter($this->value, static fn (mixed $item): bool => $item instanceof Community) as $replaced) {
+            $otherReplacements = $replaced->fieldsAsCommunitiesVal->filter(
+                fn (Field $field): bool => FieldCommunity::REPLACES->value === $field->name && $field->community !== $this->community,
+            );
+            if (!$otherReplacements->isEmpty()) {
+                $context->buildViolation(sprintf('Community %s is already replaced by another community: a community is replaced by a single one.', $replaced))
+                    ->atPath('value')
+                    ->addViolation()
+                ;
+            }
+        }
     }
 
     private function getTypeEnum(): FieldCommunity|FieldPlace|false|null

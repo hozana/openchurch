@@ -17,6 +17,7 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\CountryType;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\TimezoneType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormEvent;
@@ -121,6 +122,10 @@ final class CommunityFieldsType extends AbstractType
 
         if (FieldCommunity::CONTACT_COUNTRY_CODE === $name) {
             return [CountryType::class, $common + ['placeholder' => '—']];
+        }
+
+        if (FieldCommunity::TIMEZONE === $name) {
+            return [TimezoneType::class, $common + ['placeholder' => '—']];
         }
 
         if (Types::STRING === $type) {
